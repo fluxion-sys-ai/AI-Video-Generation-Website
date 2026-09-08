@@ -1,69 +1,91 @@
-import Image from "next/image";
+import Link from "next/link";
+
+/* Fluxion logo mark — three lines converging on a gold node */
+function LogoMark({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
+      <path d="M3 9 Q 16 16 29 9" stroke="#7CBDF2" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <path d="M3 16 L 29 16" stroke="#7CBDF2" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.7" />
+      <path d="M3 23 Q 16 16 29 23" stroke="#7CBDF2" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.4" />
+      <circle cx="16" cy="16" r="1.6" fill="#D9A45E" />
+    </svg>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div className="min-h-screen bg-[#0A1322] text-[#E9F1FB] antialiased">
+      {/* Navbar */}
+      <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#0A1322]/80 backdrop-blur">
+        <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+            <LogoMark className="h-7 w-7" />
+            <span>Fluxion Video</span>
+          </Link>
+          <div className="hidden items-center gap-8 text-sm text-[#A9BBD4] md:flex">
+            <Link href="/generate" className="transition-colors hover:text-[#E9F1FB]">Generate</Link>
+            <Link href="/models" className="transition-colors hover:text-[#E9F1FB]">Models</Link>
+            <Link href="/pricing" className="transition-colors hover:text-[#E9F1FB]">Pricing</Link>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#E9F1FB] sm:block">Log in</Link>
+            <Link href="/signup" className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8]">Sign up</Link>
+          </div>
+        </nav>
+      </header>
+
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <img src="/backdrop.svg" alt="" aria-hidden="true"
+             className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70" />
+        <div className="relative mx-auto max-w-3xl px-6 py-28 text-center sm:py-36">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[rgba(124,189,242,0.06)] px-3 py-1 text-xs text-[#A9BBD4]">
+            <LogoMark className="h-4 w-4" /> AI video, generated on your terms
+          </span>
+          <h1 className="mt-6 text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
+            Turn a prompt into<br /><span className="text-[#7CBDF2]">cinematic video</span>.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mx-auto mt-6 max-w-xl text-lg text-[#A9BBD4]">
+            Choose a model, describe your shot, and generate. Clean flow, premium output,
+            no creative-suite bloat.
           </p>
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link href="/generate"
+                  className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] sm:w-auto">
+              Generate Video
+            </Link>
+            <Link href="/models"
+                  className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 font-medium text-[#E9F1FB] transition-colors hover:bg-[rgba(124,189,242,0.06)] sm:w-auto">
+              Explore Models
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Feature strip */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="grid gap-6 sm:grid-cols-3">
+          {[
+            { t: "Any model", d: "Swap between video models with clear, honest capability cards." },
+            { t: "One clean flow", d: "Prompt, options, generate. The video stays the focus." },
+            { t: "Export ready", d: "Choose format, resolution and FPS, then export in a click." },
+          ].map((f) => (
+            <div key={f.t} className="rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#16263F] p-6">
+              <div className="mb-3"><LogoMark className="h-6 w-6" /></div>
+              <h3 className="font-medium">{f.t}</h3>
+              <p className="mt-2 text-sm text-[#A9BBD4]">{f.d}</p>
+            </div>
+          ))}
         </div>
-      </main>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-[rgba(124,189,242,0.14)]">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-[#6E82A0] sm:flex-row">
+          <div className="flex items-center gap-2"><LogoMark className="h-5 w-5" /> Fluxion Video</div>
+          <p>© {new Date().getFullYear()} — Frontend demo. No real generation.</p>
+        </div>
+      </footer>
     </div>
   );
 }
