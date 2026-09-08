@@ -20,10 +20,10 @@ type Draft = {
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
-    <div className="border-t border-[rgba(124,189,242,0.14)] py-5 first:border-t-0 first:pt-0">
-      <div className="mb-2 flex items-baseline justify-between gap-3">
-        <label className="text-sm font-medium text-[#E9F1FB]">{label}</label>
-        {hint && <span className="text-xs text-[#6E82A0]">{hint}</span>}
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between gap-2">
+        <label className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.06em] text-[#9FB2CC]">{label}</label>
+        {hint && <span className="text-xs text-[#5A6B84]">{hint}</span>}
       </div>
       {children}
     </div>
@@ -31,7 +31,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
 }
 
 const selectClass =
-  "w-full rounded-[10px] border border-[rgba(124,189,242,0.2)] bg-[#0E1730] px-3 py-2.5 text-sm outline-none focus:border-[#7CBDF2]";
+  "w-full rounded-[8px] border border-[rgba(124,189,242,0.2)] bg-[#0B1524] px-3 py-2 text-sm outline-none focus:border-[#7CBDF2]";
 
 function GenerateInner() {
   const router = useRouter();
@@ -101,7 +101,7 @@ function GenerateInner() {
   const credits = model.creditsPerSecond * duration;
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-6 py-12 lg:grid-cols-[260px_1fr]">
+    <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 lg:grid-cols-[260px_1fr]">
       {/* Sidebar */}
       <aside className="lg:sticky lg:top-28 lg:self-start">
         <div className="rounded-[10px] border border-[rgba(124,189,242,0.14)] p-5">
@@ -167,79 +167,79 @@ function GenerateInner() {
         <h1 className="font-[family-name:var(--font-sora)] text-3xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
         <p className="mt-2 max-w-2xl text-[#A9BBD4]">{model.description}</p>
 
-        <div className="mt-8 rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0E1730]/50 p-6 backdrop-blur-sm">
+        <div className="mt-6 space-y-4 rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0B1524] p-5">
+          <Field label="Prompt" hint={`${prompt.length} chars`}>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              rows={3}
+              placeholder="Describe the shot: subject, motion, camera, lighting."
+              className={`${selectClass} resize-none`}
+            />
+          </Field>
+
           {model.supports.image && (
-            <Field label="Upload image" hint="Optional">
-              <label className="flex cursor-pointer items-center justify-between rounded-[10px] border border-dashed border-[rgba(124,189,242,0.24)] px-3 py-3 text-sm text-[#A9BBD4] hover:border-[#7CBDF2]">
-                <span>{imageName ?? "Choose an image to animate"}</span>
-                <span className="text-[#7CBDF2]">Browse</span>
+            <Field label="Image" hint="Optional">
+              <label className="flex cursor-pointer items-center justify-between rounded-[8px] border border-dashed border-[rgba(124,189,242,0.24)] px-3 py-2 text-sm text-[#9FB2CC] hover:border-[#7CBDF2]">
+                <span className="truncate">{imageName ?? "Choose an image to animate"}</span>
+                <span className="ml-2 shrink-0 text-[#7CBDF2]">Browse</span>
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => setImageName(e.target.files?.[0]?.name ?? null)} />
               </label>
             </Field>
           )}
 
-          <Field label="Aspect ratio">
-            <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={selectClass}>
-              {model.aspectRatios.map((r) => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Resolution">
-            <select value={resolution} onChange={(e) => setResolution(e.target.value)} className={selectClass}>
-              {model.resolutions.map((r) => (
-                <option key={r} value={r}>
-                  {model.popularResolutions.includes(r) ? `★ ${r}` : r}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Duration" hint="Seconds">
-            <input
-              type="number"
-              min={model.durations[0]}
-              max={model.durations[model.durations.length - 1]}
-              value={duration}
-              onChange={(e) => setDuration(Number(e.target.value))}
-              className={selectClass}
-            />
-          </Field>
-
-          {model.supports.audio && (
-            <Field label="Audio" hint="Include a soundtrack">
-              <button
-                type="button"
-                role="switch"
-                aria-checked={audio}
-                onClick={() => setAudio((v) => !v)}
-                className={`relative h-6 w-11 rounded-full transition-colors ${audio ? "bg-[#7CBDF2]" : "bg-[#1D3149]"}`}
-              >
-                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${audio ? "left-[22px]" : "left-0.5"}`} />
-              </button>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Aspect ratio">
+              <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={selectClass}>
+                {model.aspectRatios.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
             </Field>
-          )}
 
-          <Field label="Prompt" hint={`${prompt.length} chars`}>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              rows={4}
-              placeholder="Describe the shot in detail: subject, motion, camera, lighting."
-              className={`${selectClass} resize-y`}
-            />
-          </Field>
+            <Field label="Resolution">
+              <select value={resolution} onChange={(e) => setResolution(e.target.value)} className={selectClass}>
+                {model.resolutions.map((r) => (
+                  <option key={r} value={r}>
+                    {model.popularResolutions.includes(r) ? `★ ${r}` : r}
+                  </option>
+                ))}
+              </select>
+            </Field>
 
-          <div className="border-t border-[rgba(124,189,242,0.14)] pt-5">
-            <button
-              onClick={onGenerate}
-              disabled={status === "generating"}
-              className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {status === "generating" ? "Generating…" : "Generate"}
-            </button>
+            <Field label="Duration" hint="Seconds">
+              <input
+                type="number"
+                min={model.durations[0]}
+                max={model.durations[model.durations.length - 1]}
+                value={duration}
+                onChange={(e) => setDuration(Number(e.target.value))}
+                className={selectClass}
+              />
+            </Field>
+
+            {model.supports.audio && (
+              <Field label="Audio">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={audio}
+                  onClick={() => setAudio((v) => !v)}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${audio ? "bg-[#7CBDF2]" : "bg-[#1D3149]"}`}
+                >
+                  <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${audio ? "left-[22px]" : "left-0.5"}`} />
+                </button>
+              </Field>
+            )}
           </div>
+
+          <button
+            onClick={onGenerate}
+            disabled={status === "generating"}
+            className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {status === "generating" ? "Generating…" : "Generate"}
+          </button>
         </div>
 
         {/* Result / status */}
@@ -247,7 +247,7 @@ function GenerateInner() {
           <div className="mt-8 rounded-[10px] border border-[rgba(124,189,242,0.14)] p-6">
             {status === "generating" && (
               <div>
-                <p className="text-sm text-[#A9BBD4]">Hang tight — generating your video…</p>
+                <p className="text-sm text-[#A9BBD4]">Hang tight, generating your video…</p>
                 <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-[#1D3149]">
                   <div className="h-full w-1/3 animate-pulse rounded-full bg-[#7CBDF2]" />
                 </div>

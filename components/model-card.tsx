@@ -19,16 +19,11 @@ export function ModelCard({ model }: { model: Model }) {
   }
 
   return (
-    <Link
-      href={`/generate?model=${model.slug}`}
-      onMouseEnter={play}
-      onMouseLeave={stop}
-      className="group block overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0E1730] transition-colors hover:border-[rgba(124,189,242,0.35)]"
-    >
-      <div className="relative aspect-video overflow-hidden bg-black">
+    <Link href={`/generate?model=${model.slug}`} onMouseEnter={play} onMouseLeave={stop} className="group block">
+      <div className="relative aspect-video overflow-hidden rounded-[10px] bg-black">
         <video
           ref={videoRef}
-          className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
+          className="h-full w-full object-cover opacity-95 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-100"
           src={model.demoVideo}
           poster={model.poster}
           muted
@@ -36,23 +31,20 @@ export function ModelCard({ model }: { model: Model }) {
           playsInline
           preload="metadata"
         />
-        <span className="absolute left-3 top-3 rounded-[6px] border border-[rgba(148,170,200,0.3)] bg-black/40 px-2 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-[#A9BBD4] backdrop-blur">
-          Demo
-        </span>
       </div>
-      <div className="p-5">
+      <div className="mt-4">
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="font-[family-name:var(--font-sora)] text-lg font-medium uppercase tracking-[0.01em] text-[#E9F1FB]">{model.name}</h3>
-          <span className="font-[family-name:var(--font-jetbrains)] text-xs text-[#6E82A0]">{model.tagline}</span>
+          <h3 className="font-[family-name:var(--font-sora)] text-lg font-medium uppercase tracking-[0.02em] text-[#F4F8FE] transition-colors group-hover:text-[#F5C46B]">
+            {model.name}
+          </h3>
+          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-[#E0A24E]">
+            {model.tagline}
+          </span>
         </div>
-        <p className="mt-2 text-sm text-[#A9BBD4]">{model.description}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {model.capabilities.map((c) => (
-            <span key={c} className="rounded-full border border-[rgba(124,189,242,0.18)] px-2.5 py-0.5 text-xs text-[#A9BBD4]">
-              {c}
-            </span>
-          ))}
-        </div>
+        <p className="mt-2 text-sm text-[#9FB2CC]">{model.description}</p>
+        <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#5A6B84]">
+          {model.capabilities.join("  ·  ")}
+        </p>
       </div>
     </Link>
   );

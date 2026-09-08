@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
-export const metadata = { title: "Pricing — Fluxion AI Video" };
+export const metadata = { title: "Pricing · Fluxion AI Video" };
 
 const PLANS = [
   {
@@ -42,13 +42,14 @@ export default function PricingPage() {
     <div className="min-h-screen">
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-6 py-16">
-        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#7CBDF2]">
-          — Pricing
+        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
+          Pricing
         </span>
         <h1 className="mt-2 font-[family-name:var(--font-sora)] text-4xl font-medium uppercase tracking-[0.01em]">
           Plans and credits
         </h1>
-        <p className="mt-3 max-w-xl text-[#A9BBD4]">
+        <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
+        <p className="mt-4 max-w-xl text-[#9FB2CC]">
           Credits are spent per second of generated video. Pick a plan and start generating.
         </p>
 
@@ -78,7 +79,7 @@ export default function PricingPage() {
               <ul className="mt-6 space-y-2 text-sm text-[#A9BBD4]">
                 {p.features.map((f) => (
                   <li key={f} className="flex items-center gap-2">
-                    <span className="text-[#7CBDF2]">—</span>
+                    <span className="text-[#E0A24E]">•</span>
                     {f}
                   </li>
                 ))}
@@ -96,7 +97,7 @@ export default function PricingPage() {
             </div>
           ))}
         </div>
-        <p className="mt-4 text-xs text-[#6E82A0]">Frontend demo — no payment is processed.</p>
+        <p className="mt-4 text-xs text-[#6E82A0]">Frontend demo. No payment is processed.</p>
       </main>
       <SiteFooter />
     </div>

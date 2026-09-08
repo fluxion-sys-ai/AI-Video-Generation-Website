@@ -21,7 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Fluxion AI Video",
-  description: "AI video generator — choose a model, write a prompt, generate.",
+  description: "AI video generator. Choose a model, write a prompt, generate.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
