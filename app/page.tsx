@@ -1,106 +1,76 @@
 import Link from "next/link";
-
-/* Fluxion icon — three lines converging on a gold node */
-function LogoMark({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
-      <path d="M3 9 Q 16 16 29 9" stroke="#7CBDF2" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-      <path d="M3 16 L 29 16" stroke="#7CBDF2" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.7" />
-      <path d="M3 23 Q 16 16 29 23" stroke="#7CBDF2" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.4" />
-      <circle cx="16" cy="16" r="1.6" fill="#D9A45E" />
-    </svg>
-  );
-}
-
-/* Exact Fluxion wordmark: icon + "fluxion" (Sora) + boxed mono "AI VIDEO" */
-function Brand({ mark = "h-[27px] w-[27px]" }: { mark?: string }) {
-  return (
-    <Link href="/" className="flex items-center gap-[11px] text-[#E9F1FB]">
-      <LogoMark className={mark} />
-      <span className="flex items-baseline gap-2 font-[family-name:var(--font-sora)] text-[19px] font-medium tracking-[-0.02em]">
-        fluxion
-        <span className="relative -top-[2px] rounded-[4px] border border-[rgba(148,170,200,0.3)] px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[11px] tracking-[0.08em] text-[#A9BBD4]">
-          AI VIDEO
-        </span>
-      </span>
-    </Link>
-  );
-}
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { ModelCard } from "@/components/model-card";
+import { getModels } from "@/lib/models";
 
 export default function Home() {
+  const models = getModels();
+
   return (
-    <div className="min-h-screen bg-[#0A1322] text-[#E9F1FB]">
-      {/* Navbar */}
-      <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#0A1322]/80 backdrop-blur">
-        <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
-          <div className="flex items-center gap-8">
-            <Brand />
-            <div className="hidden items-center gap-7 text-base text-[#A9BBD4] md:flex">
-              <Link href="/generate" className="transition-colors hover:text-[#E9F1FB]">Generate</Link>
-              <Link href="/models" className="transition-colors hover:text-[#E9F1FB]">Models</Link>
-              <Link href="/pricing" className="transition-colors hover:text-[#E9F1FB]">Pricing</Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 text-base">
-            <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#E9F1FB] sm:block">Log in</Link>
-            <Link href="/signup" className="rounded-[10px] bg-[#7CBDF2] px-5 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8]">Sign up</Link>
-          </div>
-        </nav>
-      </header>
+    <div className="min-h-screen">
+      <SiteHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <img src="/backdrop.svg" alt="" aria-hidden="true"
-             className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70" />
-        <div className="relative mx-auto max-w-6xl px-6 py-28 text-left sm:py-36">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(139,124,242,0.3)] bg-[rgba(139,124,242,0.08)] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#A99CF7]">
+      <section className="relative overflow-hidden border-b border-[rgba(124,189,242,0.14)]">
+        <img
+          src="/backdrop.svg"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70"
+        />
+        <div className="relative mx-auto max-w-6xl px-6 py-32 sm:py-44">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[rgba(124,189,242,0.06)] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#A9BBD4]">
             Text-to-video · Image-to-video
           </span>
-          <h1 className="mt-6 font-[family-name:var(--font-sora)] text-4xl font-medium leading-tight tracking-[-0.025em] sm:text-6xl">
-            Generate video<br />from a <span className="text-[#7CBDF2]">prompt</span>.
+          <h1 className="mt-6 max-w-3xl font-[family-name:var(--font-sora)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.02em] sm:text-7xl">
+            AI video<br />generation
           </h1>
           <p className="mt-6 max-w-xl text-lg text-[#A9BBD4]">
             Pick a model, describe the shot, and generate. Download or export the result.
           </p>
           <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
-            <Link href="/generate"
-                  className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] sm:w-auto">
-              Generate video
+            <Link
+              href="/signup"
+              className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] sm:w-auto"
+            >
+              Get started
             </Link>
-            <Link href="/models"
-                  className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 font-medium text-[#E9F1FB] transition-colors hover:bg-[rgba(124,189,242,0.06)] sm:w-auto">
-              Browse models
-            </Link>
+            <a
+              href="#models"
+              className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 text-center font-medium text-[#E9F1FB] transition-colors hover:bg-[rgba(124,189,242,0.06)] sm:w-auto"
+            >
+              Explore models
+            </a>
           </div>
         </div>
       </section>
 
-      {/* Feature strip */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <div className="grid gap-6 sm:grid-cols-3">
-          {[
-            { n: "01", t: "Choose a model", d: "Compare models by capability, duration, and resolution.", c: "#7CBDF2" },
-            { n: "02", t: "Set prompt and options", d: "Write a prompt, then set duration, aspect ratio, and sound.", c: "#8B7CF2" },
-            { n: "03", t: "Export the result", d: "Download or export as MP4 at your chosen resolution and FPS.", c: "#D9A45E" },
-          ].map((f) => (
-            <div key={f.n}
-                 className="group relative overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#16263F]/50 p-6 backdrop-blur-sm transition-colors hover:border-[rgba(124,189,242,0.3)]">
-              <div className="absolute inset-x-0 top-0 h-px opacity-60" style={{ background: `linear-gradient(90deg, transparent, ${f.c}, transparent)` }} />
-              <span className="font-[family-name:var(--font-jetbrains)] text-xs tracking-[0.1em]" style={{ color: f.c }}>{f.n}</span>
-              <h3 className="mt-3 font-[family-name:var(--font-sora)] font-medium">{f.t}</h3>
-              <p className="mt-2 text-sm text-[#A9BBD4]">{f.d}</p>
+      {/* Models showcase */}
+      <section id="models" className="scroll-mt-24 border-b border-[rgba(124,189,242,0.14)]">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#7CBDF2]">
+                — Models
+              </span>
+              <h2 className="mt-2 font-[family-name:var(--font-sora)] text-3xl font-medium tracking-[-0.02em]">
+                Explore our models
+              </h2>
             </div>
-          ))}
+            <Link href="/models" className="hidden text-sm text-[#A9BBD4] transition-colors hover:text-[#E9F1FB] sm:block">
+              View all →
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {models.map((m) => (
+              <ModelCard key={m.slug} model={m} />
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-[rgba(124,189,242,0.14)]">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-[#6E82A0] sm:flex-row">
-          <Brand mark="h-5 w-5" />
-          <p>© {new Date().getFullYear()} — Frontend demo. No real generation.</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

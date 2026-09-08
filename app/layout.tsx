@@ -28,9 +28,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${sora.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${sora.variable} ${jetbrainsMono.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="min-h-full flex flex-col font-[family-name:var(--font-geist-sans)]">
+      <body className="min-h-full flex flex-col bg-[#0A1322] text-[#E9F1FB] font-[family-name:var(--font-geist-sans)]">
         {children}
       </body>
     </html>
