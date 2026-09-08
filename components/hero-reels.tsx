@@ -60,7 +60,7 @@ function ReelSlot({ videos, startMs, holdMs }: Slot) {
   const unit = 100 / (n + 1); // each frame is this % of the track height
 
   return (
-    <div className="relative aspect-[9/16] w-[150px] overflow-hidden bg-black">
+    <div className="relative aspect-[9/16] w-[260px] overflow-hidden bg-black">
       <div
         className="absolute inset-0"
         style={{
