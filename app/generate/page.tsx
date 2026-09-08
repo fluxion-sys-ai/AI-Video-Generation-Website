@@ -164,7 +164,7 @@ function GenerateInner() {
 
       {/* Main form */}
       <main>
-        <h1 className="font-[family-name:var(--font-sora)] text-3xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
+        <h1 className="font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
         <p className="mt-2 max-w-2xl text-[#A9BBD4]">{model.description}</p>
 
         <div className="mt-6 space-y-4 rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0B1524] p-5">

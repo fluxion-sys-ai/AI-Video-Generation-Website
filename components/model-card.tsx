@@ -34,7 +34,7 @@ export function ModelCard({ model }: { model: Model }) {
       </div>
       <div className="mt-4">
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="font-[family-name:var(--font-sora)] text-lg font-medium uppercase tracking-[0.02em] text-[#F4F8FE] transition-colors group-hover:text-[#F5C46B]">
+          <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em] text-[#F4F8FE] transition-colors group-hover:text-[#F5C46B]">
             {model.name}
           </h3>
           <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-[#E0A24E]">

@@ -22,7 +22,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   return (
     <main className="mx-auto flex max-w-sm flex-col px-6 py-20">
-      <h1 className="font-[family-name:var(--font-sora)] text-3xl font-medium uppercase tracking-[0.02em]">{title}</h1>
+      <h1 className="font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.02em]">{title}</h1>
       <p className="mt-2 text-sm text-[#A9BBD4]">
         {next !== "/generate"
           ? "Sign in to continue. Your form is saved."

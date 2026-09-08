@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { ModelCard } from "@/components/model-card";
-import { getModels } from "@/lib/models";
+import { ModelMarquee } from "@/components/model-marquee";
+import { Reveal } from "@/components/reveal";
 
 function Kicker({ label }: { label: string }) {
   return (
@@ -13,26 +13,18 @@ function Kicker({ label }: { label: string }) {
 }
 
 export default function Home() {
-  const models = getModels();
-
   return (
     <div className="min-h-screen">
       <SiteHeader />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <img
-          src="/backdrop.svg"
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 py-28 sm:py-36 lg:grid-cols-[1fr_auto]">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
               Text-to-video, image-to-video
             </span>
-            <h1 className="mt-6 max-w-2xl font-[family-name:var(--font-sora)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-7xl">
+            <h1 className="mt-6 max-w-2xl font-[family-name:var(--font-jetbrains)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-7xl">
               AI video<br />generation
             </h1>
             <p className="mt-6 max-w-md text-lg text-[#9FB2CC]">
@@ -82,46 +74,46 @@ export default function Home() {
 
       {/* Walkthrough */}
       <section className="mx-auto max-w-6xl px-6 py-20">
-        <Kicker label="Walkthrough" />
-        <h2 className="mt-2 font-[family-name:var(--font-sora)] text-3xl font-medium uppercase tracking-[0.01em]">
-          See it in action
-        </h2>
-        <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
-        <p className="mt-4 max-w-xl text-[#9FB2CC]">
-          Watch a prompt become a finished video in under a minute.
-        </p>
-        <div className="mt-8 overflow-hidden rounded-[10px] bg-black">
-          <video
-            className="aspect-video w-full object-cover"
-            src="/walkthrough.mp4"
-            poster="/backdrop.svg"
-            controls
-            preload="metadata"
-            playsInline
-          />
-        </div>
+        <Reveal>
+          <Kicker label="Walkthrough" />
+          <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
+            See it in action
+          </h2>
+          <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
+          <p className="mt-4 max-w-xl text-[#9FB2CC]">
+            Watch a prompt become a finished video in under a minute.
+          </p>
+          <div className="mt-8 overflow-hidden rounded-[10px] bg-black">
+            <video
+              className="aspect-video w-full object-cover"
+              src="/walkthrough.mp4"
+              poster="/backdrop.svg"
+              controls
+              preload="metadata"
+              playsInline
+            />
+          </div>
+        </Reveal>
       </section>
 
       {/* Models showcase */}
-      <section id="models" className="scroll-mt-24">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+      <section id="models" className="scroll-mt-24 py-20">
+        <Reveal className="mx-auto max-w-6xl px-6">
           <div className="flex items-end justify-between gap-4">
             <div>
               <Kicker label="Models" />
-              <h2 className="mt-2 font-[family-name:var(--font-sora)] text-3xl font-medium uppercase tracking-[0.01em]">
+              <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
                 Explore our models
               </h2>
               <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
             </div>
-            <Link href="/models" className="hidden text-sm text-[#9FB2CC] transition-colors hover:text-[#E9F1FB] sm:block">
+            <Link href="/models" className="hidden text-sm text-[#9FB2CC] transition-colors hover:text-[#F5C46B] sm:block">
               View all
             </Link>
           </div>
-          <div className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-            {models.map((m) => (
-              <ModelCard key={m.slug} model={m} />
-            ))}
-          </div>
+        </Reveal>
+        <div className="mt-10">
+          <ModelMarquee />
         </div>
       </section>
 

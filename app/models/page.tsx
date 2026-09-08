@@ -15,7 +15,7 @@ export default function ModelsPage() {
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
           Models
         </span>
-        <h1 className="mt-2 font-[family-name:var(--font-sora)] text-4xl font-medium uppercase tracking-[0.01em]">
+        <h1 className="mt-2 font-[family-name:var(--font-jetbrains)] text-4xl font-medium uppercase tracking-[0.01em]">
           Model catalog
         </h1>
         <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />

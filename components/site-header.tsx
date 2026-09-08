@@ -31,7 +31,7 @@ function NavMenu({ label, children }: { label: string; children: React.ReactNode
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 text-base text-[#A9BBD4] transition-colors hover:text-[#E9F1FB]"
+        className="flex items-center gap-1 text-sm uppercase tracking-[0.06em] text-[#A9BBD4] transition-colors hover:text-[#F5C46B]"
       >
         {label}
         <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="mt-0.5 opacity-70">
@@ -53,10 +53,10 @@ function MenuItem({ href, title, sub }: { href: string; title: string; sub?: str
   return (
     <Link
       href={href}
-      className="block rounded-[7px] px-3 py-2 transition-colors hover:bg-[rgba(124,189,242,0.08)]"
+      className="group block rounded-[7px] px-3 py-2 transition-colors hover:bg-[rgba(124,189,242,0.08)]"
     >
-      <div className="text-sm text-[#E9F1FB]">{title}</div>
-      {sub && <div className="text-xs text-[#6E82A0]">{sub}</div>}
+      <div className="text-sm uppercase tracking-[0.04em] text-[#E9F1FB] transition-colors group-hover:text-[#F5C46B]">{title}</div>
+      {sub && <div className="text-xs normal-case tracking-normal text-[#6E82A0]">{sub}</div>}
     </Link>
   );
 }
@@ -64,7 +64,7 @@ function MenuItem({ href, title, sub }: { href: string; title: string; sub?: str
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#0A1322]/80 backdrop-blur">
-      <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
+      <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6 font-[family-name:var(--font-jetbrains)]">
         <div className="flex items-center gap-8">
           <Brand />
           <div className="hidden items-center gap-7 md:flex">
@@ -81,8 +81,8 @@ export function SiteHeader() {
             </NavMenu>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-base">
-          <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#E9F1FB] sm:block">
+        <div className="flex items-center gap-4 text-sm uppercase tracking-[0.06em]">
+          <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#F5C46B] sm:block">
             Login
           </Link>
           <Link
