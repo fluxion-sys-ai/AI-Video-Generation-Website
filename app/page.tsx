@@ -57,7 +57,7 @@ export default function Home() {
         <div className="absolute right-0 top-1/2 hidden -translate-y-1/2 lg:block">
           <video
             className="phone-glow aspect-[9/16] w-[340px] rounded-l-[14px] border border-r-0 border-[rgba(255,193,94,0.35)] bg-black object-cover"
-            src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"
+            src={`${BASE}/hero.mp4`}
             autoPlay
             muted
             loop
