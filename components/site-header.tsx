@@ -7,8 +7,9 @@ import { getModels } from "@/lib/models";
 
 const models = getModels();
 
-/* Hover/click dropdown — no extra deps, keyboard + outside-click aware. */
-function NavMenu({ label, children }: { label: string; children: React.ReactNode }) {
+/* Hover/click dropdown — no extra deps, keyboard + outside-click aware.
+   With `href`, clicking the label navigates (hover still opens the menu). */
+function NavMenu({ label, href, children }: { label: string; href?: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -27,17 +28,30 @@ function NavMenu({ label, children }: { label: string; children: React.ReactNode
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 text-sm uppercase tracking-[0.06em] text-[#A9BBD4] transition-colors hover:text-[#F5C46B]"
-      >
-        {label}
-        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="mt-0.5 opacity-70">
-          <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        </svg>
-      </button>
+      {href ? (
+        <Link
+          href={href}
+          aria-expanded={open}
+          className="flex items-center gap-1 text-sm uppercase tracking-[0.06em] text-[#A9BBD4] transition-colors hover:text-[#F5C46B]"
+        >
+          {label}
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="mt-0.5 opacity-70">
+            <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          </svg>
+        </Link>
+      ) : (
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-1 text-sm uppercase tracking-[0.06em] text-[#A9BBD4] transition-colors hover:text-[#F5C46B]"
+        >
+          {label}
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="mt-0.5 opacity-70">
+            <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          </svg>
+        </button>
+      )}
       {open && (
         <div className="absolute left-0 top-full min-w-56 pt-3">
           <div className="overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0E1730] p-1 shadow-xl shadow-black/40">
@@ -68,7 +82,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-8">
           <Brand />
           <div className="hidden items-center gap-7 md:flex">
-            <NavMenu label="Models">
+            <NavMenu label="Models" href="/models">
               {models.map((m) => (
                 <MenuItem key={m.slug} href={`/generate?model=${m.slug}`} title={m.name} sub={m.tagline} />
               ))}

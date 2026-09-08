@@ -24,13 +24,13 @@ export default function Home() {
       <SiteHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 py-28 sm:py-36 lg:grid-cols-[1fr_auto]">
-          <div>
+      <section className="relative overflow-hidden lg:min-h-[640px]">
+        <div className="relative mx-auto max-w-6xl px-6 py-28 sm:py-36">
+          <div className="max-w-xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
               Text-to-video, image-to-video
             </span>
-            <h1 className="mt-6 max-w-2xl font-[family-name:var(--font-jetbrains)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-7xl">
+            <h1 className="mt-6 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-7xl">
               AI video<br />generation
             </h1>
             <p className="mt-6 max-w-md text-lg text-[#9FB2CC]">
@@ -50,31 +50,20 @@ export default function Home() {
                 Explore models
               </a>
             </div>
-
-            {/* scrubber / scroll cue */}
-            <a href="#models" className="mt-8 inline-flex items-center gap-3 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.12em] text-[#5A6B84] transition-colors hover:text-[#9FB2CC]">
-              <svg width="150" height="12" viewBox="0 0 150 12" aria-hidden="true">
-                <line x1="4" y1="6" x2="146" y2="6" stroke="#26374F" strokeWidth="1" />
-                <circle cy="6" r="3" fill="#F5C46B">
-                  <animate attributeName="cx" values="4;146;4" dur="4.5s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1" />
-                </circle>
-              </svg>
-              Scroll
-            </a>
           </div>
+        </div>
 
-          {/* Vertical demo video — nudged right to cover where the dots land */}
-          <div className="hidden justify-self-end lg:block lg:translate-x-10">
-            <video
-              className="aspect-[9/16] w-[300px] rounded-[12px] border border-[rgba(255,193,94,0.35)] bg-black object-cover shadow-[0_20px_55px_rgba(0,0,0,0.55),0_0_80px_-8px_rgba(255,193,94,0.5)]"
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-            />
-          </div>
+        {/* Vertical demo video — flush to the right edge, glows as dots pass its left edge */}
+        <div className="absolute right-0 top-1/2 hidden -translate-y-1/2 lg:block">
+          <video
+            className="phone-glow aspect-[9/16] w-[340px] rounded-l-[14px] border border-r-0 border-[rgba(255,193,94,0.35)] bg-black object-cover"
+            src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+          />
         </div>
       </section>
 

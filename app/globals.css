@@ -140,3 +140,16 @@
 .marquee-pause:hover .animate-marquee {
   animation-play-state: paused;
 }
+
+/* phone glow pulse — reads as orange dots hitting the left edge */
+@keyframes phoneGlow {
+  0%, 100% {
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.55), 0 0 34px -14px rgba(255, 193, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.55), 0 0 100px -2px rgba(255, 193, 94, 0.8);
+  }
+}
+.phone-glow {
+  animation: phoneGlow 1.9s ease-in-out infinite;
+}

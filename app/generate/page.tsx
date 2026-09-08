@@ -37,6 +37,19 @@ const selectClass =
 const compactSelect =
   "rounded-[8px] border border-[rgba(124,189,242,0.2)] bg-[#0B1524] px-3 py-2 text-sm outline-none focus:border-[#7CBDF2]";
 
+// little box that visually shows the selected aspect ratio
+function AspectPreview({ ratio }: { ratio: string }) {
+  const [w, h] = ratio.split(":").map(Number);
+  return (
+    <span
+      className="inline-block h-10 shrink-0 rounded-[4px] border border-[rgba(124,189,242,0.4)] bg-[#101E36]"
+      style={{ aspectRatio: `${w} / ${h}` }}
+      title={ratio}
+      aria-label={`Aspect ${ratio}`}
+    />
+  );
+}
+
 function GenerateInner() {
   const router = useRouter();
   const params = useSearchParams();
@@ -193,11 +206,14 @@ function GenerateInner() {
           {/* compact inline controls */}
           <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
             <Field label="Aspect ratio">
-              <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={compactSelect}>
-                {model.aspectRatios.map((r) => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </select>
+              <div className="flex items-center gap-3">
+                <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={compactSelect}>
+                  {model.aspectRatios.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+                <AspectPreview ratio={aspect} />
+              </div>
             </Field>
 
             <Field label="Resolution">
@@ -210,11 +226,11 @@ function GenerateInner() {
               </select>
             </Field>
 
-            <Field label="Duration" hint="sec">
+            <Field label="Duration" hint="3-15 sec">
               <input
                 type="number"
-                min={model.durations[0]}
-                max={model.durations[model.durations.length - 1]}
+                min={3}
+                max={15}
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
                 className={`${compactSelect} w-20`}
