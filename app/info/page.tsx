@@ -7,14 +7,14 @@ export default function InfoPage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="max-w-3xl px-6 py-16">
+      <main className="mx-auto max-w-3xl px-6 py-16 text-center">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
           Info
         </span>
         <h1 className="mt-2 font-[family-name:var(--font-jetbrains)] text-4xl font-medium uppercase tracking-[0.01em]">
           About Fluxion AI Video
         </h1>
-        <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
+        <span className="mx-auto mt-3 block h-px w-10 bg-[#E0A24E]" />
 
         <p className="mt-6 text-[#9FB2CC]">
           Fluxion AI Video turns a prompt into video. Choose a model, set your options, and

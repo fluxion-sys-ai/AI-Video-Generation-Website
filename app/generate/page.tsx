@@ -279,12 +279,24 @@ function GenerateInner() {
           )}
         </div>
         {status === "complete" && resultUrl && (
-          <div className="flex flex-wrap justify-center gap-3">
-            <a href={resultUrl} download className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#A6D4F8]">
-              Download
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <a href={resultUrl} download="fluxion-video.mp4" className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#A6D4F8]">
+              Download MP4
             </a>
-            <button onClick={onGenerate} className="text-sm text-[#7CBDF2] hover:text-[#F5C46B]">
+            <a href={resultUrl} download="fluxion-video.webm" className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
+              WebM
+            </a>
+            <a href={resultUrl} download="fluxion-video.gif" className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
+              GIF
+            </a>
+            <button onClick={onGenerate} className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
               Regenerate
+            </button>
+            <button
+              onClick={() => { setStatus("idle"); setResultUrl(null); }}
+              className="px-2 text-sm text-[#7CBDF2] hover:text-[#F5C46B]"
+            >
+              Reprompt
             </button>
           </div>
         )}

@@ -6,44 +6,65 @@ A polished, frontend-only AI video generator. Choose a model, write a prompt,
 set options, generate, watch, and export. There is no real backend or AI
 inference: all data and generation is mocked behind a swappable service layer.
 
-Styled to match [Fluxion](https://fluxion-sys.ai): dark UI, converging-line
-motif, sky-blue (`#7CBDF2`) accent with a warm gold highlight, JetBrains Mono
-headings.
+Styled to match [Fluxion](https://fluxion-sys.ai): dark UI, JetBrains Mono
+headings, sky-blue (`#7CBDF2`) accent with a warm gold (`#E0A24E`) highlight.
 
-## Features
+## Where to change the media (no code needed)
 
-- **Landing page** with an animated background (gradient plus orange dots that
-  flow into the demo video), scroll-reveal sections, and an auto-scrolling row
-  of model cards.
-- **Model catalog** with hover-to-play video previews.
-- **Generation page** (`/generate?model=<slug>`):
-  - Prompt, optional image upload, aspect ratio (with a live shape preview),
-    resolution, duration (3-15s), and an audio toggle.
-  - Options shown adapt to what each model supports.
-  - Mock generation with an indeterminate "Hang tight" state, then a result
-    video with Download / Regenerate.
-  - If signed out, it saves the form, sends you to sign in, and refills it
-    afterward (mock auth via `localStorage`).
-  - Sidebar with per-model pricing estimate, Examples, and Other Models.
-- **Pricing page** with a plan grid and a dots-around-the-plans animation.
-- **Login / Signup** (mock, including a "Continue with Google" button).
-- **Info page** with basic info and contact details.
-- Responsive layout, sticky nav with a Models dropdown, and a Fluxion favicon.
+All swappable videos live under **`public/`**. Drop files in with the exact
+names below and they show up automatically (rebuild/redeploy to publish).
 
-## Sample content is placeholder
+| What | Location | File names |
+| --- | --- | --- |
+| **Hero reels** (3 slots, auto-swipe carousel) | `public/reels/slot1/`, `public/reels/slot2/`, `public/reels/slot3/` | `a.mp4`, `b.mp4`, `c.mp4` in each slot (each slot cycles through whatever it has) |
+| **Model card thumbnails** | `public/models/` | `aurora.mp4`, `pulse.mp4`, `volt.mp4`, `nova.mp4` (must match the model slug) |
+| **"See it in action" walkthrough** | `public/demos/` | `walkthrough.mp4` |
+| **Other demo videos** | `public/demos/` | any name; reference them where you use them |
 
-The model **names, descriptions, taglines, capabilities, and demo/result
-videos are sample data** and are meant to be replaced later. They live in one
-file: [`lib/models.ts`](lib/models.ts). Edit that array to change model info,
-or swap the video URLs (currently public sample clips) for real ones.
+Notes:
+- Reels are vertical (9:16) and `object-cover`, so any clip is cropped to fit.
+- Keep clips small (1–3 MB) — the hero plays several at once.
+- A model with no uploaded thumbnail falls back to its poster image (no black card).
 
-- Hero video: replace `public/hero.mp4`.
-- Model demo/result videos and posters: the `demoVideo` / `poster` fields in
-  `lib/models.ts`.
-- Pricing plans: the `PLANS` array in `app/pricing/page.tsx`.
+## Where to change the text / data
 
-Mock services (auth, drafts) live in [`lib/auth.ts`](lib/auth.ts) so they can be
-swapped for real APIs later.
+| What | File |
+| --- | --- |
+| Model names, taglines, descriptions, capabilities, durations, resolutions, aspect ratios, pricing-per-second | `lib/models.ts` (the `MODELS` array) |
+| Pricing plans (price, credits, features) | `app/pricing/page.tsx` (the `PLANS` array) |
+| Reel timing (which slot swipes when) | `components/hero-reels.tsx` (the `SLOTS` array: `startMs` / `holdMs`) |
+| Info + contact details | `app/info/page.tsx` |
+| Mock auth / saved-form logic | `lib/auth.ts` |
+
+## Repo organization
+
+```
+app/                     Next.js App Router pages
+  page.tsx               Landing (hero reels, models marquee, walkthrough)
+  models/page.tsx        Model catalog
+  generate/page.tsx      Generation tool (form + live preview)
+  pricing/page.tsx       Pricing plans
+  login/, signup/        Mock auth
+  info/page.tsx          Info + contact
+  layout.tsx             Fonts, shared <body>
+  globals.css            Theme + keyframes
+components/              Reusable UI
+  site-header.tsx        Nav (Models dropdown, Pricing, info, auth)
+  site-footer.tsx        Footer (links to fluxion-sys.ai)
+  hero-reels.tsx         3-slot vertical reels carousel
+  model-marquee.tsx      Auto-scrolling model row (landing)
+  model-card.tsx         Single model thumbnail card
+  reveal.tsx             Scroll-in animation wrapper
+  brand.tsx              Logo mark + wordmark
+lib/
+  models.ts              Model data (edit me)
+  auth.ts                Mock auth + form draft
+public/
+  reels/slotN/           Hero reel videos (a/b/c.mp4)
+  models/                Model thumbnails (<slug>.mp4)
+  demos/                 Walkthrough + demo videos
+  backdrop.svg           Animated hero background
+```
 
 ## Stack
 
@@ -62,21 +83,19 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Routes
 
-| Path                    | Page                            |
-| ----------------------- | ------------------------------- |
-| `/`                     | Landing                         |
-| `/models`               | Model catalog                   |
-| `/generate?model=<slug>`| Generation interface            |
-| `/pricing`              | Pricing                         |
-| `/login`                | Login (mock)                    |
-| `/signup`               | Signup (mock)                   |
-| `/info`                 | Info and contact                |
+| Path                     | Page                 |
+| ------------------------ | -------------------- |
+| `/`                      | Landing              |
+| `/models`                | Model catalog        |
+| `/generate?model=<slug>` | Generation interface |
+| `/pricing`               | Pricing              |
+| `/login`, `/signup`      | Mock auth            |
+| `/info`                  | Info + contact       |
 
 ## Deploy
 
-The site is a static export (`output: "export"`) served from the `gh-pages`
-branch. To publish changes: build, then push the contents of `out/` to
-`gh-pages`.
+Static export (`output: "export"`) served from the `gh-pages` branch. To
+publish: build, then push the contents of `out/` to `gh-pages`.
 
 ## Note
 

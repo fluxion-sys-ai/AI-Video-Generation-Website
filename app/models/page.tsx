@@ -22,7 +22,7 @@ export default function ModelsPage() {
         <p className="mt-4 max-w-xl text-[#9FB2CC]">
           Compare models by capability, duration, and resolution. Hover a card to preview.
         </p>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-6 grid-cols-2 lg:grid-cols-4">
           {models.map((m) => (
             <ModelCard key={m.slug} model={m} />
           ))}

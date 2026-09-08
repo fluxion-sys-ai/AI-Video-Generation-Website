@@ -25,13 +25,13 @@ export default function Home() {
       <SiteHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden lg:h-[calc(100vh-5rem)]">
-        <div className="relative max-w-6xl px-8 py-28 sm:px-20 sm:py-36">
-          <div className="max-w-xl">
+      <section className="relative overflow-hidden lg:h-[86vh]">
+        <div className="grid h-full items-center gap-10 px-8 py-24 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
+          <div className="max-w-xl lg:pl-12">
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
               Text-to-video, image-to-video
             </span>
-            <h1 className="mt-6 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-7xl">
+            <h1 className="mt-6 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-6xl">
               AI video<br />generation
             </h1>
             <p className="mt-6 max-w-md text-lg text-[#9FB2CC]">
@@ -52,16 +52,16 @@ export default function Home() {
               </a>
             </div>
           </div>
-        </div>
 
-        {/* Vertical reels (3 slots) — near the right edge, centered on the converging lines */}
-        <div className="absolute right-6 top-1/2 -mt-10 hidden -translate-y-1/2 lg:block">
-          <HeroReels />
+          {/* Vertical reels (3 slots) — large block on the right */}
+          <div className="hidden justify-self-end lg:block">
+            <HeroReels />
+          </div>
         </div>
       </section>
 
       {/* Models showcase */}
-      <section id="models" className="scroll-mt-24 py-20">
+      <section id="models" className="scroll-mt-24 pb-20 pt-6">
         <Reveal className="max-w-6xl px-6">
           <div className="flex items-end justify-between gap-4">
             <div>
@@ -95,7 +95,7 @@ export default function Home() {
           <div className="mt-8 mx-auto max-w-4xl overflow-hidden rounded-[10px] bg-black">
             <video
               className="aspect-video w-full object-cover"
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+              src={`${BASE}/demos/walkthrough.mp4`}
               poster="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg"
               controls
               preload="metadata"
