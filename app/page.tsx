@@ -33,11 +33,13 @@ export default function Home() {
       {/* Navbar */}
       <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#0A1322]/80 backdrop-blur">
         <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Brand />
-          <div className="hidden items-center gap-8 text-sm text-[#A9BBD4] md:flex">
-            <Link href="/generate" className="transition-colors hover:text-[#E9F1FB]">Generate</Link>
-            <Link href="/models" className="transition-colors hover:text-[#E9F1FB]">Models</Link>
-            <Link href="/pricing" className="transition-colors hover:text-[#E9F1FB]">Pricing</Link>
+          <div className="flex items-center gap-8">
+            <Brand />
+            <div className="hidden items-center gap-6 text-sm text-[#A9BBD4] md:flex">
+              <Link href="/generate" className="transition-colors hover:text-[#E9F1FB]">Generate</Link>
+              <Link href="/models" className="transition-colors hover:text-[#E9F1FB]">Models</Link>
+              <Link href="/pricing" className="transition-colors hover:text-[#E9F1FB]">Pricing</Link>
+            </div>
           </div>
           <div className="flex items-center gap-3 text-sm">
             <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#E9F1FB] sm:block">Log in</Link>
@@ -50,18 +52,18 @@ export default function Home() {
       <section className="relative overflow-hidden">
         <img src="/backdrop.svg" alt="" aria-hidden="true"
              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70" />
-        <div className="relative mx-auto max-w-3xl px-6 py-28 text-center sm:py-36">
+        <div className="relative mx-auto max-w-6xl px-6 py-28 text-left sm:py-36">
           <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[rgba(124,189,242,0.06)] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#A9BBD4]">
             AI video, generated on your terms
           </span>
           <h1 className="mt-6 font-[family-name:var(--font-sora)] text-4xl font-medium leading-tight tracking-[-0.025em] sm:text-6xl">
             Turn a prompt into<br /><span className="text-[#7CBDF2]">cinematic video</span>.
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-[#A9BBD4]">
+          <p className="mt-6 max-w-xl text-lg text-[#A9BBD4]">
             Choose a model, describe your shot, and generate. Clean flow, premium output,
             no creative-suite bloat.
           </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
             <Link href="/generate"
                   className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] sm:w-auto">
               Generate Video
