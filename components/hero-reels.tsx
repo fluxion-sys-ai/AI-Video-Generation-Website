@@ -8,8 +8,8 @@ type Slot = { videos: string[]; startMs: number; holdMs: number };
 
 // Each slot cycles through its videos, always swiping UP, on its own timing.
 const SLOTS: Slot[] = [
-  { videos: ["a", "b"].map((v) => `${BASE}/reels/slot1/${v}.mp4`), startMs: 0, holdMs: 5000 },
-  { videos: ["a", "b"].map((v) => `${BASE}/reels/slot2/${v}.mp4`), startMs: 1000, holdMs: 4000 },
+  { videos: ["a", "b", "c"].map((v) => `${BASE}/reels/slot1/${v}.mp4`), startMs: 0, holdMs: 5000 },
+  { videos: ["a", "b", "c"].map((v) => `${BASE}/reels/slot2/${v}.mp4`), startMs: 1000, holdMs: 4000 },
   { videos: ["a", "b", "c"].map((v) => `${BASE}/reels/slot3/${v}.mp4`), startMs: 2000, holdMs: 4500 },
 ];
 
