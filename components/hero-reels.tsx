@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 
 const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
 
@@ -92,7 +92,12 @@ export function HeroReels() {
   return (
     <div className="flex overflow-hidden rounded-[14px] border border-[rgba(255,193,94,0.35)] shadow-[0_20px_55px_rgba(0,0,0,0.55),0_0_70px_-8px_rgba(255,193,94,0.55)]">
       {SLOTS.map((slot, i) => (
-        <ReelSlot key={i} {...slot} />
+        <Fragment key={i}>
+          {i > 0 && (
+            <div className="relative z-10 w-px self-stretch bg-[rgba(255,193,94,0.7)] shadow-[0_0_16px_4px_rgba(255,193,94,0.55)]" />
+          )}
+          <ReelSlot {...slot} />
+        </Fragment>
       ))}
     </div>
   );
