@@ -45,7 +45,7 @@ export default function PricingPage() {
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#7CBDF2]">
           — Pricing
         </span>
-        <h1 className="mt-2 font-[family-name:var(--font-sora)] text-4xl font-medium tracking-[-0.02em]">
+        <h1 className="mt-2 font-[family-name:var(--font-sora)] text-4xl font-medium uppercase tracking-[0.01em]">
           Plans and credits
         </h1>
         <p className="mt-3 max-w-xl text-[#A9BBD4]">
@@ -63,7 +63,7 @@ export default function PricingPage() {
               } ${p.highlight ? "bg-[rgba(124,189,242,0.05)]" : ""}`}
             >
               <div className="flex items-center gap-2">
-                <h2 className="font-[family-name:var(--font-sora)] text-xl font-medium">{p.name}</h2>
+                <h2 className="font-[family-name:var(--font-sora)] text-xl font-medium uppercase tracking-[0.02em]">{p.name}</h2>
                 {p.highlight && (
                   <span className="rounded-full border border-[rgba(124,189,242,0.3)] px-2 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-[#7CBDF2]">
                     Popular

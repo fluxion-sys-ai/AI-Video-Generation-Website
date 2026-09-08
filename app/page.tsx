@@ -52,7 +52,7 @@ export default function Home() {
           <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#7CBDF2]">
             — Walkthrough
           </span>
-          <h2 className="mt-2 font-[family-name:var(--font-sora)] text-3xl font-medium tracking-[-0.02em]">
+          <h2 className="mt-2 font-[family-name:var(--font-sora)] text-3xl font-medium uppercase tracking-[0.01em]">
             See it in action
           </h2>
           <p className="mt-3 max-w-xl text-[#A9BBD4]">
@@ -79,7 +79,7 @@ export default function Home() {
               <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#7CBDF2]">
                 — Models
               </span>
-              <h2 className="mt-2 font-[family-name:var(--font-sora)] text-3xl font-medium tracking-[-0.02em]">
+              <h2 className="mt-2 font-[family-name:var(--font-sora)] text-3xl font-medium uppercase tracking-[0.01em]">
                 Explore our models
               </h2>
             </div>

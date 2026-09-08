@@ -11,7 +11,6 @@ type Status = "idle" | "generating" | "complete" | "failed";
 
 type Draft = {
   slug: string;
-  description: string;
   aspect: string;
   resolution: string;
   duration: number;
@@ -40,7 +39,6 @@ function GenerateInner() {
   const slug = params.get("model") || "aurora";
   const model: Model = getModel(slug) || getModels()[0];
 
-  const [description, setDescription] = useState("");
   const [aspect, setAspect] = useState(model.aspectRatios[0]);
   const [resolution, setResolution] = useState(model.popularResolutions[0] || model.resolutions[0]);
   const [duration, setDuration] = useState(model.durations[0]);
@@ -66,7 +64,6 @@ function GenerateInner() {
   useEffect(() => {
     const d = loadDraft<Draft>();
     if (d && d.slug === slug) {
-      setDescription(d.description);
       setAspect(d.aspect);
       setResolution(d.resolution);
       setDuration(d.duration);
@@ -80,7 +77,7 @@ function GenerateInner() {
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   function draft(): Draft {
-    return { slug, description, aspect, resolution, duration, audio, prompt };
+    return { slug, aspect, resolution, duration, audio, prompt };
   }
 
   function onGenerate() {
@@ -131,7 +128,7 @@ function GenerateInner() {
               onClick={() => setTab("change")}
               className={`flex-1 rounded-[6px] px-3 py-1.5 transition-colors ${tab === "change" ? "bg-[rgba(124,189,242,0.14)] text-[#E9F1FB]" : "text-[#A9BBD4]"}`}
             >
-              Change model
+              Other Models
             </button>
           </div>
           {tab === "examples" ? (
@@ -154,10 +151,10 @@ function GenerateInner() {
                 <Link
                   key={m.slug}
                   href={`/generate?model=${m.slug}`}
-                  className={`block rounded-[6px] px-3 py-2 text-sm transition-colors hover:bg-[rgba(124,189,242,0.08)] ${m.slug === slug ? "text-[#7CBDF2]" : "text-[#A9BBD4]"}`}
+                  className={`block rounded-[6px] px-3 py-2 text-sm uppercase tracking-[0.02em] transition-colors hover:bg-[rgba(124,189,242,0.08)] ${m.slug === slug ? "text-[#7CBDF2]" : "text-[#A9BBD4]"}`}
                 >
                   {m.name}
-                  <span className="block text-xs text-[#6E82A0]">{m.tagline}</span>
+                  <span className="block text-xs normal-case tracking-normal text-[#6E82A0]">{m.tagline}</span>
                 </Link>
               ))}
             </div>
@@ -167,7 +164,7 @@ function GenerateInner() {
 
       {/* Main form */}
       <main>
-        <h1 className="font-[family-name:var(--font-sora)] text-3xl font-medium tracking-[-0.02em]">{model.name}</h1>
+        <h1 className="font-[family-name:var(--font-sora)] text-3xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
         <p className="mt-2 max-w-2xl text-[#A9BBD4]">{model.description}</p>
 
         <div className="mt-8 rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0E1730]/50 p-6 backdrop-blur-sm">
@@ -181,15 +178,6 @@ function GenerateInner() {
             </Field>
           )}
 
-          <Field label="Description" hint="What you want to make">
-            <input
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="A short summary of the scene"
-              className={selectClass}
-            />
-          </Field>
-
           <Field label="Aspect ratio">
             <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={selectClass}>
               {model.aspectRatios.map((r) => (
@@ -198,11 +186,11 @@ function GenerateInner() {
             </select>
           </Field>
 
-          <Field label="Resolution" hint="★ = popular">
+          <Field label="Resolution">
             <select value={resolution} onChange={(e) => setResolution(e.target.value)} className={selectClass}>
               {model.resolutions.map((r) => (
                 <option key={r} value={r}>
-                  {model.popularResolutions.includes(r) ? `★ ${r} (popular)` : r}
+                  {model.popularResolutions.includes(r) ? `★ ${r}` : r}
                 </option>
               ))}
             </select>

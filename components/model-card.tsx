@@ -42,7 +42,7 @@ export function ModelCard({ model }: { model: Model }) {
       </div>
       <div className="p-5">
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="font-[family-name:var(--font-sora)] text-lg font-medium text-[#E9F1FB]">{model.name}</h3>
+          <h3 className="font-[family-name:var(--font-sora)] text-lg font-medium uppercase tracking-[0.01em] text-[#E9F1FB]">{model.name}</h3>
           <span className="font-[family-name:var(--font-jetbrains)] text-xs text-[#6E82A0]">{model.tagline}</span>
         </div>
         <p className="mt-2 text-sm text-[#A9BBD4]">{model.description}</p>
