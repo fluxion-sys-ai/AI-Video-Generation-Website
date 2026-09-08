@@ -1,56 +1,67 @@
-<svg width="1440" height="900" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="1440" height="900" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
-    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="42"/>
-    </filter>
-    <filter id="soft" x="-70%" y="-70%" width="240%" height="240%">
-      <feGaussianBlur stdDeviation="2.4"/>
+    <!-- dark on the left, lighter + warmer toward the right -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="0.15">
+      <stop offset="0" stop-color="#060A13"/>
+      <stop offset="0.45" stop-color="#0D1728"/>
+      <stop offset="0.78" stop-color="#1A2A44"/>
+      <stop offset="1" stop-color="#2E3552"/>
+    </linearGradient>
+    <!-- warm wash on the right (the yellower feel) -->
+    <radialGradient id="warm" cx="90%" cy="50%" r="55%">
+      <stop offset="0" stop-color="#E8B24E" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#E8B24E" stop-opacity="0"/>
+    </radialGradient>
+    <!-- bright glow for the dots -->
+    <filter id="dotglow" x="-200%" y="-200%" width="500%" height="500%">
+      <feGaussianBlur stdDeviation="4.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
-  <!-- flat solid background, no gradient -->
-  <rect width="1440" height="900" fill="#0A1322"/>
+  <rect width="1440" height="900" fill="url(#bgGrad)"/>
+  <rect width="1440" height="900" fill="url(#warm)"/>
 
-  <!-- soft glow on the right (blur of a solid shape, not a gradient) -->
-  <ellipse cx="1150" cy="450" rx="150" ry="240" fill="#3E6FA8" opacity="0.35" filter="url(#glow)"/>
-
-  <!-- lines emanate from the text (left) and converge into the video (right) -->
-  <g fill="none" stroke-linecap="round">
-    <path id="l1" d="M100 150 C 480 210, 820 360, 1150 450"/>
-    <path id="l2" d="M100 260 C 480 300, 820 400, 1150 450"/>
-    <path id="l3" d="M100 360 C 480 385, 820 425, 1150 450"/>
-    <path id="l4" d="M100 450 L 1150 450"/>
-    <path id="l5" d="M100 540 C 480 515, 820 475, 1150 450"/>
-    <path id="l6" d="M100 640 C 480 600, 820 500, 1150 450"/>
-    <path id="l7" d="M100 750 C 480 690, 820 540, 1150 450"/>
-  </g>
-  <!-- base strokes: faint on the left -->
-  <use href="#l1" stroke="#5E92C8" stroke-width="1.1" opacity="0.30"/>
-  <use href="#l2" stroke="#5E92C8" stroke-width="1.1" opacity="0.30"/>
-  <use href="#l3" stroke="#5E92C8" stroke-width="1.1" opacity="0.30"/>
-  <use href="#l4" stroke="#5E92C8" stroke-width="1.1" opacity="0.34"/>
-  <use href="#l5" stroke="#5E92C8" stroke-width="1.1" opacity="0.30"/>
-  <use href="#l6" stroke="#5E92C8" stroke-width="1.1" opacity="0.30"/>
-  <use href="#l7" stroke="#5E92C8" stroke-width="1.1" opacity="0.30"/>
-  <!-- brighter overlay: only the right portion, so lines whiten toward the video -->
-  <g fill="none" stroke="#DCEBFB" stroke-width="1.2" stroke-linecap="round" opacity="0.7">
-    <path d="M820 360 C 950 400, 1050 432, 1150 450"/>
-    <path d="M820 400 C 950 420, 1050 440, 1150 450"/>
-    <path d="M820 425 C 950 435, 1050 445, 1150 450"/>
-    <path d="M820 450 L 1150 450"/>
-    <path d="M820 475 C 950 465, 1050 455, 1150 450"/>
-    <path d="M820 500 C 950 480, 1050 460, 1150 450"/>
-    <path d="M820 540 C 950 500, 1050 470, 1150 450"/>
+  <!-- invisible motion paths (no visible lines) -->
+  <g fill="none" stroke="none">
+    <path id="p1" d="M120 160 C 500 220, 840 370, 1240 450"/>
+    <path id="p2" d="M120 280 C 500 310, 840 405, 1240 450"/>
+    <path id="p3" d="M120 380 C 500 395, 840 428, 1240 450"/>
+    <path id="p4" d="M120 470 C 500 460, 840 455, 1240 450"/>
+    <path id="p5" d="M120 560 C 500 540, 840 480, 1240 450"/>
+    <path id="p6" d="M120 660 C 500 610, 840 500, 1240 450"/>
+    <path id="p7" d="M120 760 C 500 700, 840 540, 1240 450"/>
   </g>
 
-  <!-- gold dots travel from the text into the video, accelerating (ease-in) as they approach -->
-  <g fill="#F5C46B" filter="url(#soft)">
-    <g><circle r="3"/><animateMotion dur="5.5s" begin="0s"   repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#l1"/></animateMotion></g>
-    <g><circle r="2.6"/><animateMotion dur="6s"  begin="0.9s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#l2"/></animateMotion></g>
-    <g><circle r="3"/><animateMotion dur="5s"   begin="1.7s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#l3"/></animateMotion></g>
-    <g><circle r="3.4"/><animateMotion dur="6.5s" begin="0.4s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#l4"/></animateMotion></g>
-    <g><circle r="2.8"/><animateMotion dur="5.8s" begin="2.1s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#l5"/></animateMotion></g>
-    <g><circle r="2.6"/><animateMotion dur="6.2s" begin="1.2s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#l6"/></animateMotion></g>
-    <g><circle r="3"/><animateMotion dur="7s"   begin="0.2s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#l7"/></animateMotion></g>
+  <!-- orange dots: grow + brighten as they accelerate toward the right -->
+  <g fill="#FFC15E" filter="url(#dotglow)">
+    <g>
+      <circle r="3"><animate attributeName="r" values="2;3;5" keyTimes="0;0.6;1" dur="5.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="5.5s" repeatCount="indefinite"/></circle>
+      <animateMotion dur="5.5s" begin="0s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p1"/></animateMotion>
+    </g>
+    <g>
+      <circle r="3"><animate attributeName="r" values="2;3;5" keyTimes="0;0.6;1" dur="6.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="6.2s" repeatCount="indefinite"/></circle>
+      <animateMotion dur="6.2s" begin="0.9s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p2"/></animateMotion>
+    </g>
+    <g>
+      <circle r="3"><animate attributeName="r" values="2;3;5" keyTimes="0;0.6;1" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="5s" repeatCount="indefinite"/></circle>
+      <animateMotion dur="5s" begin="1.7s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p3"/></animateMotion>
+    </g>
+    <g>
+      <circle r="3.4"><animate attributeName="r" values="2.4;3.4;5.6" keyTimes="0;0.6;1" dur="6.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.85;1" keyTimes="0;0.6;1" dur="6.6s" repeatCount="indefinite"/></circle>
+      <animateMotion dur="6.6s" begin="0.4s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p4"/></animateMotion>
+    </g>
+    <g>
+      <circle r="3"><animate attributeName="r" values="2;3;5" keyTimes="0;0.6;1" dur="5.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="5.8s" repeatCount="indefinite"/></circle>
+      <animateMotion dur="5.8s" begin="2.1s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p5"/></animateMotion>
+    </g>
+    <g>
+      <circle r="3"><animate attributeName="r" values="2;3;5" keyTimes="0;0.6;1" dur="6.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="6.4s" repeatCount="indefinite"/></circle>
+      <animateMotion dur="6.4s" begin="1.2s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p6"/></animateMotion>
+    </g>
+    <g>
+      <circle r="3"><animate attributeName="r" values="2;3;5" keyTimes="0;0.6;1" dur="7s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="7s" repeatCount="indefinite"/></circle>
+      <animateMotion dur="7s" begin="0.2s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p7"/></animateMotion>
+    </g>
   </g>
 </svg>

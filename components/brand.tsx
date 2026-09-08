@@ -12,17 +12,44 @@ export function LogoMark({ className = "" }: { className?: string }) {
   );
 }
 
-/* Exact Fluxion wordmark: icon + "fluxion" (Sora) + boxed mono "AI VIDEO" */
-export function Brand({ mark = "h-[27px] w-[27px]" }: { mark?: string }) {
-  return (
-    <Link href="/" className="flex items-center gap-[11px] text-[#E9F1FB]">
+/* Fluxion wordmark: icon + "fluxion" + boxed mono label.
+   Defaults to the product mark ("AI VIDEO", internal). Pass boxText="AI" +
+   href to the corporate site for the footer mark. */
+export function Brand({
+  mark = "h-[27px] w-[27px]",
+  boxText = "AI VIDEO",
+  href = "/",
+  external = false,
+}: {
+  mark?: string;
+  boxText?: string;
+  href?: string;
+  external?: boolean;
+}) {
+  const inner = (
+    <>
       <LogoMark className={mark} />
       <span className="flex items-baseline gap-2 font-[family-name:var(--font-jetbrains)] text-[18px] font-medium tracking-[-0.01em]">
         fluxion
         <span className="relative -top-[2px] rounded-[4px] border border-[rgba(148,170,200,0.3)] px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[11px] tracking-[0.08em] text-[#A9BBD4]">
-          AI VIDEO
+          {boxText}
         </span>
       </span>
+    </>
+  );
+
+  const className = "flex items-center gap-[11px] text-[#E9F1FB]";
+
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+        {inner}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} className={className}>
+      {inner}
     </Link>
   );
 }

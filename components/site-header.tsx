@@ -74,11 +74,20 @@ export function SiteHeader() {
               ))}
               <MenuItem href="/models" title="All models" sub="Browse the full catalog" />
             </NavMenu>
-            <NavMenu label="Pricing">
-              <MenuItem href="/pricing#free" title="Free" sub="Try it out" />
-              <MenuItem href="/pricing#pro" title="Pro" sub="For regular use" />
-              <MenuItem href="/pricing#studio" title="Studio" sub="For teams" />
-            </NavMenu>
+            <Link
+              href="/pricing"
+              className="text-sm uppercase tracking-[0.06em] text-[#A9BBD4] transition-colors hover:text-[#F5C46B]"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/info"
+              aria-label="Info"
+              title="Info and contact"
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(148,170,200,0.4)] text-[11px] text-[#A9BBD4] transition-colors hover:border-[#F5C46B] hover:text-[#F5C46B]"
+            >
+              i
+            </Link>
           </div>
         </div>
         <div className="flex items-center gap-4 text-sm uppercase tracking-[0.06em]">

@@ -33,6 +33,10 @@ function Field({ label, children, hint }: { label: string; children: React.React
 const selectClass =
   "w-full rounded-[8px] border border-[rgba(124,189,242,0.2)] bg-[#0B1524] px-3 py-2 text-sm outline-none focus:border-[#7CBDF2]";
 
+// content-width control for short values (aspect ratio, resolution, duration)
+const compactSelect =
+  "rounded-[8px] border border-[rgba(124,189,242,0.2)] bg-[#0B1524] px-3 py-2 text-sm outline-none focus:border-[#7CBDF2]";
+
 function GenerateInner() {
   const router = useRouter();
   const params = useSearchParams();
@@ -101,40 +105,38 @@ function GenerateInner() {
   const credits = model.creditsPerSecond * duration;
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 lg:grid-cols-[260px_1fr]">
-      {/* Sidebar */}
-      <aside className="lg:sticky lg:top-28 lg:self-start">
-        <div className="rounded-[10px] border border-[rgba(124,189,242,0.14)] p-5">
-          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#6E82A0]">
+    <div className="mx-auto grid max-w-6xl gap-12 px-6 py-10 lg:grid-cols-[380px_1fr]">
+      {/* Sidebar (borderless, larger) */}
+      <aside className="space-y-8 lg:sticky lg:top-28 lg:self-start">
+        <div>
+          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
             Pricing
           </span>
-          <p className="mt-2 text-sm text-[#A9BBD4]">
-            {model.creditsPerSecond} credits / second
-          </p>
-          <p className="text-sm text-[#A9BBD4]">
+          <p className="mt-2 text-sm text-[#9FB2CC]">{model.creditsPerSecond} credits / second</p>
+          <p className="text-sm text-[#9FB2CC]">
             Estimate: <span className="text-[#E9F1FB]">{credits} credits</span> for {duration}s
           </p>
         </div>
 
-        <div className="mt-4 rounded-[10px] border border-[rgba(124,189,242,0.14)] p-2">
-          <div className="mb-1 flex rounded-[8px] bg-[#0E1730] p-1 text-sm">
+        <div>
+          <div className="mb-3 flex gap-5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em]">
             <button
               onClick={() => setTab("examples")}
-              className={`flex-1 rounded-[6px] px-3 py-1.5 transition-colors ${tab === "examples" ? "bg-[rgba(124,189,242,0.14)] text-[#E9F1FB]" : "text-[#A9BBD4]"}`}
+              className={`pb-1 transition-colors ${tab === "examples" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
             >
               Examples
             </button>
             <button
               onClick={() => setTab("change")}
-              className={`flex-1 rounded-[6px] px-3 py-1.5 transition-colors ${tab === "change" ? "bg-[rgba(124,189,242,0.14)] text-[#E9F1FB]" : "text-[#A9BBD4]"}`}
+              className={`pb-1 transition-colors ${tab === "change" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
             >
               Other Models
             </button>
           </div>
           {tab === "examples" ? (
-            <div className="p-1">
+            <div>
               <video
-                className="aspect-video w-full rounded-[8px] bg-black object-cover"
+                className="aspect-video w-full rounded-[10px] bg-black object-cover"
                 src={model.demoVideo}
                 poster={model.poster}
                 muted
@@ -143,15 +145,15 @@ function GenerateInner() {
                 playsInline
                 preload="metadata"
               />
-              <p className="mt-2 px-1 text-xs text-[#6E82A0]">Sample output from {model.name}.</p>
+              <p className="mt-2 text-xs text-[#6E82A0]">Sample output from {model.name}.</p>
             </div>
           ) : (
-            <div className="p-1">
+            <div className="space-y-1">
               {getModels().map((m) => (
                 <Link
                   key={m.slug}
                   href={`/generate?model=${m.slug}`}
-                  className={`block rounded-[6px] px-3 py-2 text-sm uppercase tracking-[0.02em] transition-colors hover:bg-[rgba(124,189,242,0.08)] ${m.slug === slug ? "text-[#7CBDF2]" : "text-[#A9BBD4]"}`}
+                  className={`block py-1.5 text-sm uppercase tracking-[0.02em] transition-colors hover:text-[#F5C46B] ${m.slug === slug ? "text-[#7CBDF2]" : "text-[#9FB2CC]"}`}
                 >
                   {m.name}
                   <span className="block text-xs normal-case tracking-normal text-[#6E82A0]">{m.tagline}</span>
@@ -162,12 +164,12 @@ function GenerateInner() {
         </div>
       </aside>
 
-      {/* Main form */}
+      {/* Main form (borderless, compact) */}
       <main>
         <h1 className="font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
-        <p className="mt-2 max-w-2xl text-[#A9BBD4]">{model.description}</p>
+        <p className="mt-2 max-w-2xl text-[#9FB2CC]">{model.description}</p>
 
-        <div className="mt-6 space-y-4 rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0B1524] p-5">
+        <div className="mt-6 space-y-5">
           <Field label="Prompt" hint={`${prompt.length} chars`}>
             <textarea
               value={prompt}
@@ -180,17 +182,18 @@ function GenerateInner() {
 
           {model.supports.image && (
             <Field label="Image" hint="Optional">
-              <label className="flex cursor-pointer items-center justify-between rounded-[8px] border border-dashed border-[rgba(124,189,242,0.24)] px-3 py-2 text-sm text-[#9FB2CC] hover:border-[#7CBDF2]">
-                <span className="truncate">{imageName ?? "Choose an image to animate"}</span>
-                <span className="ml-2 shrink-0 text-[#7CBDF2]">Browse</span>
+              <label className="flex w-fit cursor-pointer items-center gap-3 rounded-[8px] border border-dashed border-[rgba(124,189,242,0.24)] px-3 py-2 text-sm text-[#9FB2CC] hover:border-[#7CBDF2]">
+                <span className="max-w-[220px] truncate">{imageName ?? "Choose an image"}</span>
+                <span className="text-[#7CBDF2]">Browse</span>
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => setImageName(e.target.files?.[0]?.name ?? null)} />
               </label>
             </Field>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* compact inline controls */}
+          <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
             <Field label="Aspect ratio">
-              <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={selectClass}>
+              <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={compactSelect}>
                 {model.aspectRatios.map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
@@ -198,7 +201,7 @@ function GenerateInner() {
             </Field>
 
             <Field label="Resolution">
-              <select value={resolution} onChange={(e) => setResolution(e.target.value)} className={selectClass}>
+              <select value={resolution} onChange={(e) => setResolution(e.target.value)} className={compactSelect}>
                 {model.resolutions.map((r) => (
                   <option key={r} value={r}>
                     {model.popularResolutions.includes(r) ? `★ ${r}` : r}
@@ -207,14 +210,14 @@ function GenerateInner() {
               </select>
             </Field>
 
-            <Field label="Duration" hint="Seconds">
+            <Field label="Duration" hint="sec">
               <input
                 type="number"
                 min={model.durations[0]}
                 max={model.durations[model.durations.length - 1]}
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
-                className={selectClass}
+                className={`${compactSelect} w-20`}
               />
             </Field>
 
@@ -236,39 +239,39 @@ function GenerateInner() {
           <button
             onClick={onGenerate}
             disabled={status === "generating"}
-            className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {status === "generating" ? "Generating…" : "Generate"}
           </button>
         </div>
 
-        {/* Result / status */}
+        {/* Result / status (borderless) */}
         {status !== "idle" && (
-          <div className="mt-8 rounded-[10px] border border-[rgba(124,189,242,0.14)] p-6">
+          <div className="mt-10">
             {status === "generating" && (
               <div>
-                <p className="text-sm text-[#A9BBD4]">Hang tight, generating your video…</p>
-                <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-[#1D3149]">
+                <p className="text-sm text-[#9FB2CC]">Hang tight, generating your video…</p>
+                <div className="mt-3 h-1 w-full max-w-md overflow-hidden rounded-full bg-[#1D3149]">
                   <div className="h-full w-1/3 animate-pulse rounded-full bg-[#7CBDF2]" />
                 </div>
               </div>
             )}
             {status === "failed" && (
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
                 <p className="text-sm text-[#E9F1FB]">Generation failed. Try again.</p>
-                <button onClick={onGenerate} className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
+                <button onClick={onGenerate} className="text-sm text-[#7CBDF2] hover:text-[#F5C46B]">
                   Retry
                 </button>
               </div>
             )}
             {status === "complete" && resultUrl && (
               <div>
-                <video className="aspect-video w-full rounded-[8px] bg-black object-contain" src={resultUrl} controls autoPlay muted loop playsInline />
+                <video className="aspect-video w-full rounded-[10px] bg-black object-contain" src={resultUrl} controls autoPlay muted loop playsInline />
                 <div className="mt-4 flex flex-wrap gap-3">
                   <a href={resultUrl} download className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#A6D4F8]">
                     Download
                   </a>
-                  <button onClick={onGenerate} className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
+                  <button onClick={onGenerate} className="text-sm text-[#7CBDF2] hover:text-[#F5C46B]">
                     Regenerate
                   </button>
                 </div>

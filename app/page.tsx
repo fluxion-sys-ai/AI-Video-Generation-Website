@@ -72,30 +72,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Walkthrough */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <Reveal>
-          <Kicker label="Walkthrough" />
-          <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
-            See it in action
-          </h2>
-          <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
-          <p className="mt-4 max-w-xl text-[#9FB2CC]">
-            Watch a prompt become a finished video in under a minute.
-          </p>
-          <div className="mt-8 overflow-hidden rounded-[10px] bg-black">
-            <video
-              className="aspect-video w-full object-cover"
-              src="/walkthrough.mp4"
-              poster="/backdrop.svg"
-              controls
-              preload="metadata"
-              playsInline
-            />
-          </div>
-        </Reveal>
-      </section>
-
       {/* Models showcase */}
       <section id="models" className="scroll-mt-24 py-20">
         <Reveal className="mx-auto max-w-6xl px-6">
@@ -115,6 +91,30 @@ export default function Home() {
         <div className="mt-10">
           <ModelMarquee />
         </div>
+      </section>
+
+      {/* Walkthrough */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <Reveal>
+          <Kicker label="Walkthrough" />
+          <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
+            See it in action
+          </h2>
+          <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
+          <p className="mt-4 max-w-xl text-[#9FB2CC]">
+            Watch a prompt become a finished video in under a minute.
+          </p>
+          <div className="mt-8 overflow-hidden rounded-[10px] bg-black">
+            <video
+              className="aspect-video w-full object-cover"
+              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+              poster="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg"
+              controls
+              preload="metadata"
+              playsInline
+            />
+          </div>
+        </Reveal>
       </section>
 
       <SiteFooter />
