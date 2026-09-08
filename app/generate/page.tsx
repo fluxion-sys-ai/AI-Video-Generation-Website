@@ -56,6 +56,11 @@ function GenerateInner() {
   const [tab, setTab] = useState<"examples" | "change">("examples");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Refine session: chat-style edits that re-generate the video each time.
+  const [refine, setRefine] = useState(false);
+  const [chat, setChat] = useState<string[]>([]);
+  const [refineInput, setRefineInput] = useState("");
+
   // Reset model-dependent options when the selected model changes.
   useEffect(() => {
     setAspect(model.aspectRatios[0]);
@@ -101,6 +106,31 @@ function GenerateInner() {
         setStatus("complete");
       }
     }, 3500 + Math.random() * 3000);
+  }
+
+  // Mock re-generation for the refine session (always succeeds, a bit faster).
+  function regen() {
+    setResultUrl(null);
+    setStatus("generating");
+    timer.current = setTimeout(() => {
+      setResultUrl(model.demoVideo);
+      setStatus("complete");
+    }, 2000 + Math.random() * 2000);
+  }
+  function sendRefine() {
+    const text = refineInput.trim();
+    if (!text) return;
+    setChat((c) => [...c, text]);
+    setRefineInput("");
+    regen();
+  }
+  function undoRefine() {
+    setChat((c) => c.slice(0, -1));
+    regen();
+  }
+  function restartRefine() {
+    setChat([]);
+    regen();
   }
 
   const credits = model.creditsPerSecond * duration;
@@ -247,6 +277,57 @@ function GenerateInner() {
             {status === "generating" ? "Generating…" : "Generate"}
           </button>
         </div>
+
+        {/* Refine session: chat-style edits that re-generate each time */}
+        {refine && (
+          <div className="mt-6 space-y-3 rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0B1524] p-4">
+            <div className="flex items-center justify-between">
+              <span className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-[#E0A24E]">
+                Refine session
+              </span>
+              <div className="flex items-center gap-3 text-xs">
+                <button onClick={undoRefine} disabled={chat.length === 0} className="text-[#9FB2CC] hover:text-[#E9F1FB] disabled:opacity-40">
+                  Undo
+                </button>
+                <button onClick={restartRefine} className="text-[#9FB2CC] hover:text-[#E9F1FB]">
+                  Restart
+                </button>
+                <button onClick={() => setRefine(false)} className="text-[#9FB2CC] hover:text-[#F5C46B]">
+                  Close
+                </button>
+              </div>
+            </div>
+
+            <div className="max-h-40 space-y-2 overflow-y-auto">
+              {chat.length === 0 ? (
+                <p className="text-xs text-[#6E82A0]">Add an instruction to tweak the video, e.g. &quot;make it slower&quot; or &quot;add rain&quot;. Each edit re-generates.</p>
+              ) : (
+                chat.map((m, i) => (
+                  <div key={i} className="ml-auto max-w-[85%] rounded-[8px] bg-[rgba(124,189,242,0.12)] px-3 py-1.5 text-sm text-[#E9F1FB]">
+                    {m}
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                value={refineInput}
+                onChange={(e) => setRefineInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") sendRefine(); }}
+                placeholder="Add an edit and press Enter…"
+                className={`${selectClass} flex-1`}
+              />
+              <button
+                onClick={sendRefine}
+                disabled={status === "generating" || !refineInput.trim()}
+                className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#A6D4F8] disabled:opacity-40"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Preview stage (right): the chosen aspect shape; the video generates here */}
@@ -293,7 +374,7 @@ function GenerateInner() {
               Regenerate
             </button>
             <button
-              onClick={() => { setStatus("idle"); setResultUrl(null); }}
+              onClick={() => setRefine(true)}
               className="px-2 text-sm text-[#7CBDF2] hover:text-[#F5C46B]"
             >
               Reprompt
