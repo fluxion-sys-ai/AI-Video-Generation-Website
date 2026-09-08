@@ -62,7 +62,7 @@ export default function Home() {
 
       {/* Models showcase */}
       <section id="models" className="scroll-mt-24 pb-20 pt-6">
-        <Reveal className="max-w-6xl px-6">
+        <Reveal className="px-8">
           <div className="flex items-end justify-between gap-4">
             <div>
               <Kicker label="Models" />
@@ -71,7 +71,7 @@ export default function Home() {
               </h2>
               <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
             </div>
-            <Link href="/models" className="hidden text-sm text-[#9FB2CC] transition-colors hover:text-[#F5C46B] sm:block">
+            <Link href="/models" className="hidden shrink-0 text-sm text-[#9FB2CC] transition-colors hover:text-[#F5C46B] sm:block">
               View all
             </Link>
           </div>

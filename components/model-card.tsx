@@ -25,11 +25,10 @@ export function ModelCard({ model }: { model: Model }) {
           ref={videoRef}
           className="h-full w-full object-cover opacity-95 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-100"
           src={model.demoVideo}
-          poster={model.poster}
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
         />
       </div>
       <div className="mt-4">
