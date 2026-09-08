@@ -5,9 +5,9 @@ import { ModelMarquee } from "@/components/model-marquee";
 import { Reveal } from "@/components/reveal";
 import { HeroReels } from "@/components/hero-reels";
 
-function Kicker({ label }: { label: string }) {
+function Kicker({ label, color = "#E0A24E" }: { label: string; color?: string }) {
   return (
-    <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
+    <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em]" style={{ color }}>
       {label}
     </span>
   );
@@ -84,11 +84,11 @@ export default function Home() {
       {/* Walkthrough */}
       <section className="px-8 py-20">
         <Reveal className="mx-auto max-w-4xl text-center">
-          <Kicker label="Walkthrough" />
+          <Kicker label="Walkthrough" color="#4EC98F" />
           <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
             See it in action
           </h2>
-          <span className="mx-auto mt-3 block h-px w-10 bg-[#E0A24E]" />
+          <span className="mx-auto mt-3 block h-px w-10 bg-[#4EC98F]" />
           <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
             Watch a prompt become a finished video in under a minute.
           </p>

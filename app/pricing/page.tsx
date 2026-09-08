@@ -70,7 +70,7 @@ export default function PricingPage() {
               <div className="flex items-center justify-center gap-2">
                 <h2 className="font-[family-name:var(--font-jetbrains)] text-xl font-medium uppercase tracking-[0.02em]">{p.name}</h2>
                 {p.highlight && (
-                  <span className="rounded-full border border-[rgba(124,189,242,0.3)] px-2 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-[#7CBDF2]">
+                  <span className="rounded-full bg-[#E0A24E] px-2 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] font-medium uppercase tracking-[0.08em] text-[#0A1322]">
                     Popular
                   </span>
                 )}

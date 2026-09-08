@@ -22,21 +22,22 @@ function Field({ label, children, hint }: { label: string; children: React.React
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
-        <label className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.06em] text-[#9FB2CC]">{label}</label>
-        {hint && <span className="text-xs text-[#5A6B84]">{hint}</span>}
+        <label className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.06em] text-[#C7D4E6]">{label}</label>
+        {hint && <span className="text-xs text-[#7E8FA8]">{hint}</span>}
       </div>
       {children}
     </div>
   );
 }
 
-// form controls use the body theme font (Geist), not the browser default
+// form controls use the body theme font (Geist), not the browser default.
+// Solid, higher-contrast borders + inner surface so inputs read clearly.
 const selectClass =
-  "w-full rounded-[8px] border border-[rgba(124,189,242,0.2)] bg-[#0B1524] px-3 py-2 text-sm font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2]";
+  "w-full rounded-[8px] border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2] focus:ring-1 focus:ring-[#7CBDF2]";
 
 // content-width control for short values (aspect ratio, resolution, duration)
 const compactSelect =
-  "rounded-[8px] border border-[rgba(124,189,242,0.2)] bg-[#0B1524] px-3 py-2 text-sm font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2]";
+  "rounded-[8px] border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2] focus:ring-1 focus:ring-[#7CBDF2]";
 
 function GenerateInner() {
   const router = useRouter();
@@ -215,7 +216,7 @@ function GenerateInner() {
 
           {model.supports.image && (
             <Field label="Image" hint="Optional">
-              <label className="flex w-fit cursor-pointer items-center gap-3 rounded-[8px] border border-dashed border-[rgba(124,189,242,0.24)] px-3 py-2 text-sm text-[#9FB2CC] hover:border-[#7CBDF2]">
+              <label className="flex w-fit cursor-pointer items-center gap-3 rounded-[8px] border border-dashed border-[#3E5C87] px-3 py-2 text-sm text-[#C7D4E6] hover:border-[#7CBDF2]">
                 <span className="max-w-[220px] truncate">{imageName ?? "Choose an image"}</span>
                 <span className="text-[#7CBDF2]">Browse</span>
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => setImageName(e.target.files?.[0]?.name ?? null)} />
@@ -261,7 +262,7 @@ function GenerateInner() {
                   role="switch"
                   aria-checked={audio}
                   onClick={() => setAudio((v) => !v)}
-                  className={`relative h-6 w-11 rounded-full transition-colors ${audio ? "bg-[#7CBDF2]" : "bg-[#1D3149]"}`}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${audio ? "bg-[#4EC98F]" : "bg-[#243A57]"}`}
                 >
                   <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${audio ? "left-[22px]" : "left-0.5"}`} />
                 </button>
@@ -280,7 +281,7 @@ function GenerateInner() {
 
         {/* Refine session: chat-style edits that re-generate each time */}
         {refine && (
-          <div className="mt-6 space-y-3 rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0B1524] p-4">
+          <div className="mt-6 space-y-3 rounded-[10px] border border-[#2E466B] bg-[#101E36] p-4">
             <div className="flex items-center justify-between">
               <span className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-[#E0A24E]">
                 Refine session
@@ -333,7 +334,7 @@ function GenerateInner() {
       {/* Preview stage (right): the chosen aspect shape; the video generates here */}
       <section className="flex min-h-0 flex-col items-center justify-center gap-3">
         <div
-          className="relative overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.4)] bg-black"
+          className="relative overflow-hidden rounded-[10px] border border-[#3E5C87] bg-black"
           style={portrait ? { aspectRatio: `${aw} / ${ah}`, height: "min(72vh, 640px)" } : { aspectRatio: `${aw} / ${ah}`, width: "100%", maxWidth: 680 }}
         >
           {status === "complete" && resultUrl ? (
