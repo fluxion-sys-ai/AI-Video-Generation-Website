@@ -26,7 +26,7 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative overflow-hidden lg:h-[calc(100vh-5rem)]">
-        <div className="relative max-w-6xl px-8 py-28 sm:px-12 sm:py-36">
+        <div className="relative max-w-6xl px-8 py-28 sm:px-20 sm:py-36">
           <div className="max-w-xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
               Text-to-video, image-to-video
