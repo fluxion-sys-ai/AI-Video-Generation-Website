@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-/* Fluxion logo mark — three lines converging on a gold node */
+/* Fluxion icon — three lines converging on a gold node */
 function LogoMark({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
@@ -12,16 +12,28 @@ function LogoMark({ className = "" }: { className?: string }) {
   );
 }
 
+/* Exact Fluxion wordmark: icon + "fluxion" (Sora) + boxed mono "AI VIDEO" */
+function Brand({ mark = "h-[27px] w-[27px]" }: { mark?: string }) {
+  return (
+    <Link href="/" className="flex items-center gap-[11px] text-[#E9F1FB]">
+      <LogoMark className={mark} />
+      <span className="flex items-baseline gap-2 font-[family-name:var(--font-sora)] text-[19px] font-medium tracking-[-0.02em]">
+        fluxion
+        <span className="relative -top-[2px] rounded-[4px] border border-[rgba(148,170,200,0.3)] px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[11px] tracking-[0.08em] text-[#A9BBD4]">
+          AI VIDEO
+        </span>
+      </span>
+    </Link>
+  );
+}
+
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#0A1322] text-[#E9F1FB] antialiased">
+    <div className="min-h-screen bg-[#0A1322] text-[#E9F1FB]">
       {/* Navbar */}
       <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#0A1322]/80 backdrop-blur">
         <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-            <LogoMark className="h-7 w-7" />
-            <span>Fluxion Video</span>
-          </Link>
+          <Brand />
           <div className="hidden items-center gap-8 text-sm text-[#A9BBD4] md:flex">
             <Link href="/generate" className="transition-colors hover:text-[#E9F1FB]">Generate</Link>
             <Link href="/models" className="transition-colors hover:text-[#E9F1FB]">Models</Link>
@@ -39,10 +51,10 @@ export default function Home() {
         <img src="/backdrop.svg" alt="" aria-hidden="true"
              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70" />
         <div className="relative mx-auto max-w-3xl px-6 py-28 text-center sm:py-36">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[rgba(124,189,242,0.06)] px-3 py-1 text-xs text-[#A9BBD4]">
-            <LogoMark className="h-4 w-4" /> AI video, generated on your terms
+          <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[rgba(124,189,242,0.06)] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#A9BBD4]">
+            AI video, generated on your terms
           </span>
-          <h1 className="mt-6 text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
+          <h1 className="mt-6 font-[family-name:var(--font-sora)] text-4xl font-medium leading-tight tracking-[-0.025em] sm:text-6xl">
             Turn a prompt into<br /><span className="text-[#7CBDF2]">cinematic video</span>.
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-[#A9BBD4]">
@@ -72,7 +84,7 @@ export default function Home() {
           ].map((f) => (
             <div key={f.t} className="rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#16263F] p-6">
               <div className="mb-3"><LogoMark className="h-6 w-6" /></div>
-              <h3 className="font-medium">{f.t}</h3>
+              <h3 className="font-[family-name:var(--font-sora)] font-medium">{f.t}</h3>
               <p className="mt-2 text-sm text-[#A9BBD4]">{f.d}</p>
             </div>
           ))}
@@ -82,7 +94,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-[rgba(124,189,242,0.14)]">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-[#6E82A0] sm:flex-row">
-          <div className="flex items-center gap-2"><LogoMark className="h-5 w-5" /> Fluxion Video</div>
+          <Brand mark="h-5 w-5" />
           <p>© {new Date().getFullYear()} — Frontend demo. No real generation.</p>
         </div>
       </footer>
