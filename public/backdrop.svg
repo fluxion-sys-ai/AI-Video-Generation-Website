@@ -13,9 +13,9 @@
       <stop offset="1" stop-color="#E8B24E" stop-opacity="0"/>
     </radialGradient>
     <!-- bright glow for the dots -->
-    <filter id="dotglow" x="-200%" y="-200%" width="500%" height="500%">
-      <feGaussianBlur stdDeviation="4.5" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <filter id="dotglow" x="-300%" y="-300%" width="700%" height="700%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
