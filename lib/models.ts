@@ -15,6 +15,9 @@ export type Model = {
 };
 
 const V = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample";
+// local thumbnail videos live in public/models/<slug>.mp4 (drop your clips there)
+const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
+const thumb = (slug: string) => `${BASE}/models/${slug}.mp4`;
 
 export const MODELS: Model[] = [
   {
@@ -30,7 +33,7 @@ export const MODELS: Model[] = [
     popularResolutions: ["480p", "720p"],
     supports: { image: true, audio: true, seed: true },
     creditsPerSecond: 8,
-    demoVideo: `${V}/BigBuckBunny.mp4`,
+    demoVideo: thumb("aurora"),
     poster: `${V}/images/BigBuckBunny.jpg`,
   },
   {
@@ -45,7 +48,7 @@ export const MODELS: Model[] = [
     popularResolutions: ["480p"],
     supports: { image: false, audio: false, seed: true },
     creditsPerSecond: 3,
-    demoVideo: `${V}/ForBiggerBlazes.mp4`,
+    demoVideo: thumb("pulse"),
     poster: `${V}/images/ForBiggerBlazes.jpg`,
   },
   {
@@ -60,7 +63,7 @@ export const MODELS: Model[] = [
     popularResolutions: ["720p"],
     supports: { image: true, audio: false, seed: true },
     creditsPerSecond: 6,
-    demoVideo: `${V}/ForBiggerJoyrides.mp4`,
+    demoVideo: thumb("volt"),
     poster: `${V}/images/ForBiggerJoyrides.jpg`,
   },
   {
@@ -75,7 +78,7 @@ export const MODELS: Model[] = [
     popularResolutions: ["720p"],
     supports: { image: true, audio: true, seed: true },
     creditsPerSecond: 12,
-    demoVideo: `${V}/Sintel.mp4`,
+    demoVideo: thumb("nova"),
     poster: `${V}/images/Sintel.jpg`,
   },
 ];
