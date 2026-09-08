@@ -79,7 +79,7 @@ function ReelSlot({ videos, startMs, holdMs }: Slot) {
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="auto"
           />
         ))}
       </div>
