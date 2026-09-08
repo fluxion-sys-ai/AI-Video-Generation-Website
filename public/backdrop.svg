@@ -22,15 +22,15 @@
   <rect width="1440" height="900" fill="url(#bgGrad)"/>
   <rect width="1440" height="900" fill="url(#warm)"/>
 
-  <!-- converging lines over the gradient (subtle, brighten toward the right) -->
+  <!-- converging lines over the gradient; meet off-screen right (leaving the screen) -->
   <g fill="none" stroke="#AECBF0" stroke-width="1" stroke-linecap="round" opacity="0.35">
-    <path id="p1" d="M120 160 C 500 220, 840 370, 1240 450"/>
-    <path id="p2" d="M120 280 C 500 310, 840 405, 1240 450"/>
-    <path id="p3" d="M120 380 C 500 395, 840 428, 1240 450"/>
-    <path id="p4" d="M120 470 C 500 460, 840 455, 1240 450"/>
-    <path id="p5" d="M120 560 C 500 540, 840 480, 1240 450"/>
-    <path id="p6" d="M120 660 C 500 610, 840 500, 1240 450"/>
-    <path id="p7" d="M120 760 C 500 700, 840 540, 1240 450"/>
+    <path id="p1" d="M120 160 C 520 220, 980 380, 1620 450"/>
+    <path id="p2" d="M120 280 C 520 310, 980 410, 1620 450"/>
+    <path id="p3" d="M120 380 C 520 395, 980 432, 1620 450"/>
+    <path id="p4" d="M120 470 C 520 462, 980 456, 1620 450"/>
+    <path id="p5" d="M120 560 C 520 540, 980 484, 1620 450"/>
+    <path id="p6" d="M120 660 C 520 610, 980 505, 1620 450"/>
+    <path id="p7" d="M120 760 C 520 700, 980 545, 1620 450"/>
   </g>
 
   <!-- orange dots: grow + brighten as they accelerate toward the right -->
