@@ -57,8 +57,8 @@ export default function Home() {
             </a>
           </div>
 
-          {/* Vertical demo video — where the dots land */}
-          <div className="hidden justify-self-end lg:block">
+          {/* Vertical demo video — nudged right to cover where the dots land */}
+          <div className="hidden justify-self-end lg:block lg:translate-x-10">
             <video
               className="aspect-[9/16] w-[248px] rounded-[12px] border border-[rgba(124,189,242,0.28)] bg-black object-cover shadow-2xl shadow-black/50"
               src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"
