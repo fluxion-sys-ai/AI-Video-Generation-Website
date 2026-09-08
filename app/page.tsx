@@ -19,29 +19,44 @@ export default function Home() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70"
         />
-        <div className="relative mx-auto max-w-6xl px-6 py-32 sm:py-44">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[rgba(124,189,242,0.06)] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#A9BBD4]">
-            Text-to-video · Image-to-video
-          </span>
-          <h1 className="mt-6 max-w-3xl font-[family-name:var(--font-sora)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.02em] sm:text-7xl">
-            AI video<br />generation
-          </h1>
-          <p className="mt-6 max-w-xl text-lg text-[#A9BBD4]">
-            Pick a model, describe the shot, and generate. Download or export the result.
-          </p>
-          <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
-            <Link
-              href="/signup"
-              className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] sm:w-auto"
-            >
-              Get started
-            </Link>
-            <a
-              href="#models"
-              className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 text-center font-medium text-[#E9F1FB] transition-colors hover:bg-[rgba(124,189,242,0.06)] sm:w-auto"
-            >
-              Explore models
-            </a>
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 py-28 sm:py-36 lg:grid-cols-[1fr_auto]">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[rgba(124,189,242,0.06)] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#A9BBD4]">
+              Text-to-video · Image-to-video
+            </span>
+            <h1 className="mt-6 max-w-2xl font-[family-name:var(--font-sora)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-7xl">
+              AI video<br />generation
+            </h1>
+            <p className="mt-6 max-w-md text-lg text-[#A9BBD4]">
+              Pick a model, describe the shot, and generate. Download or export the result.
+            </p>
+            <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
+              <Link
+                href="/signup"
+                className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] sm:w-auto"
+              >
+                Get started
+              </Link>
+              <a
+                href="#models"
+                className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 text-center font-medium text-[#E9F1FB] transition-colors hover:bg-[rgba(124,189,242,0.06)] sm:w-auto"
+              >
+                Explore models
+              </a>
+            </div>
+          </div>
+
+          {/* Vertical demo video — where the dots land */}
+          <div className="hidden justify-self-end lg:block">
+            <video
+              className="aspect-[9/16] w-[248px] rounded-[12px] border border-[rgba(124,189,242,0.28)] bg-black object-cover shadow-2xl shadow-black/50"
+              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+            />
           </div>
         </div>
       </section>
