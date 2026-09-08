@@ -24,7 +24,7 @@ export default function Home() {
       <SiteHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden lg:min-h-[640px]">
+      <section className="relative overflow-hidden lg:min-h-screen">
         <div className="relative mx-auto max-w-6xl px-6 py-28 sm:py-36">
           <div className="max-w-xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
@@ -53,10 +53,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Vertical demo video — flush to the right edge, glows as dots pass its left edge */}
-        <div className="absolute right-0 top-1/2 hidden -translate-y-1/2 lg:block">
+        {/* Vertical demo video — near the right edge (small gap so the glow shows), vertically centered on the converging lines */}
+        <div className="absolute right-6 top-1/2 hidden -translate-y-1/2 lg:block">
           <video
-            className="phone-glow aspect-[9/16] w-[340px] rounded-l-[14px] border border-r-0 border-[rgba(255,193,94,0.35)] bg-black object-cover"
+            className="phone-glow aspect-[9/16] w-[340px] rounded-[14px] border border-[rgba(255,193,94,0.35)] bg-black object-cover"
             src={`${BASE}/hero.mp4`}
             autoPlay
             muted
