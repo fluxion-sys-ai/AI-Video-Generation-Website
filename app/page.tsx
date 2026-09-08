@@ -12,12 +12,14 @@ function Kicker({ label }: { label: string }) {
   );
 }
 
+const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
+
 export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Cohesive fixed background — home only */}
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
-        <img src="/backdrop.svg" alt="" className="h-full w-full object-cover" />
+        <img src={`${BASE}/backdrop.svg`} alt="" className="h-full w-full object-cover" />
       </div>
       <SiteHeader />
 

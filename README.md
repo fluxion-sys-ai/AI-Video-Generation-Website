@@ -1,5 +1,7 @@
 # AI Video Generation Website
 
+**Live demo:** https://fluxion-sys-ai.github.io/AI-Video-Generation-Website/
+
 A polished, frontend-only AI video generator. Choose a model, write a prompt,
 set options, generate, watch, and export — no real backend or AI inference.
 All data and generation is mocked behind a swappable service layer.
