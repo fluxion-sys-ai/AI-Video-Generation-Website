@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { PlansDots } from "@/components/plans-dots";
 
 export const metadata = { title: "Pricing · Fluxion AI Video" };
 
@@ -53,8 +54,11 @@ export default function PricingPage() {
           Credits are spent per second of generated video. Pick a plan and start generating.
         </p>
 
-        {/* hairline-divided grid */}
-        <div className="mt-10 grid overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] sm:grid-cols-3">
+        {/* animated dots run left->right in the bands around the plans */}
+        <div className="relative mt-10 py-20">
+        <PlansDots className="pointer-events-none absolute inset-0 h-full w-full" />
+        {/* hairline-divided grid (solid bg so dots never show through the boxes) */}
+        <div className="relative grid overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0A1322] sm:grid-cols-3">
           {PLANS.map((p, i) => (
             <div
               key={p.id}
@@ -96,6 +100,7 @@ export default function PricingPage() {
               </Link>
             </div>
           ))}
+        </div>
         </div>
         <p className="mt-4 text-xs text-[#6E82A0]">Frontend demo. No payment is processed.</p>
       </main>

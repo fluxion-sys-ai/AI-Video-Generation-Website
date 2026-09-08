@@ -25,10 +25,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${jetbrainsMono.variable} h-full scroll-smooth antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-[#0A1322] text-[#E9F1FB] font-[family-name:var(--font-geist-sans)]">
-        {/* Cohesive fixed background — stays put while the page scrolls over it */}
-        <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
-          <img src="/backdrop.svg" alt="" className="h-full w-full object-cover" />
-        </div>
         {children}
       </body>
     </html>
