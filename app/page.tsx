@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ModelMarquee } from "@/components/model-marquee";
 import { Reveal } from "@/components/reveal";
+import { HeroReels } from "@/components/hero-reels";
 
 function Kicker({ label }: { label: string }) {
   return (
@@ -53,17 +54,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Vertical demo video — near the right edge, vertically centered on the converging lines */}
+        {/* Vertical reels (3 slots) — near the right edge, centered on the converging lines */}
         <div className="absolute right-6 top-1/2 -mt-10 hidden -translate-y-1/2 lg:block">
-          <video
-            className="aspect-[9/16] w-[340px] rounded-[14px] border border-[rgba(255,193,94,0.35)] bg-black object-cover shadow-[0_20px_55px_rgba(0,0,0,0.55),0_0_70px_-8px_rgba(255,193,94,0.55)]"
-            src={`${BASE}/hero.mp4`}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-          />
+          <HeroReels />
         </div>
       </section>
 
