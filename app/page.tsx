@@ -24,8 +24,8 @@ export default function Home() {
       <SiteHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden lg:min-h-screen">
-        <div className="relative max-w-6xl px-6 py-28 sm:py-36">
+      <section className="relative overflow-hidden lg:h-[calc(100vh-5rem)]">
+        <div className="relative max-w-6xl px-8 py-28 sm:px-12 sm:py-36">
           <div className="max-w-xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
               Text-to-video, image-to-video
@@ -53,10 +53,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Vertical demo video — near the right edge (small gap so the glow shows), vertically centered on the converging lines */}
-        <div className="absolute right-6 top-1/2 hidden -translate-y-1/2 lg:block">
+        {/* Vertical demo video — near the right edge, vertically centered on the converging lines */}
+        <div className="absolute right-6 top-1/2 -mt-10 hidden -translate-y-1/2 lg:block">
           <video
-            className="phone-glow aspect-[9/16] w-[340px] rounded-[14px] border border-[rgba(255,193,94,0.35)] bg-black object-cover"
+            className="aspect-[9/16] w-[340px] rounded-[14px] border border-[rgba(255,193,94,0.35)] bg-black object-cover shadow-[0_20px_55px_rgba(0,0,0,0.55),0_0_70px_-8px_rgba(255,193,94,0.55)]"
             src={`${BASE}/hero.mp4`}
             autoPlay
             muted
