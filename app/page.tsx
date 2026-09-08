@@ -82,14 +82,14 @@ export default function Home() {
       </section>
 
       {/* Walkthrough */}
-      <section className="max-w-6xl px-6 py-20">
-        <Reveal>
+      <section className="px-8 py-20">
+        <Reveal className="mx-auto max-w-4xl text-center">
           <Kicker label="Walkthrough" />
           <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
             See it in action
           </h2>
-          <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
-          <p className="mt-4 max-w-xl text-[#9FB2CC]">
+          <span className="mx-auto mt-3 block h-px w-10 bg-[#E0A24E]" />
+          <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
             Watch a prompt become a finished video in under a minute.
           </p>
           <div className="mt-8 mx-auto max-w-4xl overflow-hidden rounded-[10px] bg-black">
