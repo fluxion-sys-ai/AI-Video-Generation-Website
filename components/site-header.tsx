@@ -78,7 +78,7 @@ function MenuItem({ href, title, sub }: { href: string; title: string; sub?: str
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#0A1322]/80 backdrop-blur">
-      <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6 font-[family-name:var(--font-jetbrains)]">
+      <nav className="flex h-20 max-w-6xl items-center justify-between px-6 font-[family-name:var(--font-jetbrains)]">
         <div className="flex items-center gap-8">
           <Brand />
           <div className="hidden items-center gap-7 md:flex">

@@ -108,7 +108,7 @@ function GenerateInner() {
   const portrait = ah > aw;
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-12 px-6 py-10 lg:grid-cols-[380px_1fr]">
+    <div className="grid max-w-6xl gap-12 px-6 py-10 lg:grid-cols-[380px_1fr]">
       {/* Sidebar (borderless, larger) */}
       <aside className="space-y-8 lg:sticky lg:top-28 lg:self-start">
         <div>

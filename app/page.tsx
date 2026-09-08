@@ -25,7 +25,7 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative overflow-hidden lg:min-h-screen">
-        <div className="relative mx-auto max-w-6xl px-6 py-28 sm:py-36">
+        <div className="relative max-w-6xl px-6 py-28 sm:py-36">
           <div className="max-w-xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
               Text-to-video, image-to-video
@@ -69,7 +69,7 @@ export default function Home() {
 
       {/* Models showcase */}
       <section id="models" className="scroll-mt-24 py-20">
-        <Reveal className="mx-auto max-w-6xl px-6">
+        <Reveal className="max-w-6xl px-6">
           <div className="flex items-end justify-between gap-4">
             <div>
               <Kicker label="Models" />
@@ -89,7 +89,7 @@ export default function Home() {
       </section>
 
       {/* Walkthrough */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
+      <section className="max-w-6xl px-6 py-20">
         <Reveal>
           <Kicker label="Walkthrough" />
           <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">

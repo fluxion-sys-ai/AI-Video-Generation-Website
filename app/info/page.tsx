@@ -7,7 +7,7 @@ export default function InfoPage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-3xl px-6 py-16">
+      <main className="max-w-3xl px-6 py-16">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
           Info
         </span>
