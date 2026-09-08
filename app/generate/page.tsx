@@ -30,25 +30,13 @@ function Field({ label, children, hint }: { label: string; children: React.React
   );
 }
 
+// form controls use the body theme font (Geist), not the browser default
 const selectClass =
-  "w-full rounded-[8px] border border-[rgba(124,189,242,0.2)] bg-[#0B1524] px-3 py-2 text-sm outline-none focus:border-[#7CBDF2]";
+  "w-full rounded-[8px] border border-[rgba(124,189,242,0.2)] bg-[#0B1524] px-3 py-2 text-sm font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2]";
 
 // content-width control for short values (aspect ratio, resolution, duration)
 const compactSelect =
-  "rounded-[8px] border border-[rgba(124,189,242,0.2)] bg-[#0B1524] px-3 py-2 text-sm outline-none focus:border-[#7CBDF2]";
-
-// little box that visually shows the selected aspect ratio
-function AspectPreview({ ratio }: { ratio: string }) {
-  const [w, h] = ratio.split(":").map(Number);
-  return (
-    <span
-      className="inline-block h-10 shrink-0 rounded-[4px] border border-[rgba(124,189,242,0.4)] bg-[#101E36]"
-      style={{ aspectRatio: `${w} / ${h}` }}
-      title={ratio}
-      aria-label={`Aspect ${ratio}`}
-    />
-  );
-}
+  "rounded-[8px] border border-[rgba(124,189,242,0.2)] bg-[#0B1524] px-3 py-2 text-sm font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2]";
 
 function GenerateInner() {
   const router = useRouter();
@@ -116,6 +104,8 @@ function GenerateInner() {
   }
 
   const credits = model.creditsPerSecond * duration;
+  const [aw, ah] = aspect.split(":").map(Number);
+  const portrait = ah > aw;
 
   return (
     <div className="mx-auto grid max-w-6xl gap-12 px-6 py-10 lg:grid-cols-[380px_1fr]">
@@ -206,14 +196,11 @@ function GenerateInner() {
           {/* compact inline controls */}
           <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
             <Field label="Aspect ratio">
-              <div className="flex items-center gap-3">
-                <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={compactSelect}>
-                  {model.aspectRatios.map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
-                <AspectPreview ratio={aspect} />
-              </div>
+              <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={compactSelect}>
+                {model.aspectRatios.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
             </Field>
 
             <Field label="Resolution">
@@ -252,6 +239,50 @@ function GenerateInner() {
             )}
           </div>
 
+          {/* Full-size aspect stage: shows the chosen shape, then the video generates right here */}
+          <div>
+            <span className="mb-2 block font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.06em] text-[#9FB2CC]">
+              Preview
+            </span>
+            <div
+              className="relative overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.4)] bg-black"
+              style={portrait ? { aspectRatio: `${aw} / ${ah}`, height: 460 } : { aspectRatio: `${aw} / ${ah}`, width: "100%", maxWidth: 680 }}
+            >
+              {status === "complete" && resultUrl ? (
+                <video className="h-full w-full object-contain" src={resultUrl} controls autoPlay muted loop playsInline />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
+                  {status === "generating" ? (
+                    <>
+                      <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-[#9FB2CC]">
+                        Hang tight, generating…
+                      </p>
+                      <div className="h-1 w-40 overflow-hidden rounded-full bg-[#1D3149]">
+                        <div className="h-full w-1/3 animate-pulse rounded-full bg-[#7CBDF2]" />
+                      </div>
+                    </>
+                  ) : status === "failed" ? (
+                    <p className="text-sm text-[#E9F1FB]">Generation failed. Try again.</p>
+                  ) : (
+                    <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#5A6B84]">
+                      {aspect}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            {status === "complete" && resultUrl && (
+              <div className="mt-3 flex flex-wrap gap-3">
+                <a href={resultUrl} download className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#A6D4F8]">
+                  Download
+                </a>
+                <button onClick={onGenerate} className="text-sm text-[#7CBDF2] hover:text-[#F5C46B]">
+                  Regenerate
+                </button>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={onGenerate}
             disabled={status === "generating"}
@@ -260,41 +291,6 @@ function GenerateInner() {
             {status === "generating" ? "Generating…" : "Generate"}
           </button>
         </div>
-
-        {/* Result / status (borderless) */}
-        {status !== "idle" && (
-          <div className="mt-10">
-            {status === "generating" && (
-              <div>
-                <p className="text-sm text-[#9FB2CC]">Hang tight, generating your video…</p>
-                <div className="mt-3 h-1 w-full max-w-md overflow-hidden rounded-full bg-[#1D3149]">
-                  <div className="h-full w-1/3 animate-pulse rounded-full bg-[#7CBDF2]" />
-                </div>
-              </div>
-            )}
-            {status === "failed" && (
-              <div className="flex items-center gap-4">
-                <p className="text-sm text-[#E9F1FB]">Generation failed. Try again.</p>
-                <button onClick={onGenerate} className="text-sm text-[#7CBDF2] hover:text-[#F5C46B]">
-                  Retry
-                </button>
-              </div>
-            )}
-            {status === "complete" && resultUrl && (
-              <div>
-                <video className="aspect-video w-full rounded-[10px] bg-black object-contain" src={resultUrl} controls autoPlay muted loop playsInline />
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <a href={resultUrl} download className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#A6D4F8]">
-                    Download
-                  </a>
-                  <button onClick={onGenerate} className="text-sm text-[#7CBDF2] hover:text-[#F5C46B]">
-                    Regenerate
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </main>
     </div>
   );
