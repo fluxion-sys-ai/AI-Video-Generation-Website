@@ -99,7 +99,7 @@ export default function Home() {
           <p className="mt-4 max-w-xl text-[#9FB2CC]">
             Watch a prompt become a finished video in under a minute.
           </p>
-          <div className="mt-8 overflow-hidden rounded-[10px] bg-black">
+          <div className="mt-8 mx-auto max-w-4xl overflow-hidden rounded-[10px] bg-black">
             <video
               className="aspect-video w-full object-cover"
               src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"

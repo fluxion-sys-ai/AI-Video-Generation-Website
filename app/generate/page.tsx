@@ -108,9 +108,9 @@ function GenerateInner() {
   const portrait = ah > aw;
 
   return (
-    <div className="grid max-w-6xl gap-12 px-6 py-10 lg:grid-cols-[380px_1fr]">
-      {/* Sidebar (borderless, larger) */}
-      <aside className="space-y-8 lg:sticky lg:top-28 lg:self-start">
+    <div className="grid gap-8 px-8 py-8 lg:h-[calc(100vh-5rem)] lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,40%)]">
+      {/* Sidebar (borderless) */}
+      <aside className="min-h-0 space-y-8 lg:overflow-y-auto">
         <div>
           <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
             Pricing
@@ -168,11 +168,11 @@ function GenerateInner() {
       </aside>
 
       {/* Main form (borderless, compact) */}
-      <main>
-        <h1 className="font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
-        <p className="mt-2 max-w-2xl text-[#9FB2CC]">{model.description}</p>
+      <main className="min-h-0 lg:overflow-y-auto">
+        <h1 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
+        <p className="mt-1 max-w-2xl text-sm text-[#9FB2CC]">{model.description}</p>
 
-        <div className="mt-6 space-y-5">
+        <div className="mt-5 space-y-4">
           <Field label="Prompt" hint={`${prompt.length} chars`}>
             <textarea
               value={prompt}
@@ -239,50 +239,6 @@ function GenerateInner() {
             )}
           </div>
 
-          {/* Full-size aspect stage: shows the chosen shape, then the video generates right here */}
-          <div>
-            <span className="mb-2 block font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.06em] text-[#9FB2CC]">
-              Preview
-            </span>
-            <div
-              className="relative overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.4)] bg-black"
-              style={portrait ? { aspectRatio: `${aw} / ${ah}`, height: 460 } : { aspectRatio: `${aw} / ${ah}`, width: "100%", maxWidth: 680 }}
-            >
-              {status === "complete" && resultUrl ? (
-                <video className="h-full w-full object-contain" src={resultUrl} controls autoPlay muted loop playsInline />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
-                  {status === "generating" ? (
-                    <>
-                      <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-[#9FB2CC]">
-                        Hang tight, generating…
-                      </p>
-                      <div className="h-1 w-40 overflow-hidden rounded-full bg-[#1D3149]">
-                        <div className="h-full w-1/3 animate-pulse rounded-full bg-[#7CBDF2]" />
-                      </div>
-                    </>
-                  ) : status === "failed" ? (
-                    <p className="text-sm text-[#E9F1FB]">Generation failed. Try again.</p>
-                  ) : (
-                    <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#5A6B84]">
-                      {aspect}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-            {status === "complete" && resultUrl && (
-              <div className="mt-3 flex flex-wrap gap-3">
-                <a href={resultUrl} download className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#A6D4F8]">
-                  Download
-                </a>
-                <button onClick={onGenerate} className="text-sm text-[#7CBDF2] hover:text-[#F5C46B]">
-                  Regenerate
-                </button>
-              </div>
-            )}
-          </div>
-
           <button
             onClick={onGenerate}
             disabled={status === "generating"}
@@ -292,6 +248,47 @@ function GenerateInner() {
           </button>
         </div>
       </main>
+
+      {/* Preview stage (right): the chosen aspect shape; the video generates here */}
+      <section className="flex min-h-0 flex-col items-center justify-center gap-3">
+        <div
+          className="relative overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.4)] bg-black"
+          style={portrait ? { aspectRatio: `${aw} / ${ah}`, height: "min(72vh, 640px)" } : { aspectRatio: `${aw} / ${ah}`, width: "100%", maxWidth: 680 }}
+        >
+          {status === "complete" && resultUrl ? (
+            <video className="h-full w-full object-contain" src={resultUrl} controls autoPlay muted loop playsInline />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
+              {status === "generating" ? (
+                <>
+                  <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-[#9FB2CC]">
+                    Hang tight, generating…
+                  </p>
+                  <div className="h-1 w-40 overflow-hidden rounded-full bg-[#1D3149]">
+                    <div className="h-full w-1/3 animate-pulse rounded-full bg-[#7CBDF2]" />
+                  </div>
+                </>
+              ) : status === "failed" ? (
+                <p className="text-sm text-[#E9F1FB]">Generation failed. Try again.</p>
+              ) : (
+                <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#5A6B84]">
+                  {aspect} preview
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        {status === "complete" && resultUrl && (
+          <div className="flex flex-wrap justify-center gap-3">
+            <a href={resultUrl} download className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#A6D4F8]">
+              Download
+            </a>
+            <button onClick={onGenerate} className="text-sm text-[#7CBDF2] hover:text-[#F5C46B]">
+              Regenerate
+            </button>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
