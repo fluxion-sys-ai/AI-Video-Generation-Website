@@ -18,7 +18,7 @@ export default function InfoPage() {
 
         <p className="mt-6 text-[#9FB2CC]">
           Fluxion AI Video turns a prompt into video. Choose a model, set your options, and
-          generate. This site is a frontend demo, so generation and accounts are mocked.
+          generate.
         </p>
 
         <div className="mt-10 grid gap-8 sm:grid-cols-2">

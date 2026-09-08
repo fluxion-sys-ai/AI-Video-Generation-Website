@@ -26,7 +26,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       <p className="mt-2 text-sm text-[#A9BBD4]">
         {next !== "/generate"
           ? "Sign in to continue. Your form is saved."
-          : "Frontend demo. Any details work."}
+          : "Any details work."}
       </p>
 
       <button

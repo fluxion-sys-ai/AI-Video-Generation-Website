@@ -42,15 +42,15 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="max-w-6xl px-6 py-16">
+      <main className="mx-auto max-w-6xl px-6 py-16 text-center">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
           Pricing
         </span>
         <h1 className="mt-2 font-[family-name:var(--font-jetbrains)] text-4xl font-medium uppercase tracking-[0.01em]">
           Plans and credits
         </h1>
-        <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
-        <p className="mt-4 max-w-xl text-[#9FB2CC]">
+        <span className="mx-auto mt-3 block h-px w-10 bg-[#E0A24E]" />
+        <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
           Credits are spent per second of generated video. Pick a plan and start generating.
         </p>
 
@@ -67,7 +67,7 @@ export default function PricingPage() {
                 i > 0 ? "border-t sm:border-l sm:border-t-0" : ""
               } ${p.highlight ? "bg-[rgba(124,189,242,0.05)]" : ""}`}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center gap-2">
                 <h2 className="font-[family-name:var(--font-jetbrains)] text-xl font-medium uppercase tracking-[0.02em]">{p.name}</h2>
                 {p.highlight && (
                   <span className="rounded-full border border-[rgba(124,189,242,0.3)] px-2 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-[#7CBDF2]">
@@ -75,14 +75,14 @@ export default function PricingPage() {
                   </span>
                 )}
               </div>
-              <div className="mt-4 flex items-baseline gap-1">
+              <div className="mt-4 flex items-baseline justify-center gap-1">
                 <span className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold">{p.price}</span>
                 <span className="text-sm text-[#6E82A0]">{p.period}</span>
               </div>
               <p className="mt-1 text-sm text-[#A9BBD4]">{p.credits}</p>
               <ul className="mt-6 space-y-2 text-sm text-[#A9BBD4]">
                 {p.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2">
+                  <li key={f} className="flex items-center justify-center gap-2">
                     <span className="text-[#E0A24E]">•</span>
                     {f}
                   </li>
@@ -102,7 +102,6 @@ export default function PricingPage() {
           ))}
         </div>
         </div>
-        <p className="mt-4 text-xs text-[#6E82A0]">Frontend demo. No payment is processed.</p>
       </main>
       <SiteFooter />
     </div>
