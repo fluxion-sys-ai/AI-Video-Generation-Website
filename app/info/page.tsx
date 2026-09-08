@@ -40,7 +40,7 @@ export default function InfoPage() {
             <ul className="mt-3 space-y-2 text-sm text-[#9FB2CC]">
               <li>
                 Email:{" "}
-                <a href="mailto:hello@fluxion-sys.ai" className="text-[#7CBDF2] hover:text-[#F5C46B]">
+                <a href="mailto:example-info@fluxion-sys.ai" className="text-[#7CBDF2] hover:text-[#F5C46B]">
                   hello@fluxion-sys.ai
                 </a>
               </li>
