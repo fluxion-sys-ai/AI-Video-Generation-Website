@@ -22,8 +22,8 @@
   <rect width="1440" height="900" fill="url(#bgGrad)"/>
   <rect width="1440" height="900" fill="url(#warm)"/>
 
-  <!-- invisible motion paths (no visible lines) -->
-  <g fill="none" stroke="none">
+  <!-- converging lines over the gradient (subtle, brighten toward the right) -->
+  <g fill="none" stroke="#AECBF0" stroke-width="1" stroke-linecap="round" opacity="0.35">
     <path id="p1" d="M120 160 C 500 220, 840 370, 1240 450"/>
     <path id="p2" d="M120 280 C 500 310, 840 405, 1240 450"/>
     <path id="p3" d="M120 380 C 500 395, 840 428, 1240 450"/>
