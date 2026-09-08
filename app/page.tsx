@@ -32,18 +32,18 @@ export default function Home() {
     <div className="min-h-screen bg-[#0A1322] text-[#E9F1FB]">
       {/* Navbar */}
       <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#0A1322]/80 backdrop-blur">
-        <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-8">
             <Brand />
-            <div className="hidden items-center gap-6 text-sm text-[#A9BBD4] md:flex">
+            <div className="hidden items-center gap-7 text-base text-[#A9BBD4] md:flex">
               <Link href="/generate" className="transition-colors hover:text-[#E9F1FB]">Generate</Link>
               <Link href="/models" className="transition-colors hover:text-[#E9F1FB]">Models</Link>
               <Link href="/pricing" className="transition-colors hover:text-[#E9F1FB]">Pricing</Link>
             </div>
           </div>
-          <div className="flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-4 text-base">
             <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#E9F1FB] sm:block">Log in</Link>
-            <Link href="/signup" className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8]">Sign up</Link>
+            <Link href="/signup" className="rounded-[10px] bg-[#7CBDF2] px-5 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8]">Sign up</Link>
           </div>
         </nav>
       </header>
