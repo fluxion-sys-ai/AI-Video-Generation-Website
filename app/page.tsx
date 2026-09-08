@@ -46,6 +46,31 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Walkthrough */}
+      <section className="border-b border-[rgba(124,189,242,0.14)]">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#7CBDF2]">
+            — Walkthrough
+          </span>
+          <h2 className="mt-2 font-[family-name:var(--font-sora)] text-3xl font-medium tracking-[-0.02em]">
+            See it in action
+          </h2>
+          <p className="mt-3 max-w-xl text-[#A9BBD4]">
+            Watch a prompt become a finished video in under a minute.
+          </p>
+          <div className="mt-8 overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-black">
+            <video
+              className="aspect-video w-full object-cover"
+              src="/walkthrough.mp4"
+              poster="/backdrop.svg"
+              controls
+              preload="metadata"
+              playsInline
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Models showcase */}
       <section id="models" className="scroll-mt-24 border-b border-[rgba(124,189,242,0.14)]">
         <div className="mx-auto max-w-6xl px-6 py-20">
