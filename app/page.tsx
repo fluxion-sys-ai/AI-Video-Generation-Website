@@ -53,24 +53,23 @@ export default function Home() {
         <img src="/backdrop.svg" alt="" aria-hidden="true"
              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70" />
         <div className="relative mx-auto max-w-6xl px-6 py-28 text-left sm:py-36">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[rgba(124,189,242,0.06)] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#A9BBD4]">
-            AI video, generated on your terms
+          <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(139,124,242,0.3)] bg-[rgba(139,124,242,0.08)] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#A99CF7]">
+            Text-to-video · Image-to-video
           </span>
           <h1 className="mt-6 font-[family-name:var(--font-sora)] text-4xl font-medium leading-tight tracking-[-0.025em] sm:text-6xl">
-            Turn a prompt into<br /><span className="text-[#7CBDF2]">cinematic video</span>.
+            Generate video<br />from a <span className="text-[#7CBDF2]">prompt</span>.
           </h1>
           <p className="mt-6 max-w-xl text-lg text-[#A9BBD4]">
-            Choose a model, describe your shot, and generate. Clean flow, premium output,
-            no creative-suite bloat.
+            Pick a model, describe the shot, and generate. Download or export the result.
           </p>
           <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
             <Link href="/generate"
                   className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] sm:w-auto">
-              Generate Video
+              Generate video
             </Link>
             <Link href="/models"
                   className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 font-medium text-[#E9F1FB] transition-colors hover:bg-[rgba(124,189,242,0.06)] sm:w-auto">
-              Explore Models
+              Browse models
             </Link>
           </div>
         </div>
@@ -80,13 +79,15 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-6 py-20">
         <div className="grid gap-6 sm:grid-cols-3">
           {[
-            { t: "Any model", d: "Swap between video models with clear, honest capability cards." },
-            { t: "One clean flow", d: "Prompt, options, generate. The video stays the focus." },
-            { t: "Export ready", d: "Choose format, resolution and FPS, then export in a click." },
+            { n: "01", t: "Choose a model", d: "Compare models by capability, duration, and resolution.", c: "#7CBDF2" },
+            { n: "02", t: "Set prompt and options", d: "Write a prompt, then set duration, aspect ratio, and sound.", c: "#8B7CF2" },
+            { n: "03", t: "Export the result", d: "Download or export as MP4 at your chosen resolution and FPS.", c: "#D9A45E" },
           ].map((f) => (
-            <div key={f.t} className="rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#16263F] p-6">
-              <div className="mb-3"><LogoMark className="h-6 w-6" /></div>
-              <h3 className="font-[family-name:var(--font-sora)] font-medium">{f.t}</h3>
+            <div key={f.n}
+                 className="group relative overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#16263F]/50 p-6 backdrop-blur-sm transition-colors hover:border-[rgba(124,189,242,0.3)]">
+              <div className="absolute inset-x-0 top-0 h-px opacity-60" style={{ background: `linear-gradient(90deg, transparent, ${f.c}, transparent)` }} />
+              <span className="font-[family-name:var(--font-jetbrains)] text-xs tracking-[0.1em]" style={{ color: f.c }}>{f.n}</span>
+              <h3 className="mt-3 font-[family-name:var(--font-sora)] font-medium">{f.t}</h3>
               <p className="mt-2 text-sm text-[#A9BBD4]">{f.d}</p>
             </div>
           ))}

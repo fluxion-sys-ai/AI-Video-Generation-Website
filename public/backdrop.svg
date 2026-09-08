@@ -1,16 +1,22 @@
 <svg width="1440" height="900" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0A1322"/><stop offset="1" stop-color="#0F1B2E"/>
+      <stop offset="0" stop-color="#0A1322"/><stop offset="1" stop-color="#0E1730"/>
     </linearGradient>
-    <radialGradient id="glowA" cx="30%" cy="35%" r="45%">
-      <stop offset="0" stop-color="#7CBDF2" stop-opacity="0.22"/><stop offset="1" stop-color="#7CBDF2" stop-opacity="0"/>
+    <radialGradient id="glowA" cx="28%" cy="32%" r="46%">
+      <stop offset="0" stop-color="#7CBDF2" stop-opacity="0.20"/><stop offset="1" stop-color="#7CBDF2" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="glowB" cx="78%" cy="70%" r="40%">
-      <stop offset="0" stop-color="#4FA3E8" stop-opacity="0.16"/><stop offset="1" stop-color="#4FA3E8" stop-opacity="0"/>
+    <radialGradient id="glowB" cx="80%" cy="72%" r="42%">
+      <stop offset="0" stop-color="#8B7CF2" stop-opacity="0.18"/><stop offset="1" stop-color="#8B7CF2" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+    <radialGradient id="glowC" cx="52%" cy="50%" r="30%">
+      <stop offset="0" stop-color="#D9A45E" stop-opacity="0.07"/><stop offset="1" stop-color="#D9A45E" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lineBlue" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#7CBDF2" stop-opacity="0"/><stop offset="0.5" stop-color="#7CBDF2" stop-opacity="0.55"/><stop offset="1" stop-color="#7CBDF2" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="lineViolet" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8B7CF2" stop-opacity="0"/><stop offset="0.5" stop-color="#8B7CF2" stop-opacity="0.5"/><stop offset="1" stop-color="#8B7CF2" stop-opacity="0"/>
     </linearGradient>
     <filter id="soft" x="-70%" y="-70%" width="240%" height="240%">
       <feGaussianBlur stdDeviation="2.2" result="b"/>
@@ -21,25 +27,26 @@
   <rect width="1440" height="900" fill="url(#bg)"/>
   <rect width="1440" height="900" fill="url(#glowA)"/>
   <rect width="1440" height="900" fill="url(#glowB)"/>
+  <rect width="1440" height="900" fill="url(#glowC)"/>
 
-  <!-- convergence lines (also serve as motion paths) -->
-  <g stroke="url(#line)" stroke-width="1.2" fill="none" stroke-linecap="round">
-    <path id="l1" d="M0 120 Q 720 450 1440 120"/>
-    <path id="l2" d="M0 210 Q 720 450 1440 210" opacity="0.8"/>
-    <path id="l3" d="M0 300 Q 720 450 1440 300" opacity="0.65"/>
-    <path id="l4" d="M0 450 L 1440 450" opacity="0.9"/>
-    <path id="l5" d="M0 600 Q 720 450 1440 600" opacity="0.65"/>
-    <path id="l6" d="M0 690 Q 720 450 1440 690" opacity="0.8"/>
-    <path id="l7" d="M0 780 Q 720 450 1440 780"/>
+  <!-- convergence lines (also serve as motion paths); blue + violet mix -->
+  <g stroke-width="1.2" fill="none" stroke-linecap="round">
+    <path id="l1" d="M0 120 Q 720 450 1440 120" stroke="url(#lineBlue)"/>
+    <path id="l2" d="M0 210 Q 720 450 1440 210" stroke="url(#lineViolet)" opacity="0.85"/>
+    <path id="l3" d="M0 300 Q 720 450 1440 300" stroke="url(#lineBlue)" opacity="0.65"/>
+    <path id="l4" d="M0 450 L 1440 450" stroke="url(#lineBlue)" opacity="0.9"/>
+    <path id="l5" d="M0 600 Q 720 450 1440 600" stroke="url(#lineBlue)" opacity="0.65"/>
+    <path id="l6" d="M0 690 Q 720 450 1440 690" stroke="url(#lineViolet)" opacity="0.85"/>
+    <path id="l7" d="M0 780 Q 720 450 1440 780" stroke="url(#lineBlue)"/>
   </g>
 
-  <!-- traveling dots: gold/yellow packets flowing along the lines -->
+  <!-- traveling dots: gold packets + a couple violet ones -->
   <g filter="url(#soft)">
     <g fill="#F5C46B">
       <circle r="3"/>
       <animateMotion dur="8s" begin="0s" repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#l1"/></animateMotion>
     </g>
-    <g fill="#D9A45E">
+    <g fill="#A99CF7">
       <circle r="2.6"/>
       <animateMotion dur="9.5s" begin="1.2s" repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#l2"/></animateMotion>
     </g>
@@ -55,11 +62,11 @@
       <circle r="2.6"/>
       <animateMotion dur="8.5s" begin="3s" repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#l5"/></animateMotion>
     </g>
-    <g fill="#F5C46B">
-      <circle r="3"/>
+    <g fill="#A99CF7">
+      <circle r="2.8"/>
       <animateMotion dur="9s" begin="1.8s" repeatCount="indefinite" calcMode="linear" keyPoints="1;0" keyTimes="0;1"><mpath xlink:href="#l6"/></animateMotion>
     </g>
-    <g fill="#D9A45E">
+    <g fill="#F5C46B">
       <circle r="2.8"/>
       <animateMotion dur="11s" begin="0.3s" repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#l7"/></animateMotion>
     </g>
