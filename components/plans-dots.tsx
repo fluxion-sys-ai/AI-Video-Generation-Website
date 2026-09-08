@@ -21,14 +21,11 @@ export function PlansDots({ className = "" }: { className?: string }) {
       xmlnsXlink="http://www.w3.org/1999/xlink"
     >
       <defs>
-        <filter id="pdglow" x="-300%" y="-300%" width="700%" height="700%">
-          <feGaussianBlur stdDeviation="4" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
+        <radialGradient id="pdFill" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stopColor="#FFE0A0" />
+          <stop offset="0.4" stopColor="#FFC15E" />
+          <stop offset="1" stopColor="#FFC15E" stopOpacity="0" />
+        </radialGradient>
       </defs>
 
       {/* curved guide lines */}
@@ -39,10 +36,10 @@ export function PlansDots({ className = "" }: { className?: string }) {
       </g>
 
       {/* orange dots running left -> right */}
-      <g fill="#FFC15E" filter="url(#pdglow)">
+      <g fill="url(#pdFill)">
         {paths.map((p) => (
           <g key={`d-${p.id}`}>
-            <circle r="3" />
+            <circle r="6" />
             <animateMotion
               dur={dur(p.t)}
               begin={dur(p.begin)}
