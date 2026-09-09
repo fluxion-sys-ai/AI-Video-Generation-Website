@@ -303,8 +303,7 @@ export default function LibraryPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setActiveFolder(null)}
-                  disabled={selectMode}
-                  className={`rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors disabled:opacity-50 ${
+                  className={`rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
                     activeFolder === null ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                   }`}
                 >
@@ -313,16 +312,13 @@ export default function LibraryPage() {
                 {folders.map((f) => (
                   <button
                     key={f.id}
-                    // Folders aren't clickable while selecting — use the "Add to
-                    // folder" button in the toolbar instead.
-                    onClick={selectMode ? undefined : () => setActiveFolder(f.id)}
-                    onDoubleClick={selectMode ? undefined : () => setDeleteFolderId(f.id)}
-                    disabled={selectMode}
+                    onClick={() => setActiveFolder(f.id)}
+                    onDoubleClick={() => setDeleteFolderId(f.id)}
                     onDragOver={(e) => { e.preventDefault(); setDragOverFolder(f.id); }}
                     onDragLeave={() => setDragOverFolder((d) => (d === f.id ? null : d))}
                     onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) addToFolder(f.id, id); setDragOverFolder(null); }}
-                    title={selectMode ? "Use “Add to folder” to file selected images" : "Click to view · double-click to delete"}
-                    className={`flex items-center gap-1.5 rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors disabled:opacity-50 ${
+                    title="Click to view · double-click to delete"
+                    className={`flex items-center gap-1.5 rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
                       dragOverFolder === f.id
                         ? "border-accent bg-accent-soft text-accent"
                         : activeFolder === f.id
@@ -465,11 +461,22 @@ export default function LibraryPage() {
             className="fixed z-[66] min-w-44 rounded-[10px] border border-line bg-panel p-1 text-sm shadow-xl shadow-black/40"
             style={{ left: Math.min(ctx.x, (typeof window !== "undefined" ? window.innerWidth : 9999) - 190), top: ctx.y }}
           >
-            <button onClick={() => { setSelectMode(true); setSelected(new Set([ctx.id])); setCtx(null); }} className="block w-full rounded-[7px] px-3 py-2 text-left text-fg transition-colors hover:bg-hover">Select</button>
-            {activeFolderObj && (
+            {/* In select mode: only Select (toggles) + Delete. In regular mode:
+                the full menu with folder options. */}
+            <button
+              onClick={() => {
+                if (selectMode) { toggleOne(ctx.id); }
+                else { setSelectMode(true); setSelected(new Set([ctx.id])); }
+                setCtx(null);
+              }}
+              className="block w-full rounded-[7px] px-3 py-2 text-left text-fg transition-colors hover:bg-hover"
+            >
+              {selectMode ? (selected.has(ctx.id) ? "Deselect" : "Select") : "Select"}
+            </button>
+            {!selectMode && activeFolderObj && (
               <button onClick={() => { removeFromFolder(activeFolderObj.id, ctx.id); setCtx(null); }} className="block w-full rounded-[7px] px-3 py-2 text-left text-fg transition-colors hover:bg-hover">Remove from “{activeFolderObj.name}”</button>
             )}
-            {folders.length > 0 && (
+            {!selectMode && folders.length > 0 && (
               <>
                 <p className="px-3 pb-1 pt-2 text-[10px] uppercase tracking-[0.08em] text-dim">Add to folder</p>
                 {folders.map((f) => (
