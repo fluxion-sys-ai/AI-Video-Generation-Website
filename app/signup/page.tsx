@@ -6,17 +6,17 @@ import { PlansDots } from "@/components/plans-dots";
 
 export default function SignupPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
-        <PlansDots variant="a" className="h-full w-full" />
-      </div>
+    <div className="relative flex min-h-screen flex-col">
+      <PlansDots variant="a" className="pointer-events-none absolute inset-0 h-full w-full" />
       <SiteHeader />
-      <div className="flex-1">
+      <div className="relative z-10 flex-1">
         <Suspense fallback={null}>
           <AuthForm mode="signup" />
         </Suspense>
       </div>
-      <SiteFooter />
+      <div className="relative z-10">
+        <SiteFooter />
+      </div>
     </div>
   );
 }

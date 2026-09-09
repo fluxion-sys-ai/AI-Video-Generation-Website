@@ -6,12 +6,10 @@ export const metadata = { title: "Info · Fluxion AI Video" };
 
 export default function InfoPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
-        <PlansDots variant="c" className="h-full w-full" />
-      </div>
+    <div className="relative flex min-h-screen flex-col">
+      <PlansDots variant="c" className="pointer-events-none absolute inset-0 h-full w-full" />
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16 text-center">
+      <main className="relative z-10 mx-auto w-full max-w-3xl flex-1 px-6 py-16 text-center">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
           Info
         </span>
@@ -58,7 +56,9 @@ export default function InfoPage() {
           </div>
         </div>
       </main>
-      <SiteFooter />
+      <div className="relative z-10">
+        <SiteFooter />
+      </div>
     </div>
   );
 }
