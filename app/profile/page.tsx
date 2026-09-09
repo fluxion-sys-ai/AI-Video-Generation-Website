@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
+import { UsageChart } from "@/components/usage-chart";
 import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
 import { getModels } from "@/lib/models";
 
@@ -61,6 +62,7 @@ export default function ProfilePage() {
   const [alertOn, setAlertOn] = useState(false);
   const [alertThreshold, setAlertThreshold] = useState(10);
   const [addOpen, setAddOpen] = useState(false);
+  const [addAmount, setAddAmount] = useState(25);
 
   useEffect(() => {
     if (!isSignedIn()) {
@@ -173,6 +175,17 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
+                {/* daily spend graph - large anchor */}
+                <div className="col-span-4 row-span-2 flex flex-col bg-[#0B1524] p-6 sm:col-span-2">
+                  <div className="flex items-baseline justify-between">
+                    <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Daily spend</p>
+                    <p className="text-xs text-[#6E82A0]">Last 20 days</p>
+                  </div>
+                  <div className="mt-4 flex flex-1 items-end">
+                    <UsageChart className="w-full" height={150} />
+                  </div>
+                </div>
+
                 {/* expiring */}
                 <div className="col-span-2 bg-[#0B1524] p-5">
                   <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Credits expiring in 30 days</p>
@@ -230,24 +243,31 @@ export default function ProfilePage() {
 
                 {/* footer strip */}
                 <div className="col-span-4 bg-[#0B1524] px-5 py-3 text-xs text-[#6E82A0]">
-                  Billing period: Sep 1 to Sep 30, 2026 · frontend demo, no real charges.
+                  Billing period: Sep 1 to Sep 30, 2026
                 </div>
               </div>
             )}
 
-            {/* USAGE - bento stats + history, fits one screen */}
+            {/* USAGE - extended asymmetric bento (graph + stats) | history right */}
             {tab === "usage" && (
-              <div className="mt-8 grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:items-start">
-                {/* stat bento (touching, square) */}
-                <div className="grid grid-cols-2 gap-px border border-[#2E466B] bg-[#2E466B]">
+              <div className="mt-8 grid gap-8 lg:grid-cols-[2.1fr_0.9fr] lg:items-start">
+                {/* left: daily usage graph + asymmetric stat tiles */}
+                <div className="grid grid-cols-3 gap-px border border-[#2E466B] bg-[#2E466B]">
+                  <div className="col-span-3 bg-[#0B1524] p-5">
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Daily usage</p>
+                      <p className="text-xs text-[#6E82A0]">Last 20 days</p>
+                    </div>
+                    <UsageChart className="mt-4" height={110} />
+                  </div>
                   {[
-                    ["Current invoice due", "$0.00", "View invoices"],
-                    ["Credit balance", "$0.00", "May lag usage"],
-                    ["Subtotal (pre-discount)", "$0.00", "Selected period"],
-                    ["Daily burn", "$0.00", "Avg over period"],
-                    ["Model API usage", "$0.00", "This period"],
-                  ].map(([t, v, s], i) => (
-                    <div key={t} className={`bg-[#0B1524] p-5 ${i === 4 ? "col-span-2" : ""}`}>
+                    ["Current invoice due", "$0.00", "View invoices", "col-span-2"],
+                    ["Credit balance", "$0.00", "May lag usage", ""],
+                    ["Subtotal (pre-discount)", "$0.00", "Selected period", ""],
+                    ["Daily burn", "$0.00", "Avg over period", ""],
+                    ["Model API usage", "$0.00", "This period", ""],
+                  ].map(([t, v, s, span]) => (
+                    <div key={t} className={`bg-[#0B1524] p-5 ${span}`}>
                       <p className="whitespace-nowrap text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">{t}</p>
                       <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{v}</p>
                       <p className="mt-1 text-xs text-[#6E82A0]">{s}</p>
@@ -255,9 +275,9 @@ export default function ProfilePage() {
                   ))}
                 </div>
 
-                {/* generation history (touching list, square) */}
-                <div>
-                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
+                {/* right: generation history, aligned to the right edge */}
+                <div className="lg:justify-self-end lg:w-full">
+                  <h2 className="text-right font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
                     Generation history
                   </h2>
                   <div className="mt-4 flex flex-col border border-[#2E466B]">
@@ -295,15 +315,35 @@ export default function ProfilePage() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-6" onClick={() => setAddOpen(false)}>
           <div className="w-full max-w-sm rounded-[14px] border border-[#2E466B] bg-[#0B1524] p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Add credits</h3>
-            <p className="mt-1 text-xs text-[#6E82A0]">Choose an amount. Frontend demo, no real charge.</p>
+            <p className="mt-1 text-xs text-[#6E82A0]">Pick a preset or enter an amount.</p>
             <div className="mt-4 grid grid-cols-3 gap-2">
               {[10, 25, 50].map((a) => (
-                <button key={a} className="rounded-[10px] border border-[rgba(124,189,242,0.24)] py-3 font-[family-name:var(--font-jetbrains)] text-sm hover:border-[#FF8A1E] hover:text-[#FF8A1E]">
+                <button
+                  key={a}
+                  onClick={() => setAddAmount(a)}
+                  className={`rounded-[10px] border py-3 font-[family-name:var(--font-jetbrains)] text-sm transition-colors ${
+                    addAmount === a
+                      ? "border-[#FF8A1E] text-[#FF8A1E]"
+                      : "border-[rgba(124,189,242,0.24)] hover:border-[#FF8A1E] hover:text-[#FF8A1E]"
+                  }`}
+                >
                   ${a}
                 </button>
               ))}
             </div>
-            <button onClick={() => setAddOpen(false)} className={`${btnPrimary} mt-5 w-full`}>Buy credits</button>
+            <div className="mt-3">
+              <label className={label}>Enter amount ($)</label>
+              <input
+                type="number"
+                min={1}
+                value={addAmount}
+                onChange={(e) => setAddAmount(Number(e.target.value))}
+                className={inputClass}
+              />
+            </div>
+            <button onClick={() => setAddOpen(false)} className={`${btnPrimary} mt-5 w-full`}>
+              Buy ${addAmount || 0} in credits
+            </button>
           </div>
         </div>
       )}

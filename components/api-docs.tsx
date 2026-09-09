@@ -163,7 +163,7 @@ print(result["video"]["url"])`,
         <pre className="mt-3 overflow-x-auto rounded-[10px] border border-[#33507C] bg-[#0B1524] p-4 font-[family-name:var(--font-jetbrains)] text-sm text-[#E9F1FB]">
           <code>{response}</code>
         </pre>
-        <p className="mt-3 text-xs text-[#6E82A0]">Illustrative only. This demo has no live API.</p>
+        <p className="mt-3 text-xs text-[#6E82A0]">Illustrative only. No live API here.</p>
       </section>
     </div>
   );
