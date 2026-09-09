@@ -83,6 +83,7 @@ export default function LibraryPage() {
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
+  const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
 
   const models = getModels();
 
@@ -340,12 +341,15 @@ export default function LibraryPage() {
                 All ({libImages.length})
               </button>
               {folders.map((f) => (
-                <div
+                <button
                   key={f.id}
+                  onClick={() => setActiveFolder(f.id)}
+                  onDoubleClick={() => setDeleteFolderId(f.id)}
                   onDragOver={(e) => { e.preventDefault(); setDragOverFolder(f.id); }}
                   onDragLeave={() => setDragOverFolder((d) => (d === f.id ? null : d))}
                   onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) addToFolder(f.id, id); setDragOverFolder(null); }}
-                  className={`flex items-center gap-2 rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
+                  title="Click to view · double-click to delete"
+                  className={`flex items-center gap-1.5 rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
                     dragOverFolder === f.id
                       ? "border-accent bg-accent-soft text-accent"
                       : activeFolder === f.id
@@ -353,18 +357,27 @@ export default function LibraryPage() {
                         : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                   }`}
                 >
-                  <button onClick={() => setActiveFolder(f.id)} className="flex items-center gap-1.5" title="View folder">
-                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V12 A1 1 0 0 1 13.5 13 H2.5 A1 1 0 0 1 1.5 12 Z" stroke="currentColor" strokeWidth="1.2" /></svg>
-                    {f.name} ({folderCount(f)})
-                  </button>
-                  <button onClick={() => deleteFolder(f.id)} aria-label={`Delete ${f.name}`} className="text-dim hover:text-danger" title="Delete folder">
-                    <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
-                  </button>
-                </div>
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V12 A1 1 0 0 1 13.5 13 H2.5 A1 1 0 0 1 1.5 12 Z" stroke="currentColor" strokeWidth="1.2" /></svg>
+                  {f.name} ({folderCount(f)})
+                </button>
               ))}
             </div>
-            {folders.length === 0 && !creatingFolder && (
+            {folders.length === 0 && !creatingFolder ? (
               <p className="mt-2 text-xs text-dim">Tip: create a folder, then drag images onto it (or right-click an image) to organize them.</p>
+            ) : (
+              <p className="mt-2 text-xs text-dim">Tip: double-click a folder to delete it.</p>
+            )}
+
+            {/* delete-folder action while viewing a folder */}
+            {activeFolderObj && (
+              <div className="mt-4">
+                <button
+                  onClick={() => setDeleteFolderId(activeFolderObj.id)}
+                  className="rounded-none border border-[rgba(255,107,107,0.4)] px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)]"
+                >
+                  Delete “{activeFolderObj.name}” folder
+                </button>
+              </div>
             )}
 
             {/* image grid */}
@@ -448,6 +461,22 @@ export default function LibraryPage() {
             <div className="mt-6 flex justify-end gap-3">
               <button onClick={() => setDeleteIds(null)} className="rounded-[10px] border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Cancel</button>
               <button onClick={() => deleteImages(deleteIds)} className="rounded-[10px] bg-danger px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-danger-hover">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete-folder confirmation */}
+      {deleteFolderId && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6" onClick={() => setDeleteFolderId(null)}>
+          <div className="w-full max-w-sm rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">
+              Delete “{folders.find((f) => f.id === deleteFolderId)?.name}” folder?
+            </h3>
+            <p className="mt-2 text-sm text-muted">The folder is removed. Your images stay in the library.</p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setDeleteFolderId(null)} className="rounded-[10px] border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Cancel</button>
+              <button onClick={() => { deleteFolder(deleteFolderId); setDeleteFolderId(null); }} className="rounded-[10px] bg-danger px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-danger-hover">Delete folder</button>
             </div>
           </div>
         </div>
