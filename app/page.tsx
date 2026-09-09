@@ -70,10 +70,10 @@ export default function Home() {
               fluxion
             </p>
             <h1 className="mt-6 font-[family-name:var(--font-jetbrains)] text-4xl font-semibold leading-[1.05] tracking-[-0.01em] text-fg-strong sm:text-5xl">
-              Turn a sentence<br />into a scene.
+              Describe the shot.<br />See it come alive.
             </h1>
             <p className="mt-6 max-w-md text-lg text-muted">
-              Describe the shot, pick a model, and watch your idea become video in seconds.
+              Pick a model, write a prompt, and watch your idea become video in seconds.
             </p>
             <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
               <Link
