@@ -43,35 +43,14 @@
     <path id="p7" d="M-40 760 C 520 700, 980 545, 1620 450"/>
   </g>
 
-  <!-- orange dots: grow + brighten as they accelerate toward the right -->
+  <!-- orange dots glide steadily along the lines (constant size/opacity = no flicker) -->
   <g fill="url(#dotFill)">
-    <g>
-      <circle r="3"><animate attributeName="r" values="5;7;11" keyTimes="0;0.6;1" dur="5.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="5.5s" repeatCount="indefinite"/></circle>
-      <animateMotion dur="5.5s" begin="0s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p1"/></animateMotion>
-    </g>
-    <g>
-      <circle r="3"><animate attributeName="r" values="5;7;11" keyTimes="0;0.6;1" dur="6.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="6.2s" repeatCount="indefinite"/></circle>
-      <animateMotion dur="6.2s" begin="0.9s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p2"/></animateMotion>
-    </g>
-    <g>
-      <circle r="3"><animate attributeName="r" values="5;7;11" keyTimes="0;0.6;1" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="5s" repeatCount="indefinite"/></circle>
-      <animateMotion dur="5s" begin="1.7s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p3"/></animateMotion>
-    </g>
-    <g>
-      <circle r="3.4"><animate attributeName="r" values="5.5;7.5;12" keyTimes="0;0.6;1" dur="6.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.85;1" keyTimes="0;0.6;1" dur="6.6s" repeatCount="indefinite"/></circle>
-      <animateMotion dur="6.6s" begin="0.4s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p4"/></animateMotion>
-    </g>
-    <g>
-      <circle r="3"><animate attributeName="r" values="5;7;11" keyTimes="0;0.6;1" dur="5.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="5.8s" repeatCount="indefinite"/></circle>
-      <animateMotion dur="5.8s" begin="2.1s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p5"/></animateMotion>
-    </g>
-    <g>
-      <circle r="3"><animate attributeName="r" values="5;7;11" keyTimes="0;0.6;1" dur="6.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="6.4s" repeatCount="indefinite"/></circle>
-      <animateMotion dur="6.4s" begin="1.2s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p6"/></animateMotion>
-    </g>
-    <g>
-      <circle r="3"><animate attributeName="r" values="5;7;11" keyTimes="0;0.6;1" dur="7s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.45;0.8;1" keyTimes="0;0.6;1" dur="7s" repeatCount="indefinite"/></circle>
-      <animateMotion dur="7s" begin="0.2s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.5 0 1 1"><mpath xlink:href="#p7"/></animateMotion>
-    </g>
+    <g><circle r="8"/><animateMotion dur="9s"  begin="0s"   repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#p1"/></animateMotion></g>
+    <g><circle r="8"/><animateMotion dur="10.5s" begin="1.3s" repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#p2"/></animateMotion></g>
+    <g><circle r="8"/><animateMotion dur="9.5s" begin="2.6s" repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#p3"/></animateMotion></g>
+    <g><circle r="9"/><animateMotion dur="11s"  begin="0.6s" repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#p4"/></animateMotion></g>
+    <g><circle r="8"/><animateMotion dur="10s"  begin="2s"   repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#p5"/></animateMotion></g>
+    <g><circle r="8"/><animateMotion dur="10.8s" begin="1s" repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#p6"/></animateMotion></g>
+    <g><circle r="8"/><animateMotion dur="12s"  begin="0.3s" repeatCount="indefinite" calcMode="linear"><mpath xlink:href="#p7"/></animateMotion></g>
   </g>
 </svg>
