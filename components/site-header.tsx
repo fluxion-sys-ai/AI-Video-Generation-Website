@@ -249,6 +249,7 @@ export function SiteHeader() {
                 <NavLink href="/dashboard" label="Dashboard" active={pathname.startsWith("/dashboard")} />
                 <NavLink href="/generate" label="Generate" active={pathname.startsWith("/generate") || pathname.startsWith("/models")} />
                 <NavLink href="/library" label="Library" active={pathname.startsWith("/library")} />
+                <NavLink href="/docs" label="Docs" active={pathname.startsWith("/docs")} />
                 <NavLink href="/profile" label="Settings" active={pathname.startsWith("/profile")} />
               </>
             ) : (
