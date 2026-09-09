@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PlansDots } from "@/components/plans-dots";
+import { GlowBlobs } from "@/components/glow-blobs";
 import { ModelPricingTable } from "@/components/model-pricing-table";
 import { PlansInteractive } from "@/components/plans-interactive";
 
@@ -61,6 +62,7 @@ export default function PricingPage() {
         </div>
 
         <div className="relative mt-6 py-6">
+          <GlowBlobs variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
           <PlansDots className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
 
           <div className="relative">

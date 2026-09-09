@@ -3,10 +3,12 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { AuthForm } from "@/components/auth-form";
 import { PlansDots } from "@/components/plans-dots";
+import { GlowBlobs } from "@/components/glow-blobs";
 
 export default function SignupPage() {
   return (
     <div className="relative flex min-h-screen flex-col">
+      <GlowBlobs variant="b" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <PlansDots variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
       <div className="relative z-10 flex-1">
