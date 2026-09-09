@@ -40,6 +40,16 @@ const selectClass =
 const compactSelect =
   "rounded-[8px] border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2] focus:ring-1 focus:ring-[#7CBDF2]";
 
+// common use for each aspect ratio, shown in the dropdown
+const ASPECT_USE: Record<string, string> = {
+  "16:9": "YouTube",
+  "9:16": "Reels / TikTok",
+  "1:1": "Instagram post",
+  "4:3": "Camera",
+  "3:4": "Instagram portrait",
+  "21:9": "Cinema",
+};
+
 function GenerateInner() {
   const router = useRouter();
   const params = useSearchParams();
@@ -240,7 +250,9 @@ function GenerateInner() {
             <Field label="Aspect ratio">
               <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={compactSelect}>
                 {model.aspectRatios.map((r) => (
-                  <option key={r} value={r}>{r}</option>
+                  <option key={r} value={r}>
+                    {ASPECT_USE[r] ? `${r} (${ASPECT_USE[r]})` : r}
+                  </option>
                 ))}
               </select>
             </Field>
