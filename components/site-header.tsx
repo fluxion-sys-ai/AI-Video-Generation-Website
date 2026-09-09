@@ -200,8 +200,12 @@ function ProfileMenu({ user }: { user: User }) {
   );
 }
 
-// dashboard "app mode" routes — signed-in users get the app top bar here
-const DASH_PREFIXES = ["/dashboard", "/library", "/settings", "/profile", "/generate", "/models"];
+// Marketing routes always show the public bar; app routes always show the
+// dashboard bar. Shared routes (/profile, /generate, /models) inherit the last
+// mode, so clicking the avatar from a public page keeps you in public mode.
+const ALWAYS_PUBLIC = ["/", "/pricing", "/info", "/login", "/signup"];
+const ALWAYS_DASH = ["/dashboard", "/library", "/settings"];
+const MODE_KEY = "fluxion.mode";
 
 function NavLink({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
@@ -219,14 +223,20 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
 export function SiteHeader() {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
+  const [mode, setMode] = useState<"public" | "dashboard">("public");
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setUser(isSignedIn() ? getUser() : null);
+    let m = (localStorage.getItem(MODE_KEY) as "public" | "dashboard") || "public";
+    if (ALWAYS_PUBLIC.includes(pathname)) m = "public";
+    else if (ALWAYS_DASH.some((p) => pathname.startsWith(p))) m = "dashboard";
+    localStorage.setItem(MODE_KEY, m);
+    setMode(m);
     setReady(true);
   }, [pathname]);
 
-  const dashMode = ready && !!user && DASH_PREFIXES.some((p) => pathname.startsWith(p));
+  const dashMode = ready && !!user && mode === "dashboard";
 
   return (
     <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#070D1A]/80 backdrop-blur">
@@ -292,8 +302,9 @@ export function SiteHeader() {
               {!dashMode && (
                 <Link
                   href="/dashboard"
-                  className="rounded-[10px] bg-[#FF8A1E] px-5 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]"
+                  className="hidden items-center gap-1.5 border border-[rgba(255,138,30,0.55)] px-3 py-1.5 text-xs uppercase tracking-[0.08em] text-[#FF8A1E] transition-colors hover:bg-[rgba(255,138,30,0.1)] sm:flex"
                 >
+                  <span className="text-sm leading-none">+</span>
                   Create
                 </Link>
               )}
