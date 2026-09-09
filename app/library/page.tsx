@@ -74,6 +74,8 @@ export default function LibraryPage() {
   const [deleteIds, setDeleteIds] = useState<string[] | null>(null);
   // Right-click context menu on an image.
   const [ctx, setCtx] = useState<{ x: number; y: number; id: string } | null>(null);
+  // Right-click context menu on a folder tab.
+  const [folderCtx, setFolderCtx] = useState<{ x: number; y: number; id: string } | null>(null);
 
   // Folders for organizing images (drag an image onto a folder). Persisted.
   type Folder = { id: string; name: string; imageIds: string[] };
@@ -313,11 +315,11 @@ export default function LibraryPage() {
                   <button
                     key={f.id}
                     onClick={() => setActiveFolder(f.id)}
-                    onDoubleClick={() => setDeleteFolderId(f.id)}
+                    onContextMenu={(e) => { e.preventDefault(); setFolderCtx({ x: e.clientX, y: e.clientY, id: f.id }); }}
                     onDragOver={(e) => { e.preventDefault(); setDragOverFolder(f.id); }}
                     onDragLeave={() => setDragOverFolder((d) => (d === f.id ? null : d))}
                     onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) addToFolder(f.id, id); setDragOverFolder(null); }}
-                    title="Click to view · double-click to delete"
+                    title="Click to view · right-click for options"
                     className={`flex items-center gap-1.5 rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
                       dragOverFolder === f.id
                         ? "border-accent bg-accent-soft text-accent"
@@ -399,10 +401,8 @@ export default function LibraryPage() {
                 )}
               </div>
             </div>
-            {folders.length === 0 && !creatingFolder ? (
+            {folders.length === 0 && !creatingFolder && (
               <p className="mt-2 text-xs text-dim">Tip: create a folder, then drag images onto it (or right-click an image) to organize them.</p>
-            ) : (
-              <p className="mt-2 text-xs text-dim">Tip: double-click a folder to delete it.</p>
             )}
 
 
@@ -485,6 +485,20 @@ export default function LibraryPage() {
               </>
             )}
             <button onClick={() => { const id = ctx.id; setCtx(null); setDeleteIds([id]); }} className="mt-1 block w-full rounded-[7px] border-t border-line px-3 py-2 text-left text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)]">Delete</button>
+          </div>
+        </>
+      )}
+
+      {/* Right-click context menu on a folder */}
+      {folderCtx && (
+        <>
+          <div className="fixed inset-0 z-[65]" onClick={() => setFolderCtx(null)} onContextMenu={(e) => { e.preventDefault(); setFolderCtx(null); }} />
+          <div
+            className="fixed z-[66] min-w-40 rounded-[10px] border border-line bg-panel p-1 text-sm shadow-xl shadow-black/40"
+            style={{ left: Math.min(folderCtx.x, (typeof window !== "undefined" ? window.innerWidth : 9999) - 176), top: folderCtx.y }}
+          >
+            <button onClick={() => { setActiveFolder(folderCtx.id); setFolderCtx(null); }} className="block w-full rounded-[7px] px-3 py-2 text-left text-fg transition-colors hover:bg-hover">Open</button>
+            <button onClick={() => { const id = folderCtx.id; setFolderCtx(null); setDeleteFolderId(id); }} className="mt-1 block w-full rounded-[7px] border-t border-line px-3 py-2 text-left text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)]">Delete folder</button>
           </div>
         </>
       )}
