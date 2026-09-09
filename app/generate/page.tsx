@@ -70,7 +70,16 @@ function GenerateInner() {
   const [tab, setTab] = useState<"examples" | "change">("examples");
   const [view, setView] = useState<"playground" | "api">("playground");
   const [panelOpen, setPanelOpen] = useState(true);
+  const [createMode, setCreateMode] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerQuery, setPickerQuery] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Create (dashboard) mode gets a top model-catalog picker; public mode keeps
+  // the "Other Models" tab instead.
+  useEffect(() => {
+    setCreateMode(localStorage.getItem("fluxion.mode") === "dashboard");
+  }, []);
 
   // Refine session: appears automatically after the first generation.
   const [session, setSession] = useState(false);
@@ -166,7 +175,71 @@ function GenerateInner() {
   const portrait = ah > aw;
 
   return (
-    <div className="grid gap-6 px-6 py-6 lg:h-[calc(100vh-5rem)] lg:grid-cols-[150px_1fr]">
+    <div className="px-6 py-6">
+      {/* Create mode: searchable, closable model-catalog picker */}
+      {createMode && (
+        <div className="relative mb-4 max-w-md">
+          <button
+            onClick={() => setPickerOpen((o) => !o)}
+            aria-expanded={pickerOpen}
+            className="flex w-full items-center justify-between gap-3 border border-[#33507C] bg-[#101E36] px-3 py-2.5 text-left transition-colors hover:border-[#7CBDF2]"
+          >
+            <span className="min-w-0">
+              <span className="block text-[10px] uppercase tracking-[0.08em] text-[#6E82A0]">Model</span>
+              <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-[#E9F1FB]">{model.name}</span>
+            </span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className={`shrink-0 transition-transform ${pickerOpen ? "rotate-180" : ""}`}>
+              <path d="M3 6 L8 11 L13 6" stroke="#9FB2CC" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          {pickerOpen && (
+            <div className="absolute left-0 right-0 z-30 mt-1 border border-[#33507C] bg-[#0E1B30] p-2 shadow-xl shadow-black/40">
+              <div className="relative">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#6E82A0]">
+                  <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+                  <path d="M11 11 L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+                <input
+                  autoFocus
+                  value={pickerQuery}
+                  onChange={(e) => setPickerQuery(e.target.value)}
+                  placeholder="Search models"
+                  className="w-full border border-[#33507C] bg-[#101E36] py-2 pl-8 pr-2 text-sm text-[#E9F1FB] outline-none placeholder:text-[#6E82A0] focus:border-[#7CBDF2]"
+                />
+              </div>
+              <div className="mt-2 max-h-72 overflow-y-auto">
+                {(() => {
+                  const q = pickerQuery.trim().toLowerCase();
+                  const list = q
+                    ? getModels().filter((m) => [m.name, m.tagline, m.description, ...m.capabilities].join(" ").toLowerCase().includes(q))
+                    : getModels();
+                  if (list.length === 0) return <p className="p-3 text-sm text-[#6E82A0]">No models match &ldquo;{pickerQuery}&rdquo;.</p>;
+                  return list.map((m) => (
+                    <button
+                      key={m.slug}
+                      onClick={() => {
+                        setPickerOpen(false);
+                        setPickerQuery("");
+                        router.push(`/generate?model=${m.slug}`);
+                      }}
+                      className={`flex w-full items-center gap-3 p-2 text-left transition-colors hover:bg-[rgba(124,189,242,0.06)] ${m.slug === slug ? "bg-[rgba(255,138,30,0.08)]" : ""}`}
+                    >
+                      <img src={m.poster} alt="" className="h-9 w-14 shrink-0 bg-black object-cover" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-[#E9F1FB]">{m.name}</span>
+                        <span className="block truncate text-xs text-[#6E82A0]">{m.tagline}</span>
+                      </span>
+                      {m.slug === slug && <span className="shrink-0 text-xs text-[#FF8A1E]">✓</span>}
+                    </button>
+                  ));
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="grid gap-6 lg:h-[calc(100vh-7rem)] lg:grid-cols-[150px_1fr]">
       {/* Left rail: Playground / API */}
       <nav className="flex gap-2 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col lg:gap-1">
         {(["playground", "api"] as const).map((v) => (
@@ -205,18 +278,20 @@ function GenerateInner() {
                   >
                     Examples
                   </button>
-                  <button
-                    onClick={() => setTab("change")}
-                    className={`pb-1 transition-colors ${tab === "change" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
-                  >
-                    Other Models
-                  </button>
+                  {!createMode && (
+                    <button
+                      onClick={() => setTab("change")}
+                      className={`pb-1 transition-colors ${tab === "change" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
+                    >
+                      Other Models
+                    </button>
+                  )}
                 </div>
                 <button onClick={() => setPanelOpen(false)} aria-label="Collapse panel" className="shrink-0 text-[#9FB2CC] hover:text-[#FF8A1E]">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3 L5 8 L10 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
               </div>
-              {tab === "examples" ? (
+              {createMode || tab === "examples" ? (
                 <div>
                   <video
                     className="aspect-video w-full rounded-[10px] bg-black object-cover"
@@ -443,6 +518,7 @@ function GenerateInner() {
       </section>
       </div>
       )}
+      </div>
     </div>
   );
 }
