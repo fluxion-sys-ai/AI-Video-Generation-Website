@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
@@ -70,16 +69,9 @@ function GenerateInner() {
   const [tab, setTab] = useState<"examples" | "change">("examples");
   const [view, setView] = useState<"playground" | "api">("playground");
   const [panelOpen, setPanelOpen] = useState(true);
-  const [createMode, setCreateMode] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Create (dashboard) mode gets a top model-catalog picker; public mode keeps
-  // the "Other Models" tab instead.
-  useEffect(() => {
-    setCreateMode(localStorage.getItem("fluxion.mode") === "dashboard");
-  }, []);
 
   // Refine session: appears automatically after the first generation.
   const [session, setSession] = useState(false);
@@ -176,8 +168,8 @@ function GenerateInner() {
 
   return (
     <div className="px-6 py-6">
-      {/* Create mode: searchable, closable model-catalog picker */}
-      {createMode && (
+      {/* Searchable, closable model-catalog picker */}
+      {(
         <div className="relative mb-4 max-w-md">
           <button
             onClick={() => setPickerOpen((o) => !o)}
@@ -280,48 +272,25 @@ function GenerateInner() {
                   >
                     Examples
                   </button>
-                  {!createMode && (
-                    <button
-                      onClick={() => setTab("change")}
-                      className={`pb-1 transition-colors ${tab === "change" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
-                    >
-                      Other Models
-                    </button>
-                  )}
                 </div>
                 <button onClick={() => setPanelOpen(false)} aria-label="Collapse panel" className="shrink-0 text-[#9FB2CC] hover:text-[#FF8A1E]">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3 L5 8 L10 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
               </div>
-              {createMode || tab === "examples" ? (
-                <div>
-                  <video
-                    className="aspect-video w-full rounded-[10px] bg-black object-cover"
-                    src={model.demoVideo}
-                    poster={model.poster}
-                    autoPlay
-                    muted
-                    loop
-                    controls
-                    playsInline
-                    preload="auto"
-                  />
-                  <p className="mt-2 text-xs text-[#6E82A0]">Sample output from {model.name}.</p>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {getModels().map((m) => (
-                    <Link
-                      key={m.slug}
-                      href={`/generate?model=${m.slug}`}
-                      className={`block py-1.5 text-sm uppercase tracking-[0.02em] transition-colors hover:text-[#F5C46B] ${m.slug === slug ? "text-[#7CBDF2]" : "text-[#9FB2CC]"}`}
-                    >
-                      {m.name}
-                      <span className="block text-xs normal-case tracking-normal text-[#6E82A0]">{m.tagline}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
+              <div>
+                <video
+                  className="aspect-video w-full rounded-[10px] bg-black object-cover"
+                  src={model.demoVideo}
+                  poster={model.poster}
+                  autoPlay
+                  muted
+                  loop
+                  controls
+                  playsInline
+                  preload="auto"
+                />
+                <p className="mt-2 text-xs text-[#6E82A0]">Sample output from {model.name}.</p>
+              </div>
             </div>
           </div>
         ) : (
