@@ -84,7 +84,7 @@ print(result["video"]["url"])`,
   const langLabel: Record<Lang, string> = { js: "JavaScript", python: "Python", curl: "cURL" };
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="max-w-3xl">
       <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">API</span>
       <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">
         {model.name} API

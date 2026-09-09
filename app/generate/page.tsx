@@ -68,6 +68,7 @@ function GenerateInner() {
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<"examples" | "change">("examples");
   const [view, setView] = useState<"playground" | "api">("playground");
+  const [panelOpen, setPanelOpen] = useState(true);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Refine session: appears automatically after the first generation.
@@ -181,65 +182,85 @@ function GenerateInner() {
           <ApiDocs model={model} />
         </div>
       ) : (
-      <div className="grid gap-8 lg:h-full lg:grid-cols-[280px_minmax(0,1fr)_minmax(0,40%)]">
-      {/* Sidebar (borderless) */}
-      <aside className="flex min-h-0 flex-col gap-8 lg:overflow-y-auto">
-        <div>
-          <div className="mb-3 flex gap-6 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
-            <button
-              onClick={() => setTab("examples")}
-              className={`pb-1 transition-colors ${tab === "examples" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
-            >
-              Examples
-            </button>
-            <button
-              onClick={() => setTab("change")}
-              className={`pb-1 transition-colors ${tab === "change" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
-            >
-              Other Models
-            </button>
-          </div>
-          {tab === "examples" ? (
+      <div
+        className={`grid gap-8 transition-[grid-template-columns] duration-300 lg:h-full ${
+          panelOpen ? "lg:grid-cols-[280px_minmax(0,1fr)_minmax(0,40%)]" : "lg:grid-cols-[40px_minmax(0,1fr)_minmax(0,40%)]"
+        }`}
+      >
+      {/* Collapsible left panel */}
+      <aside className="min-h-0">
+        {panelOpen ? (
+          <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto rounded-[12px] border border-[#2E466B] bg-[#0E1B30] p-4">
             <div>
-              <video
-                className="aspect-video w-full rounded-[10px] bg-black object-cover"
-                src={model.demoVideo}
-                poster={model.poster}
-                autoPlay
-                muted
-                loop
-                controls
-                playsInline
-                preload="auto"
-              />
-              <p className="mt-2 text-xs text-[#6E82A0]">Sample output from {model.name}.</p>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="flex gap-5 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
+                  <button
+                    onClick={() => setTab("examples")}
+                    className={`pb-1 transition-colors ${tab === "examples" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
+                  >
+                    Examples
+                  </button>
+                  <button
+                    onClick={() => setTab("change")}
+                    className={`pb-1 transition-colors ${tab === "change" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
+                  >
+                    Other Models
+                  </button>
+                </div>
+                <button onClick={() => setPanelOpen(false)} aria-label="Collapse panel" className="shrink-0 text-[#9FB2CC] hover:text-[#FF8A1E]">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3 L5 8 L10 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </button>
+              </div>
+              {tab === "examples" ? (
+                <div>
+                  <video
+                    className="aspect-video w-full rounded-[10px] bg-black object-cover"
+                    src={model.demoVideo}
+                    poster={model.poster}
+                    autoPlay
+                    muted
+                    loop
+                    controls
+                    playsInline
+                    preload="auto"
+                  />
+                  <p className="mt-2 text-xs text-[#6E82A0]">Sample output from {model.name}.</p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {getModels().map((m) => (
+                    <Link
+                      key={m.slug}
+                      href={`/generate?model=${m.slug}`}
+                      className={`block py-1.5 text-sm uppercase tracking-[0.02em] transition-colors hover:text-[#F5C46B] ${m.slug === slug ? "text-[#7CBDF2]" : "text-[#9FB2CC]"}`}
+                    >
+                      {m.name}
+                      <span className="block text-xs normal-case tracking-normal text-[#6E82A0]">{m.tagline}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="space-y-1">
-              {getModels().map((m) => (
-                <Link
-                  key={m.slug}
-                  href={`/generate?model=${m.slug}`}
-                  className={`block py-1.5 text-sm uppercase tracking-[0.02em] transition-colors hover:text-[#F5C46B] ${m.slug === slug ? "text-[#7CBDF2]" : "text-[#9FB2CC]"}`}
-                >
-                  {m.name}
-                  <span className="block text-xs normal-case tracking-normal text-[#6E82A0]">{m.tagline}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Pricing — right under the tabs section */}
-        <div>
-          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
-            Pricing
-          </span>
-          <p className="mt-2 text-sm text-[#9FB2CC]">{model.creditsPerSecond} credits / second</p>
-          <p className="text-sm text-[#9FB2CC]">
-            Estimate: <span className="text-[#E9F1FB]">{credits} credits</span> for {duration}s
-          </p>
-        </div>
+            <div>
+              <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
+                Pricing
+              </span>
+              <p className="mt-2 text-sm text-[#9FB2CC]">{model.creditsPerSecond} credits / second</p>
+              <p className="text-sm text-[#9FB2CC]">
+                Estimate: <span className="text-[#E9F1FB]">{credits} credits</span> for {duration}s
+              </p>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setPanelOpen(true)}
+            aria-label="Open panel"
+            className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[#9FB2CC] transition-colors hover:bg-[rgba(124,189,242,0.08)] hover:text-[#FF8A1E]"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3 L11 8 L6 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+        )}
       </aside>
 
       {/* Main form (borderless, compact) */}
