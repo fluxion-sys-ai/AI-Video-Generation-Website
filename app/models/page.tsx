@@ -11,7 +11,7 @@ export default function ModelsPage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="max-w-6xl px-6 py-16">
+      <main className="px-8 py-16">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
           Models
         </span>
@@ -22,7 +22,7 @@ export default function ModelsPage() {
         <p className="mt-4 max-w-xl text-[#9FB2CC]">
           Compare models by capability, duration, and resolution. Hover a card to preview.
         </p>
-        <div className="mt-10 grid gap-6 grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-2 gap-8 lg:grid-cols-4">
           {models.map((m) => (
             <ModelCard key={m.slug} model={m} />
           ))}
