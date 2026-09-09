@@ -8,38 +8,14 @@ import { CostEstimator } from "@/components/cost-estimator";
 
 export const metadata = { title: "Pricing · Fluxion AI Video" };
 
-const TIERS = [
-  {
-    id: "free",
-    name: "Free",
-    price: "$0",
-    note: "to start",
-    features: ["100 free credits", "480p output", "Watermarked", "1 model"],
-    cta: "Get started",
-    href: "/signup",
-    highlight: false,
-  },
-  {
-    id: "payg",
-    name: "Pay as you go",
-    price: "from $0.03",
-    note: "/ second",
-    features: ["Only pay for what you generate", "All models, up to 1080p", "No watermark", "Volume discounts"],
-    cta: "Add credits",
-    href: "/profile",
-    highlight: true,
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "Custom",
-    note: "",
-    features: ["Dedicated capacity", "SSO & roles", "Priority support", "Invoicing"],
-    cta: "Contact sales",
-    href: "mailto:hello@fluxion-sys.ai",
-    highlight: false,
-  },
-];
+const PAYG = {
+  name: "Pay as you go",
+  price: "from $0.03",
+  note: "/ second",
+  features: ["Only pay for what you generate", "All models, up to 1080p", "No watermark", "Volume discounts"],
+  cta: "Add credits",
+  href: "/profile",
+};
 
 export default function PricingPage() {
   return (
@@ -79,47 +55,29 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Tiers */}
-        <div className="mt-12 grid gap-6 sm:grid-cols-3">
-          {TIERS.map((t) => (
-            <div
-              key={t.id}
-              className={`rounded-[14px] border p-6 ${
-                t.highlight ? "border-[#FF8A1E] bg-[rgba(255,138,30,0.06)]" : "border-[#2E466B] bg-[#0B1524]"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <h3 className="font-[family-name:var(--font-jetbrains)] text-xl font-medium uppercase tracking-[0.02em]">
-                  {t.name}
-                </h3>
-                {t.highlight && (
-                  <span className="text-[#FFB020]" title="Most popular" aria-label="Most popular">★</span>
-                )}
-              </div>
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold">{t.price}</span>
-                {t.note && <span className="text-sm text-[#6E82A0]">{t.note}</span>}
-              </div>
-              <ul className="mt-4 space-y-1.5 text-sm text-[#A9BBD4]">
-                {t.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2">
-                    <span className="text-[#E0A24E]">•</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={t.href}
-                className={`mt-6 block rounded-[10px] px-4 py-2.5 text-center font-medium transition-colors ${
-                  t.highlight
-                    ? "bg-[#FF8A1E] text-[#0A1322] hover:bg-[#FF9F45]"
-                    : "border border-[rgba(124,189,242,0.24)] text-[#E9F1FB] hover:bg-[rgba(124,189,242,0.06)]"
-                }`}
-              >
-                {t.cta}
-              </Link>
-            </div>
-          ))}
+        {/* Pay as you go — the only option */}
+        <div className="mx-auto mt-12 max-w-md rounded-[14px] border border-[#FF8A1E] bg-[rgba(255,138,30,0.06)] p-6">
+          <h3 className="font-[family-name:var(--font-jetbrains)] text-xl font-medium uppercase tracking-[0.02em]">
+            {PAYG.name}
+          </h3>
+          <div className="mt-3 flex items-baseline gap-1">
+            <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold">{PAYG.price}</span>
+            <span className="text-sm text-[#6E82A0]">{PAYG.note}</span>
+          </div>
+          <ul className="mt-4 space-y-1.5 text-sm text-[#A9BBD4]">
+            {PAYG.features.map((f) => (
+              <li key={f} className="flex items-center gap-2">
+                <span className="text-[#E0A24E]">•</span>
+                {f}
+              </li>
+            ))}
+          </ul>
+          <Link
+            href={PAYG.href}
+            className="mt-6 block rounded-[10px] bg-[#FF8A1E] px-4 py-2.5 text-center font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]"
+          >
+            {PAYG.cta}
+          </Link>
         </div>
       </main>
       <SiteFooter />
