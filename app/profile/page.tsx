@@ -11,7 +11,7 @@ import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
 import { getModels } from "@/lib/models";
 
 const inputClass =
-  "w-full rounded-[8px] border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] outline-none focus:border-[#7CBDF2] focus:ring-1 focus:ring-[#7CBDF2]";
+  "w-full rounded-none border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] outline-none focus:border-[#7CBDF2] focus:ring-1 focus:ring-[#7CBDF2]";
 const label = "mb-1.5 block text-xs uppercase tracking-[0.06em] text-[#9FB2CC]";
 const btnPrimary = "rounded-[10px] bg-[#FF8A1E] px-5 py-2.5 text-sm font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]";
 const btnGhost = "rounded-[10px] border border-[rgba(124,189,242,0.24)] px-5 py-2.5 text-sm text-[#E9F1FB] transition-colors hover:bg-[rgba(124,189,242,0.06)]";
@@ -53,7 +53,11 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [avatar, setAvatar] = useState<string | undefined>(undefined);
   const [saved, setSaved] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertSaved, setAlertSaved] = useState(false);
+  const [topupSaved, setTopupSaved] = useState(false);
 
   // billing (mock)
   const [autoTopup, setAutoTopup] = useState(false);
@@ -74,14 +78,37 @@ export default function ProfilePage() {
       setName(u.name);
       setUsername(u.username);
       setEmail(u.email);
+      setAvatar(u.avatar);
     }
     setReady(true);
   }, [router]);
 
+  function persist(next?: Partial<{ avatar: string | undefined }>) {
+    setUser({
+      name: name.trim() || "Creator",
+      username: username.trim() || "creator",
+      email,
+      avatar: next && "avatar" in next ? next.avatar : avatar,
+    });
+  }
+
   function save() {
-    setUser({ name: name.trim() || "Creator", username: username.trim() || "creator", email });
+    persist();
     setSaved(true);
     setTimeout(() => setSaved(false), 1600);
+  }
+
+  function pickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = String(reader.result);
+      setAvatar(url);
+      persist({ avatar: url });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   }
   function out() {
     signOut();
@@ -105,9 +132,22 @@ export default function ProfilePage() {
         {ready && (
           <>
             <div className="flex items-center gap-4">
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FF8A1E] font-[family-name:var(--font-jetbrains)] text-2xl font-semibold text-[#0A1322]">
-                {name.charAt(0).toUpperCase()}
-              </span>
+              <label
+                className="group relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-full bg-[#FF8A1E]"
+                title="Change photo"
+              >
+                {avatar ? (
+                  <img src={avatar} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center font-[family-name:var(--font-jetbrains)] text-2xl font-semibold text-[#0A1322]">
+                    {name.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-[10px] uppercase tracking-[0.08em] text-white opacity-0 transition-opacity group-hover:opacity-100">
+                  Edit
+                </span>
+                <input type="file" accept="image/*" onChange={pickAvatar} className="sr-only" />
+              </label>
               <div>
                 <h1 className="font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">{name}</h1>
                 <p className="text-sm text-[#9FB2CC]">@{username} · {email}</p>
@@ -159,24 +199,23 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* BILLING - touching bento grid, square corners */}
+            {/* BILLING - touching bento grid, unshaded (border-only), square */}
             {tab === "billing" && (
-              <div className="mt-8 grid grid-cols-4 gap-px border border-[#2E466B] bg-[#2E466B]">
+              <div className="mt-8 grid grid-cols-4 border-b border-r border-[#2E466B]">
                 {/* balance - large anchor tile */}
-                <div className="col-span-4 row-span-2 flex flex-col justify-between bg-[#0B1524] p-6 sm:col-span-2">
+                <div className="col-span-4 row-span-2 flex flex-col justify-between border-l border-t border-[#2E466B] p-6 sm:col-span-2">
                   <div>
                     <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Current balance</p>
                     <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold text-[#FF8A1E]">$0.00</p>
                     <p className="mt-2 text-xs text-[#6E82A0]">Balance may lag recent usage by up to an hour.</p>
                   </div>
-                  <div className="mt-5 flex flex-wrap gap-3">
+                  <div className="mt-5">
                     <button onClick={() => setAddOpen(true)} className={btnPrimary}>Add credits</button>
-                    <button onClick={() => setAddOpen(true)} className={btnGhost}>Buy credits</button>
                   </div>
                 </div>
 
                 {/* daily spend graph - large anchor */}
-                <div className="col-span-4 row-span-2 flex flex-col bg-[#0B1524] p-6 sm:col-span-2">
+                <div className="col-span-4 row-span-2 flex flex-col border-l border-t border-[#2E466B] p-6 sm:col-span-2">
                   <div className="flex items-baseline justify-between">
                     <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Daily spend</p>
                     <p className="text-xs text-[#6E82A0]">Last 20 days</p>
@@ -187,21 +226,20 @@ export default function ProfilePage() {
                 </div>
 
                 {/* expiring */}
-                <div className="col-span-2 bg-[#0B1524] p-5">
+                <div className="col-span-2 border-l border-t border-[#2E466B] p-5">
                   <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Credits expiring in 30 days</p>
                   <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">$0.00</p>
-                  <p className="mt-1 text-xs text-[#6E82A0]">See details</p>
                 </div>
 
                 {/* usage this month */}
-                <div className="col-span-2 bg-[#0B1524] p-5">
+                <div className="col-span-2 border-l border-t border-[#2E466B] p-5">
                   <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Usage this month</p>
                   <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">$0.00</p>
                   <p className="mt-1 text-xs text-[#6E82A0]">$0.00 daily average</p>
                 </div>
 
                 {/* auto top-up */}
-                <div className="col-span-4 bg-[#0B1524] p-5 sm:col-span-2">
+                <div className="col-span-4 border-l border-t border-[#2E466B] p-5 sm:col-span-2">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-sm text-[#E9F1FB]">Auto top-up</p>
@@ -210,21 +248,32 @@ export default function ProfilePage() {
                     <Toggle on={autoTopup} onClick={() => setAutoTopup((v) => !v)} />
                   </div>
                   {autoTopup && (
-                    <div className="mt-3 grid grid-cols-2 gap-3">
-                      <div>
-                        <label className={label}>Top-up ($)</label>
-                        <input type="number" min={5} value={topupAmount} onChange={(e) => setTopupAmount(Number(e.target.value))} className={inputClass} />
+                    <>
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <div>
+                          <label className={label}>Top-up ($)</label>
+                          <input type="number" min={5} value={topupAmount} onChange={(e) => setTopupAmount(Number(e.target.value))} className={inputClass} />
+                        </div>
+                        <div>
+                          <label className={label}>Limit ($)</label>
+                          <input type="number" min={0} value={spendLimit} onChange={(e) => setSpendLimit(Number(e.target.value))} className={inputClass} />
+                        </div>
                       </div>
-                      <div>
-                        <label className={label}>Limit ($)</label>
-                        <input type="number" min={0} value={spendLimit} onChange={(e) => setSpendLimit(Number(e.target.value))} className={inputClass} />
+                      <div className="mt-3 flex items-center gap-3">
+                        <button
+                          onClick={() => { setTopupSaved(true); setTimeout(() => setTopupSaved(false), 1600); }}
+                          className={btnPrimary}
+                        >
+                          Confirm top-up
+                        </button>
+                        {topupSaved && <span className="text-sm text-[#FF8A1E]">Saved ✓</span>}
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
 
                 {/* low-balance alert */}
-                <div className="col-span-4 bg-[#0B1524] p-5 sm:col-span-2">
+                <div className="col-span-4 border-l border-t border-[#2E466B] p-5 sm:col-span-2">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-sm text-[#E9F1FB]">Low-balance alert</p>
@@ -237,12 +286,15 @@ export default function ProfilePage() {
                       <label className={label}>Threshold ($)</label>
                       <input type="number" min={0} value={alertThreshold} onChange={(e) => setAlertThreshold(Number(e.target.value))} className={`${inputClass} w-28`} disabled={!alertOn} />
                     </div>
-                    <button className={btnGhost}>Update</button>
+                    <button onClick={() => setAlertOpen(true)} disabled={!alertOn} className={`${btnPrimary} disabled:opacity-40`}>
+                      Set
+                    </button>
+                    {alertSaved && <span className="pb-2.5 text-sm text-[#FF8A1E]">Saved ✓</span>}
                   </div>
                 </div>
 
                 {/* footer strip */}
-                <div className="col-span-4 bg-[#0B1524] px-5 py-3 text-xs text-[#6E82A0]">
+                <div className="col-span-4 border-l border-t border-[#2E466B] px-5 py-3 text-xs text-[#6E82A0]">
                   Billing period: Sep 1 to Sep 30, 2026
                 </div>
               </div>
@@ -251,9 +303,9 @@ export default function ProfilePage() {
             {/* USAGE - extended asymmetric bento (graph + stats) | history right */}
             {tab === "usage" && (
               <div className="mt-8 grid gap-8 lg:grid-cols-[2.1fr_0.9fr] lg:items-start">
-                {/* left: daily usage graph + asymmetric stat tiles */}
-                <div className="grid grid-cols-3 gap-px border border-[#2E466B] bg-[#2E466B]">
-                  <div className="col-span-3 bg-[#0B1524] p-5">
+                {/* left: daily usage graph + asymmetric stat tiles (unshaded) */}
+                <div className="grid grid-cols-3 border-b border-r border-[#2E466B]">
+                  <div className="col-span-3 border-l border-t border-[#2E466B] p-5">
                     <div className="flex items-baseline justify-between">
                       <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Daily usage</p>
                       <p className="text-xs text-[#6E82A0]">Last 20 days</p>
@@ -261,16 +313,16 @@ export default function ProfilePage() {
                     <UsageChart className="mt-4" height={110} />
                   </div>
                   {[
-                    ["Current invoice due", "$0.00", "View invoices", "col-span-2"],
+                    ["Current invoice due", "$0.00", "", "col-span-2"],
                     ["Credit balance", "$0.00", "May lag usage", ""],
                     ["Subtotal (pre-discount)", "$0.00", "Selected period", ""],
                     ["Daily burn", "$0.00", "Avg over period", ""],
                     ["Model API usage", "$0.00", "This period", ""],
                   ].map(([t, v, s, span]) => (
-                    <div key={t} className={`bg-[#0B1524] p-5 ${span}`}>
+                    <div key={t} className={`border-l border-t border-[#2E466B] p-5 ${span}`}>
                       <p className="whitespace-nowrap text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">{t}</p>
                       <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{v}</p>
-                      <p className="mt-1 text-xs text-[#6E82A0]">{s}</p>
+                      {s && <p className="mt-1 text-xs text-[#6E82A0]">{s}</p>}
                     </div>
                   ))}
                 </div>
@@ -285,7 +337,7 @@ export default function ProfilePage() {
                       <Link
                         key={h.id}
                         href={`/generate?model=${h.slug}`}
-                        className={`flex items-center gap-3 bg-[#0B1524] p-3 transition-colors hover:bg-[#101E36] ${
+                        className={`flex items-center gap-3 p-3 transition-colors hover:bg-[#101E36] ${
                           i > 0 ? "border-t border-[#2E466B]" : ""
                         }`}
                       >
@@ -344,6 +396,35 @@ export default function ProfilePage() {
             <button onClick={() => setAddOpen(false)} className={`${btnPrimary} mt-5 w-full`}>
               Buy ${addAmount || 0} in credits
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Low-balance alert confirm modal */}
+      {alertOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-6" onClick={() => setAlertOpen(false)}>
+          <div className="w-full max-w-sm rounded-[14px] border border-[#2E466B] bg-[#0B1524] p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Confirm alert</h3>
+            <p className="mt-1 text-xs text-[#6E82A0]">We&apos;ll email you when your balance drops below this amount.</p>
+            <dl className="mt-4 space-y-3 text-sm">
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-[#9FB2CC]">Threshold</dt>
+                <dd className="font-[family-name:var(--font-jetbrains)] text-[#FF8A1E]">${alertThreshold}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-[#9FB2CC]">Email</dt>
+                <dd className="truncate text-[#E9F1FB]">{email}</dd>
+              </div>
+            </dl>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => { setAlertOpen(false); setAlertSaved(true); setTimeout(() => setAlertSaved(false), 1600); }}
+                className={`${btnPrimary} flex-1`}
+              >
+                Confirm
+              </button>
+              <button onClick={() => setAlertOpen(false)} className={btnGhost}>Cancel</button>
+            </div>
           </div>
         </div>
       )}

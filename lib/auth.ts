@@ -5,7 +5,7 @@ const AUTH_KEY = "fluxion.signedIn";
 const USER_KEY = "fluxion.user";
 const DRAFT_KEY = "fluxion.genDraft";
 
-export type User = { name: string; username: string; email: string };
+export type User = { name: string; username: string; email: string; avatar?: string };
 
 export function isSignedIn(): boolean {
   if (typeof window === "undefined") return false;
@@ -46,6 +46,7 @@ export function getUser(): User | null {
       name: u.name || "Creator",
       username: u.username || usernameFromEmail(u.email || "creator"),
       email: u.email || "you@fluxion.ai",
+      avatar: u.avatar,
     };
   } catch {
     return null;
