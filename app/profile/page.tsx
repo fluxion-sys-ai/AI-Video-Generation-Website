@@ -32,6 +32,33 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   );
 }
 
+// Theme option icons: laptop (system), moon (dark), bright sun (light).
+function ThemeIcon({ theme }: { theme: Theme }) {
+  const p = { width: 15, height: 15, viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", strokeWidth: 1.4, "aria-hidden": true } as const;
+  if (theme === "system") {
+    return (
+      <svg {...p}>
+        <rect x="2" y="3" width="12" height="8" rx="1" />
+        <path d="M1 13.5h14" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (theme === "dark") {
+    return (
+      <svg {...p}>
+        <path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5Z" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  // light — bright sun with rays
+  return (
+    <svg {...p}>
+      <circle cx="8" cy="8" r="3" />
+      <path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3 3l1.1 1.1M11.9 11.9L13 13M13 3l-1.1 1.1M4.1 11.9L3 13" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 // Mock list of past generations. Intentionally long so the history panel
 // demonstrates scrolling + search (see the Usage tab).
 function mockHistory() {
@@ -554,10 +581,11 @@ function ProfileInner() {
                         <button
                           key={t}
                           onClick={() => chooseTheme(t)}
-                          className={`px-5 py-2 transition-colors ${
+                          className={`flex items-center gap-2 px-5 py-2 transition-colors ${
                             theme === t ? "bg-accent text-ink" : "text-muted hover:text-fg"
                           }`}
                         >
+                          <ThemeIcon theme={t} />
                           {t}
                         </button>
                       ))}
