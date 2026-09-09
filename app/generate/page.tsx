@@ -318,7 +318,7 @@ function GenerateInner() {
                   role="switch"
                   aria-checked={audio}
                   onClick={() => setAudio((v) => !v)}
-                  className={`relative h-6 w-11 rounded-full transition-colors ${audio ? "bg-[#4EC98F]" : "bg-[#243A57]"}`}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${audio ? "bg-[#FF8A1E]" : "bg-[#243A57]"}`}
                 >
                   <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${audio ? "left-[22px]" : "left-0.5"}`} />
                 </button>

@@ -129,6 +129,20 @@
   }
 }
 
+/* Permanent base gradient so the page is never a flat/plain void while the
+   decorative SVG layer loads or repaints. Matches backdrop.svg's base. */
+html {
+  background-color: #05090f;
+}
+body {
+  background-color: #05090f;
+  background-image:
+    radial-gradient(58% 52% at 88% 42%, rgba(255, 138, 30, 0.1), transparent 60%),
+    linear-gradient(100deg, #04070e 0%, #080f1e 52%, #0e1b34 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
 /* horizontal auto-scroll marquee */
 @keyframes marquee {
   from { transform: translateX(0); }

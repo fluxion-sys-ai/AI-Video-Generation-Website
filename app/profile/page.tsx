@@ -12,7 +12,6 @@ import { getModels } from "@/lib/models";
 const inputClass =
   "w-full rounded-[8px] border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] outline-none focus:border-[#7CBDF2] focus:ring-1 focus:ring-[#7CBDF2]";
 const label = "mb-1.5 block text-xs uppercase tracking-[0.06em] text-[#9FB2CC]";
-const card = "rounded-[12px] border border-[#2E466B] bg-[#0B1524] p-5";
 const btnPrimary = "rounded-[10px] bg-[#FF8A1E] px-5 py-2.5 text-sm font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]";
 const btnGhost = "rounded-[10px] border border-[rgba(124,189,242,0.24)] px-5 py-2.5 text-sm text-[#E9F1FB] transition-colors hover:bg-[rgba(124,189,242,0.06)]";
 
@@ -23,20 +22,10 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
       role="switch"
       aria-checked={on}
       onClick={onClick}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${on ? "bg-[#4EC98F]" : "bg-[#243A57]"}`}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${on ? "bg-[#FF8A1E]" : "bg-[#243A57]"}`}
     >
       <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${on ? "left-[22px]" : "left-0.5"}`} />
     </button>
-  );
-}
-
-function Stat({ title, value, sub }: { title: string; value: string; sub?: string }) {
-  return (
-    <div className={card}>
-      <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">{title}</p>
-      <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold text-[#E9F1FB]">{value}</p>
-      {sub && <p className="mt-1 text-xs text-[#6E82A0]">{sub}</p>}
-    </div>
   );
 }
 
@@ -110,7 +99,7 @@ export default function ProfilePage() {
       <GlowBlobs variant="d" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
 
-      <main className="relative z-10 mx-auto w-full max-w-3xl flex-1 px-6 py-14">
+      <main className="relative z-10 w-full max-w-5xl flex-1 px-8 py-10">
         {ready && (
           <>
             <div className="flex items-center gap-4">
@@ -156,7 +145,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <button onClick={save} className={btnPrimary}>Save changes</button>
-                  {saved && <span className="text-sm text-[#4EC98F]">Saved ✓</span>}
+                  {saved && <span className="text-sm text-[#FF8A1E]">Saved ✓</span>}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 border-t border-[rgba(124,189,242,0.14)] pt-6">
@@ -168,41 +157,53 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* BILLING */}
+            {/* BILLING — touching bento grid, square corners */}
             {tab === "billing" && (
-              <div className="mt-8 space-y-6">
-                <div className={card}>
-                  <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Current balance</p>
-                  <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-[#FF8A1E]">$0.00</p>
-                  <p className="mt-1 text-xs text-[#6E82A0]">Balance may lag recent usage by up to an hour.</p>
-                  <div className="mt-4 flex flex-wrap gap-3">
+              <div className="mt-8 grid grid-cols-4 gap-px border border-[#2E466B] bg-[#2E466B]">
+                {/* balance — large anchor tile */}
+                <div className="col-span-4 row-span-2 flex flex-col justify-between bg-[#0B1524] p-6 sm:col-span-2">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Current balance</p>
+                    <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold text-[#FF8A1E]">$0.00</p>
+                    <p className="mt-2 text-xs text-[#6E82A0]">Balance may lag recent usage by up to an hour.</p>
+                  </div>
+                  <div className="mt-5 flex flex-wrap gap-3">
                     <button onClick={() => setAddOpen(true)} className={btnPrimary}>Add credits</button>
                     <button onClick={() => setAddOpen(true)} className={btnGhost}>Buy credits</button>
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Stat title="Credits expiring in 30 days" value="$0.00" sub="See details" />
-                  <Stat title="Usage this month" value="$0.00" sub="$0.00 daily average" />
+                {/* expiring */}
+                <div className="col-span-2 bg-[#0B1524] p-5">
+                  <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Credits expiring in 30 days</p>
+                  <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">$0.00</p>
+                  <p className="mt-1 text-xs text-[#6E82A0]">See details</p>
+                </div>
+
+                {/* usage this month */}
+                <div className="col-span-2 bg-[#0B1524] p-5">
+                  <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Usage this month</p>
+                  <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">$0.00</p>
+                  <p className="mt-1 text-xs text-[#6E82A0]">$0.00 daily average</p>
                 </div>
 
                 {/* auto top-up */}
-                <div className={card}>
+                <div className="col-span-4 bg-[#0B1524] p-5 sm:col-span-2">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-sm text-[#E9F1FB]">Auto top-up</p>
-                      <p className="text-xs text-[#6E82A0]">Automatically buy credits when your balance runs low.</p>
+                      <p className="text-xs text-[#6E82A0]">Buy credits when the balance runs low.</p>
                     </div>
                     <Toggle on={autoTopup} onClick={() => setAutoTopup((v) => !v)} />
                   </div>
                   {autoTopup && (
-                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div className="mt-3 grid grid-cols-2 gap-3">
                       <div>
-                        <label className={label}>Top-up amount ($)</label>
+                        <label className={label}>Top-up ($)</label>
                         <input type="number" min={5} value={topupAmount} onChange={(e) => setTopupAmount(Number(e.target.value))} className={inputClass} />
                       </div>
                       <div>
-                        <label className={label}>Monthly spend limit ($)</label>
+                        <label className={label}>Limit ($)</label>
                         <input type="number" min={0} value={spendLimit} onChange={(e) => setSpendLimit(Number(e.target.value))} className={inputClass} />
                       </div>
                     </div>
@@ -210,52 +211,66 @@ export default function ProfilePage() {
                 </div>
 
                 {/* low-balance alert */}
-                <div className={card}>
+                <div className="col-span-4 bg-[#0B1524] p-5 sm:col-span-2">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm text-[#E9F1FB]">Low-balance email alert</p>
-                      <p className="text-xs text-[#6E82A0]">Email me when my balance falls below this amount.</p>
+                      <p className="text-sm text-[#E9F1FB]">Low-balance alert</p>
+                      <p className="text-xs text-[#6E82A0]">Email me below a set threshold.</p>
                     </div>
                     <Toggle on={alertOn} onClick={() => setAlertOn((v) => !v)} />
                   </div>
-                  <div className="mt-4 flex items-end gap-3">
+                  <div className="mt-3 flex items-end gap-3">
                     <div>
                       <label className={label}>Threshold ($)</label>
                       <input type="number" min={0} value={alertThreshold} onChange={(e) => setAlertThreshold(Number(e.target.value))} className={`${inputClass} w-28`} disabled={!alertOn} />
                     </div>
                     <button className={btnGhost}>Update</button>
-                    <span className="pb-2.5 text-xs text-[#6E82A0]">{alertOn ? "Enabled" : "Disabled"}</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-[#6E82A0]">Billing period: Sep 1 – Sep 30, 2026 · frontend demo, no real charges.</p>
+                {/* footer strip */}
+                <div className="col-span-4 bg-[#0B1524] px-5 py-3 text-xs text-[#6E82A0]">
+                  Billing period: Sep 1 to Sep 30, 2026 · frontend demo, no real charges.
+                </div>
               </div>
             )}
 
-            {/* USAGE */}
+            {/* USAGE — bento stats + history, fits one screen */}
             {tab === "usage" && (
-              <div className="mt-8 space-y-6">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Stat title="Current invoice due" value="$0.00" sub="View invoices" />
-                  <Stat title="Current credit balance" value="$0.00" sub="May lag recent usage" />
-                  <Stat title="Usage before discounts (subtotal)" value="$0.00" sub="Selected period" />
-                  <Stat title="Daily burn" value="$0.00" sub="Average over period" />
-                  <Stat title="Model API usage" value="$0.00" sub="This period" />
-                  <Stat title="Discounts applied" value="$0.00" sub="This period" />
+              <div className="mt-8 grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:items-start">
+                {/* stat bento (touching, square) */}
+                <div className="grid grid-cols-2 gap-px border border-[#2E466B] bg-[#2E466B] sm:grid-cols-3">
+                  {[
+                    ["Current invoice due", "$0.00", "View invoices"],
+                    ["Credit balance", "$0.00", "May lag usage"],
+                    ["Subtotal (pre-discount)", "$0.00", "Selected period"],
+                    ["Daily burn", "$0.00", "Avg over period"],
+                    ["Model API usage", "$0.00", "This period"],
+                    ["Discounts applied", "$0.00", "This period"],
+                  ].map(([t, v, s]) => (
+                    <div key={t} className="bg-[#0B1524] p-5">
+                      <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">{t}</p>
+                      <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{v}</p>
+                      <p className="mt-1 text-xs text-[#6E82A0]">{s}</p>
+                    </div>
+                  ))}
                 </div>
 
+                {/* generation history (touching list, square) */}
                 <div>
                   <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
                     Generation history
                   </h2>
-                  <div className="mt-4 space-y-3">
-                    {history.map((h) => (
+                  <div className="mt-4 flex flex-col border border-[#2E466B]">
+                    {history.map((h, i) => (
                       <Link
                         key={h.id}
                         href={`/generate?model=${h.slug}`}
-                        className="flex items-center gap-4 rounded-[10px] border border-[#2E466B] bg-[#0B1524] p-3 transition-colors hover:border-[rgba(124,189,242,0.4)]"
+                        className={`flex items-center gap-3 bg-[#0B1524] p-3 transition-colors hover:bg-[#101E36] ${
+                          i > 0 ? "border-t border-[#2E466B]" : ""
+                        }`}
                       >
-                        <img src={h.poster} alt="" className="h-12 w-20 shrink-0 rounded-[6px] bg-black object-cover" />
+                        <img src={h.poster} alt="" className="h-11 w-[74px] shrink-0 bg-black object-cover" />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm text-[#E9F1FB]">{h.prompt}</p>
                           <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-[#E0A24E]">
