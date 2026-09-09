@@ -90,7 +90,6 @@ function ProfileInner() {
   const [cardCvc, setCardCvc] = useState("");
 
   // preferences (mock)
-  const [prefTheme, setPrefTheme] = useState("Dark");
   const [prefModelSlug, setPrefModelSlug] = useState(() => getModels()[0].slug);
   const [prefRes, setPrefRes] = useState("720p");
   const [autoplay, setAutoplay] = useState(true);
@@ -490,14 +489,6 @@ function ProfileInner() {
               <div className="max-w-3xl space-y-8">
                 <section>
                   <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Appearance</h2>
-                  <div className="mt-4 grid gap-5 sm:grid-cols-2">
-                    <div>
-                      <label className={label}>Theme</label>
-                      <select value={prefTheme} onChange={(e) => setPrefTheme(e.target.value)} className={inputClass}>
-                        {["Dark", "Midnight", "System"].map((t) => <option key={t}>{t}</option>)}
-                      </select>
-                    </div>
-                  </div>
                   <div className="mt-4 space-y-3">
                     <div className="flex items-center justify-between gap-4 border border-[#2E466B] p-4">
                       <div>
