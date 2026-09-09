@@ -56,18 +56,7 @@ export function GlowBlobs({ className = "", variant = "a" }: { className?: strin
         </radialGradient>
       </defs>
       {blobs.map((b, i) => (
-        <circle key={i} cx={b.cx} cy={b.cy} r={b.r} fill={b.c === "o" ? "url(#blob-o)" : "url(#blob-b)"} opacity={b.base}>
-          <animate
-            attributeName="opacity"
-            values={`${b.base * 0.55};${b.base};${b.base * 0.55}`}
-            dur={`${b.dur}s`}
-            begin={`${b.begin}s`}
-            repeatCount="indefinite"
-            calcMode="spline"
-            keyTimes="0;0.5;1"
-            keySplines="0.45 0 0.55 1;0.45 0 0.55 1"
-          />
-        </circle>
+        <circle key={i} cx={b.cx} cy={b.cy} r={b.r} fill={b.c === "o" ? "url(#blob-o)" : "url(#blob-b)"} opacity={b.base} />
       ))}
     </svg>
   );
