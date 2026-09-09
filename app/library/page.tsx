@@ -84,6 +84,7 @@ export default function LibraryPage() {
   const [newFolderName, setNewFolderName] = useState("");
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
   const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
+  const [addFolderOpen, setAddFolderOpen] = useState(false);
 
   const models = getModels();
 
@@ -163,6 +164,12 @@ export default function LibraryPage() {
   function deleteFolder(folderId: string) {
     setFolders((prev) => prev.filter((f) => f.id !== folderId));
     if (activeFolder === folderId) setActiveFolder(null);
+  }
+  // Add all currently-selected images to a folder (from select mode).
+  function addSelectedToFolder(folderId: string) {
+    setFolders((prev) => prev.map((f) => (f.id === folderId ? { ...f, imageIds: [...new Set([...f.imageIds, ...selected])] } : f)));
+    setAddFolderOpen(false);
+    exitSelect();
   }
 
   // Persist folders whenever they change (skips the initial hydrate render so it
@@ -297,6 +304,13 @@ export default function LibraryPage() {
                   <span className="mr-auto text-sm text-muted">{selected.size} selected</span>
                   <button onClick={toggleAll} className={toolbarBtn}>{allSelected ? "Deselect all" : "Select all"}</button>
                   <button
+                    onClick={() => setAddFolderOpen(true)}
+                    disabled={selected.size === 0}
+                    className={`${toolbarBtn} disabled:cursor-not-allowed disabled:opacity-40`}
+                  >
+                    Add to folder
+                  </button>
+                  <button
                     onClick={() => setUploadOpen(true)}
                     disabled={selected.size === 0}
                     className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
@@ -355,7 +369,8 @@ export default function LibraryPage() {
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setActiveFolder(null)}
-                className={`rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
+                disabled={selectMode}
+                className={`rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors disabled:opacity-50 ${
                   activeFolder === null ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                 }`}
               >
@@ -364,13 +379,16 @@ export default function LibraryPage() {
               {folders.map((f) => (
                 <button
                   key={f.id}
-                  onClick={() => setActiveFolder(f.id)}
-                  onDoubleClick={() => setDeleteFolderId(f.id)}
+                  // Folders aren't clickable while selecting — use the "Add to
+                  // folder" button in the toolbar instead.
+                  onClick={selectMode ? undefined : () => setActiveFolder(f.id)}
+                  onDoubleClick={selectMode ? undefined : () => setDeleteFolderId(f.id)}
+                  disabled={selectMode}
                   onDragOver={(e) => { e.preventDefault(); setDragOverFolder(f.id); }}
                   onDragLeave={() => setDragOverFolder((d) => (d === f.id ? null : d))}
                   onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) addToFolder(f.id, id); setDragOverFolder(null); }}
-                  title="Click to view · double-click to delete"
-                  className={`flex items-center gap-1.5 rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
+                  title={selectMode ? "Use “Add to folder” to file selected images" : "Click to view · double-click to delete"}
+                  className={`flex items-center gap-1.5 rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors disabled:opacity-50 ${
                     dragOverFolder === f.id
                       ? "border-accent bg-accent-soft text-accent"
                       : activeFolder === f.id
@@ -488,6 +506,34 @@ export default function LibraryPage() {
               <button onClick={() => setDeleteFolderId(null)} className="rounded-[10px] border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Cancel</button>
               <button onClick={() => { deleteFolder(deleteFolderId); setDeleteFolderId(null); }} className="rounded-[10px] bg-danger px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-danger-hover">Delete folder</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add-to-folder picker (from select mode) */}
+      {addFolderOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6" onClick={() => setAddFolderOpen(false)}>
+          <div className="flex w-full max-w-sm flex-col rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Add to folder</h3>
+            <p className="mt-1 text-xs text-dim">{selected.size} image{selected.size === 1 ? "" : "s"} → pick a folder.</p>
+            <div className="mt-4 h-56 overflow-y-auto border border-line">
+              {folders.length === 0 ? (
+                <p className="p-4 text-sm text-dim">No folders yet. Create one first (New folder +).</p>
+              ) : (
+                folders.map((f, i) => (
+                  <button
+                    key={f.id}
+                    onClick={() => addSelectedToFolder(f.id)}
+                    className={`flex w-full items-center gap-2 p-3 text-left text-sm text-fg transition-colors hover:bg-hover ${i > 0 ? "border-t border-line" : ""}`}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V12 A1 1 0 0 1 13.5 13 H2.5 A1 1 0 0 1 1.5 12 Z" stroke="currentColor" strokeWidth="1.2" /></svg>
+                    <span className="flex-1 truncate font-[family-name:var(--font-jetbrains)] uppercase tracking-[0.04em]">{f.name}</span>
+                    <span className="text-xs text-dim">({folderCount(f)})</span>
+                  </button>
+                ))
+              )}
+            </div>
+            <button onClick={() => setAddFolderOpen(false)} className="mt-4 self-end text-sm text-muted transition-colors hover:text-fg">Cancel</button>
           </div>
         </div>
       )}
