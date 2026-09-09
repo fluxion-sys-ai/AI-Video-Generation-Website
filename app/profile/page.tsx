@@ -216,10 +216,11 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* expiring */}
+                {/* total added */}
                 <div className="col-span-2 border-l border-t border-[#2E466B] p-5">
-                  <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Credits expiring in 30 days</p>
+                  <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Total credits added</p>
                   <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">$0.00</p>
+                  <p className="mt-1 text-xs text-[#6E82A0]">Credits never expire</p>
                 </div>
 
                 {/* usage this month */}
