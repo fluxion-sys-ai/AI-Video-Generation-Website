@@ -58,8 +58,8 @@ function GenerateInner() {
   const [tab, setTab] = useState<"examples" | "change">("examples");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Refine session: chat-style edits that re-generate the video each time.
-  const [refine, setRefine] = useState(false);
+  // Refine session: appears automatically after the first generation.
+  const [session, setSession] = useState(false);
   const [chat, setChat] = useState<string[]>([]);
   const [refineInput, setRefineInput] = useState("");
 
@@ -72,7 +72,7 @@ function GenerateInner() {
     if (!model.supports.audio) setAudio(false);
     setStatus("idle");
     setResultUrl(null);
-    setRefine(false);
+    setSession(false);
     setChat([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
@@ -111,17 +111,20 @@ function GenerateInner() {
       } else {
         setResultUrl(model.demoVideo);
         setStatus("complete");
+        setSession(true);
       }
     }, 3500 + Math.random() * 3000);
   }
 
-  // Mock re-generation for the refine session (always succeeds, a bit faster).
+  // Re-generate from the current prompt + all refinements (mock: reuses the model
+  // to re-render, i.e. the latest edits applied on top of the last result).
   function regen() {
     setResultUrl(null);
     setStatus("generating");
     timer.current = setTimeout(() => {
       setResultUrl(model.demoVideo);
       setStatus("complete");
+      setSession(true);
     }, 2000 + Math.random() * 2000);
   }
   function sendRefine() {
@@ -286,8 +289,8 @@ function GenerateInner() {
           </button>
         </div>
 
-        {/* Refine session: chat-style edits that re-generate each time */}
-        {refine && (
+        {/* Refine session: appears after the first generation; each edit re-generates */}
+        {session && (
           <div className="mt-6 space-y-3 rounded-[10px] border border-[#2E466B] bg-[#101E36] p-4">
             <div className="flex items-center justify-between">
               <span className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-[#E0A24E]">
@@ -299,9 +302,6 @@ function GenerateInner() {
                 </button>
                 <button onClick={restartRefine} className="text-[#9FB2CC] hover:text-[#E9F1FB]">
                   Restart
-                </button>
-                <button onClick={() => setRefine(false)} className="text-[#9FB2CC] hover:text-[#F5C46B]">
-                  Close
                 </button>
               </div>
             </div>
@@ -378,14 +378,8 @@ function GenerateInner() {
             <a href={resultUrl} download="fluxion-video.gif" className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
               GIF
             </a>
-            <button onClick={onGenerate} className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
+            <button onClick={regen} className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
               Regenerate
-            </button>
-            <button
-              onClick={() => setRefine(true)}
-              className="px-2 text-sm text-[#7CBDF2] hover:text-[#F5C46B]"
-            >
-              Reprompt
             </button>
           </div>
         )}
