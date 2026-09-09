@@ -6,8 +6,8 @@ export function ModelPricingTable() {
   const models = getModels();
 
   return (
-    <div className="overflow-x-auto rounded-[12px] border border-[#33507C] bg-[#0B1524]/70 backdrop-blur-sm">
-      <table className="w-full min-w-[560px] text-left text-base">
+    <div className="border border-[#33507C] bg-[#0B1524]/70 backdrop-blur-sm">
+      <table className="w-full table-fixed text-left text-base">
         <thead className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-[#9FB2CC]">
           <tr className="border-b border-[#33507C]">
             <th className="px-6 py-5">Model</th>

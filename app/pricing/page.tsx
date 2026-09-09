@@ -119,18 +119,20 @@ export default function PricingPage() {
 
             {/* Right: per-model table + related charts */}
             <div className="space-y-10">
-              <div>
-                <h2 className="font-[family-name:var(--font-jetbrains)] text-xl font-medium uppercase tracking-[0.02em]">
-                  Per-model pricing
-                </h2>
-                <p className="mt-2 text-sm text-[#9FB2CC]">
-                  Credits per second. The dollar column assumes 1 credit ≈ $0.01.
-                </p>
-                <div className="mt-5">
-                  <ModelPricingTable />
-                </div>
-              </div>
               <PricingCharts plans={PLANS} />
+            </div>
+          </div>
+
+          {/* Per-model table — full width below, no scroll */}
+          <div className="relative mt-12">
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-xl font-medium uppercase tracking-[0.02em]">
+              Per-model pricing
+            </h2>
+            <p className="mt-2 text-sm text-[#9FB2CC]">
+              Credits per second. The dollar column assumes 1 credit ≈ $0.01.
+            </p>
+            <div className="mt-5">
+              <ModelPricingTable />
             </div>
           </div>
         </div>
