@@ -56,11 +56,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Cohesive fixed background - home only */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 -z-10"
-        style={{ transform: "translateZ(0)", backfaceVisibility: "hidden", willChange: "transform" }}
-      >
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
         <img src={`${BASE}/backdrop.svg`} alt="" className="h-full w-full object-cover" decoding="async" />
       </div>
       <SiteHeader />
@@ -154,7 +150,7 @@ export default function Home() {
           <div className="mt-6 text-center">
             <Link
               href="/pricing"
-              className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 font-medium text-[#E9F1FB] transition-colors hover:bg-[#101E36]"
+              className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-[#E9F1FB] transition-colors hover:bg-[#101E36]"
             >
               See full pricing
             </Link>

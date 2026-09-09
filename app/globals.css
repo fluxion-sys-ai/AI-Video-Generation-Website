@@ -143,6 +143,11 @@ body {
   background-repeat: no-repeat;
 }
 
+/* All buttons use the typewriter (JetBrains Mono) face. */
+button {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+}
+
 /* horizontal auto-scroll marquee */
 @keyframes marquee {
   from { transform: translateX(0); }
