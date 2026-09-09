@@ -5,36 +5,39 @@ import { DocsSidebar } from "@/components/docs-sidebar";
 
 export const metadata = { title: "Documentation · Fluxion AI Video" };
 
-const NAV: { group: string; items: { id: string; label: string }[] }[] = [
+// `body` mirrors the prose of each section (keywords only) so the sidebar can
+// search doc *content*, not just titles. Keep it roughly in sync with the
+// matching <section> below.
+const NAV: { group: string; items: { id: string; label: string; body?: string }[] }[] = [
   {
     group: "Getting started",
     items: [
-      { id: "introduction", label: "Introduction" },
-      { id: "quickstart", label: "Quickstart" },
-      { id: "authentication", label: "Authentication" },
+      { id: "introduction", label: "Introduction", body: "fluxion turns text and images into video pick a model describe the shot set duration aspect ratio resolution generate playground or http api" },
+      { id: "quickstart", label: "Quickstart", body: "install the client npm install @fluxion-ai/client run your first generation fluxion.run aurora prompt duration aspect_ratio resolution video url" },
+      { id: "authentication", label: "Authentication", body: "create a key in your dashboard pass it as an environment variable FLUXION_API_KEY never ship a key in client-side code rotate keys" },
     ],
   },
   {
     group: "Models",
     items: [
-      { id: "models", label: "Overview" },
-      { id: "generating", label: "Generating video" },
-      { id: "parameters", label: "Parameters" },
+      { id: "models", label: "Overview", body: "each model has its own strengths supported durations resolutions per-second pricing browse the model catalog" },
+      { id: "generating", label: "Generating video", body: "send a prompt and options response includes the output video url and timing longer clips and higher resolutions cost more credits curl post aurora" },
+      { id: "parameters", label: "Parameters", body: "prompt image_url duration aspect_ratio resolution image-to-video required seconds of output" },
     ],
   },
   {
     group: "Reference",
     items: [
-      { id: "api", label: "API reference" },
-      { id: "rate-limits", label: "Rate limits" },
-      { id: "errors", label: "Errors" },
+      { id: "api", label: "API reference", body: "every model exposes the same request shape at fluxion model per-model reference api tab" },
+      { id: "rate-limits", label: "Rate limits", body: "requests are limited per key bursting beyond your tier returns http 429 retry with backoff" },
+      { id: "errors", label: "Errors", body: "401 missing or invalid api key 422 invalid parameters 429 rate limited" },
     ],
   },
   {
     group: "Account",
     items: [
-      { id: "billing", label: "Billing" },
-      { id: "keys", label: "API keys" },
+      { id: "billing", label: "Billing", body: "pay per second of generated video add credits and manage limits credits never expire" },
+      { id: "keys", label: "API keys", body: "generate name and revoke keys from your account treat keys like passwords" },
     ],
   },
 ];
@@ -63,8 +66,8 @@ export default function DocsPage() {
         {/* shaded sidebar, ~1/4 of the screen, with search */}
         <DocsSidebar nav={NAV} />
 
-        {/* content */}
-        <main className="min-w-0 max-w-3xl flex-1 space-y-12 px-10 py-10">
+        {/* content (id lets DocsSidebar highlight search matches in place) */}
+        <main id="docs-content" className="min-w-0 max-w-3xl flex-1 space-y-12 px-10 py-10">
           <div>
             <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">Documentation</span>
             <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-4xl font-medium uppercase tracking-[0.01em]">Fluxion docs</h1>

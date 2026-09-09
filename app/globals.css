@@ -263,6 +263,15 @@
   background: var(--spotlight);
 }
 
+/* Docs search highlight: <mark> wrappers injected by components/docs-sidebar.tsx
+   around keyword matches in the docs content. Uses the accent tokens. */
+mark.doc-hl {
+  background: var(--c-accent-soft);
+  color: var(--c-accent);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
 /* Onboarding slideshow: each slide fades/slides up as it mounts. The wizard
    remounts the slide on step change (React key), so this replays per step. */
 @keyframes slide-in {

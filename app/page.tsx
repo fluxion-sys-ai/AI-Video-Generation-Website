@@ -65,14 +65,10 @@ export default function Home() {
       <section className="relative overflow-hidden lg:h-[68vh]">
         <div className="relative z-10 grid h-full items-center gap-10 px-10 py-20 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
           <div className="max-w-xl lg:pl-12">
-            {/* Big brand wordmark in the logo font (Sora, via --font-sora).
-                The gold dot echoes the node in the Fluxion logo mark. */}
+            {/* Big brand wordmark in the logo font (Sora, via --font-sora). */}
             <p className="mb-6 font-[family-name:var(--font-sora)] text-6xl font-medium leading-none tracking-[-0.03em] text-fg-strong sm:text-7xl lg:text-8xl">
-              fluxion<span className="text-gold">.</span>
+              fluxion
             </p>
-            <span className="inline-flex items-center gap-2 rounded-full border border-hairline-strong bg-raised px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-muted">
-              Text-to-video, image-to-video
-            </span>
             <h1 className="mt-6 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-6xl">
               AI video<br />generation
             </h1>
