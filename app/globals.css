@@ -192,6 +192,12 @@
   /* Cursor spotlight gradient (see components/spotlight.tsx). Dark mode uses a
      warm, visible glow. */
   --spotlight: radial-gradient(circle, rgba(255, 138, 30, 0.15), rgba(124, 189, 242, 0.06) 42%, transparent 68%);
+  /* Decorative glow-orb gradient stops (components/glow-blobs.tsx). Dark: the
+     brand warm orange + sky blue. */
+  --glow-o0: #ffc15e;
+  --glow-o1: #ff8a1e;
+  --glow-b0: #7cbdf2;
+  --glow-b1: #7cbdf2;
 }
 
 /* Light theme — matches the Fluxion site's light look. Only surfaces, text,
@@ -220,6 +226,12 @@
   /* Cursor spotlight: much lighter/softer in light mode so it doesn't smear
      over the bright canvas. */
   --spotlight: radial-gradient(circle, rgba(255, 138, 30, 0.08), rgba(124, 189, 242, 0.05) 42%, transparent 70%);
+  /* Glow orbs in light mode: bright, joyful candy colors instead of the muddy
+     inverted orange. Warm = sunny yellow → pink; cool = cyan → violet. */
+  --glow-o0: #ffd84d;
+  --glow-o1: #ff6fb5;
+  --glow-b0: #7ce7ff;
+  --glow-b1: #a66bff;
 }
 
 /* Expose the tokens as Tailwind color utilities. `inline` makes them resolve at
@@ -261,6 +273,12 @@
    UI color comes from the tokens above. */
 .light .decor-invert {
   filter: invert(1) hue-rotate(180deg);
+}
+
+/* Glow orbs are theme-colored (not inverted); pump saturation a touch in light
+   mode so the candy colors read bright and fun on white. */
+.light .glow-blobs {
+  filter: saturate(1.35);
 }
 
 /* Cursor spotlight fill — token-driven so light mode softens it. */

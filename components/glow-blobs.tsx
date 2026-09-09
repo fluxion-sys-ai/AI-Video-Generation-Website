@@ -37,8 +37,10 @@ const VARIANTS: Record<string, Blob[]> = {
 export function GlowBlobs({ className = "", variant = "a" }: { className?: string; variant?: "a" | "b" | "c" | "d" }) {
   const blobs = VARIANTS[variant] ?? VARIANTS.a;
   return (
+    // Gradient stop colors come from CSS vars (see app/globals.css): a warm
+    // orange/blue set in dark mode, and a bright, joyful candy set in light mode.
     <svg
-      className={className}
+      className={`glow-blobs ${className}`}
       viewBox="0 0 1440 900"
       preserveAspectRatio="xMidYMid slice"
       aria-hidden="true"
@@ -46,13 +48,14 @@ export function GlowBlobs({ className = "", variant = "a" }: { className?: strin
     >
       <defs>
         <radialGradient id="blob-o" cx="50%" cy="50%" r="50%">
-          <stop offset="0" stopColor="#FFC15E" stopOpacity="0.9" />
-          <stop offset="0.45" stopColor="#FF8A1E" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#FF8A1E" stopOpacity="0" />
+          <stop offset="0" style={{ stopColor: "var(--glow-o0)" }} stopOpacity="0.9" />
+          <stop offset="0.45" style={{ stopColor: "var(--glow-o1)" }} stopOpacity="0.55" />
+          <stop offset="1" style={{ stopColor: "var(--glow-o1)" }} stopOpacity="0" />
         </radialGradient>
         <radialGradient id="blob-b" cx="50%" cy="50%" r="50%">
-          <stop offset="0" stopColor="#7CBDF2" stopOpacity="0.8" />
-          <stop offset="1" stopColor="#7CBDF2" stopOpacity="0" />
+          <stop offset="0" style={{ stopColor: "var(--glow-b0)" }} stopOpacity="0.8" />
+          <stop offset="0.55" style={{ stopColor: "var(--glow-b1)" }} stopOpacity="0.45" />
+          <stop offset="1" style={{ stopColor: "var(--glow-b1)" }} stopOpacity="0" />
         </radialGradient>
       </defs>
       {blobs.map((b, i) => (

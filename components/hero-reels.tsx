@@ -21,17 +21,16 @@ export function HeroReels() {
   const render = () => force((x) => x + 1);
 
   // Loading gate: the <video>s show a black frame until they've decoded their
-  // first frame. We keep a skeleton overlay up until the first (visible) clip in
-  // every slot fires `loadeddata`, then fade the reels in. A timeout is a safety
-  // net so a slow/failed clip can never leave the skeleton up forever.
+  // first frame. Reveal as soon as ANY clip is ready (they load in parallel, so
+  // this shows the reels ASAP) rather than waiting for all slots. The shimmer is
+  // real — it tracks the actual `loadeddata` event, not a fixed timer — and a
+  // short safety timeout guarantees it never sticks if a clip stalls.
   const [ready, setReady] = useState(false);
-  const loadedSlots = useRef<Set<number>>(new Set());
-  function onSlotLoaded(slot: number) {
-    loadedSlots.current.add(slot);
-    if (loadedSlots.current.size >= SLOTS.length) setReady(true);
+  function onSlotLoaded() {
+    setReady(true);
   }
   useEffect(() => {
-    const t = setTimeout(() => setReady(true), 5000);
+    const t = setTimeout(() => setReady(true), 2500);
     return () => clearTimeout(t);
   }, []);
 
@@ -114,8 +113,8 @@ export function HeroReels() {
                       loop
                       playsInline
                       preload="auto"
-                      // Reveal once the first (visible) clip of this slot has a frame.
-                      onLoadedData={j === 0 ? () => onSlotLoaded(i) : undefined}
+                      // Reveal as soon as the first (visible) clip has a frame.
+                      onLoadedData={j === 0 ? onSlotLoaded : undefined}
                     />
                   ))}
                 </div>

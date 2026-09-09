@@ -368,14 +368,14 @@ function GenerateInner() {
                   {images.map((img, i) => (
                     // Thumbnails keep the image's true aspect ratio (object-contain),
                     // sized by height. Click to expand into the lightbox.
-                    <div key={i} className="group relative h-24 overflow-hidden rounded-[8px] border border-line-strong bg-black">
+                    <div key={i} className="group relative h-36 overflow-hidden rounded-[8px] border border-line-strong bg-black">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={img.url}
                         alt={img.name}
                         title={img.name}
                         onClick={() => setLightbox(img)}
-                        className="h-24 w-auto max-w-[200px] cursor-zoom-in object-contain"
+                        className="h-36 w-auto max-w-[320px] cursor-zoom-in object-contain"
                       />
                       <button
                         type="button"
@@ -388,7 +388,7 @@ function GenerateInner() {
                     </div>
                   ))}
                   {/* add-more tile */}
-                  <label className="flex h-24 w-24 cursor-pointer items-center justify-center rounded-[8px] border border-dashed border-line-strong text-dim transition-colors hover:border-blue hover:text-blue" title="Add more images">
+                  <label className="flex h-36 w-36 cursor-pointer items-center justify-center rounded-[8px] border border-dashed border-line-strong text-dim transition-colors hover:border-blue hover:text-blue" title="Add more images">
                     <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3 V13 M3 8 H13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
                     <input type="file" accept="image/*" multiple className="hidden" onChange={addImages} />
                   </label>

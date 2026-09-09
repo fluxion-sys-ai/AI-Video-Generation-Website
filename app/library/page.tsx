@@ -134,7 +134,7 @@ export default function LibraryPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      <GlowBlobs variant="b" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <GlowBlobs variant="b" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
 
       <main className="relative z-10 w-full flex-1 px-10 py-10">

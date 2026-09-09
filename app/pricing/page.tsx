@@ -20,7 +20,7 @@ const PAYG = {
 export default function PricingPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <GlowBlobs variant="a" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <GlowBlobs variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <PlansDots className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl flex-1 px-10 py-8">
