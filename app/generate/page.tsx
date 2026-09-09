@@ -189,9 +189,9 @@ function GenerateInner() {
 
   return (
     <div className="px-6 py-6">
-      {/* Searchable, closable model-catalog picker */}
-      {(
-        <div className="relative mb-4 max-w-md">
+      {/* Top row: model picker + model name, aligned together at the top */}
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        <div className="relative w-full max-w-xs">
           <button
             onClick={() => setPickerOpen((o) => !o)}
             aria-expanded={pickerOpen}
@@ -252,7 +252,8 @@ function GenerateInner() {
             </div>
           )}
         </div>
-      )}
+        <h1 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
+      </div>
 
       <div className="grid gap-6 lg:h-[calc(100vh-7rem)] lg:grid-cols-[150px_1fr]">
       {/* Left rail: Playground / API */}
@@ -330,8 +331,7 @@ function GenerateInner() {
 
       {/* Main form (borderless, compact) */}
       <main className="min-h-0 lg:overflow-y-auto">
-        <h1 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted">{model.description}</p>
+        <p className="max-w-2xl text-sm text-muted">{model.description}</p>
 
         <div className="mt-5 space-y-4">
           <Field label="Prompt" hint={`${prompt.length} chars`}>
