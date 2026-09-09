@@ -91,6 +91,7 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | `fluxion.mode` | `public` \| `dashboard` (which nav to show) | `components/site-header.tsx` |
 | `fluxion.favorites` | array of favorited model slugs | `lib/prefs.ts` |
 | `fluxion.recents` | recently-used model slugs (max 8) | `lib/prefs.ts` |
+| `fluxion.theme` | `dark` \| `light` | `lib/prefs.ts` + `app/layout.tsx` |
 
 ---
 
@@ -114,12 +115,41 @@ Notes:
 
 ---
 
+## Design tokens & theming
+
+All color, font, and shape decisions live in **`app/globals.css`** as semantic
+CSS variables — there are no hardcoded hex colors in the pages/components
+anymore. This is the one place to restyle the whole app.
+
+- **Colors** are declared once under `:root` (dark, the default) and overridden
+  under `.light`. They're exposed to Tailwind via `@theme inline`, so you style
+  with **semantic utilities** instead of raw hex:
+  - Surfaces: `bg-base`, `bg-base-2`, `bg-surface`, `bg-panel`, `bg-raised`, `bg-track`
+  - Text: `text-fg`, `text-fg-strong`, `text-fg-soft`, `text-fg-soft-2`, `text-muted`, `text-dim`, `text-ink` (on-accent)
+  - Lines: `border-line`, `border-line-strong`
+  - Brand: `text-/bg-accent`, `bg-accent-hover`, `text-gold`, `text-gold-soft`, `text-gold-bright`, `text-gold-2`, `text-blue`, `text-danger`
+- **Fonts** come from `next/font` in `app/layout.tsx` and are referenced as
+  `var(--font-jetbrains)` (headings/UI/buttons), `var(--font-geist-sans)` (body),
+  `var(--font-sora)` (logo). All `<button>`s default to JetBrains Mono.
+- **Shapes**: `--radius-card`, `--radius-control`, `--radius-chip`.
+
+**Light vs dark:** switching themes only swaps the `:root` → `.light` variable
+values (no per-page edits). The theme is toggled in **Settings → Appearance**,
+persisted as `fluxion.theme`, and applied before paint by a tiny script in
+`app/layout.tsx` (no flash). The only pixels not driven by tokens are the
+decorative dark hero art, which is inverted in light mode via the
+`.decor-invert` class (`app/globals.css`).
+
+To retheme: edit the variables in `app/globals.css`. To add a color: add a
+`--c-name` (both `:root` and `.light`), map it under `@theme inline`, then use
+`bg-name` / `text-name` / `border-name`.
+
 ## Other things you can tune (settings, not placeholders)
 
 | What | File |
 | --- | --- |
 | Reel timing / order (which slot swipes when) | `components/hero-reels.tsx` (`SLOTS`, `order`, `GAP`) |
-| Theme tokens, marquee keyframes, global button font | `app/globals.css` |
+| Color/font/shape tokens (dark + light), marquee keyframes, button font | `app/globals.css` |
 | Static glow-blob placement per page | `components/glow-blobs.tsx` (`VARIANTS`) |
 | Moving line-dot field (paths, speed, opacity) | `components/plans-dots.tsx` |
 | Dashboard getting-started steps & quick links | `app/dashboard/page.tsx` (`STEPS`, `LINKS`) |

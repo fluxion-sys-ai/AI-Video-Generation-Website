@@ -27,11 +27,11 @@ function ModelChip({ slug }: { slug: string }) {
   const m = getModel(slug);
   if (!m) return null;
   return (
-    <Link href={`/generate?model=${m.slug}`} className="flex items-center gap-3 border border-[#2E466B] p-2 transition-colors hover:bg-[rgba(124,189,242,0.05)]">
+    <Link href={`/generate?model=${m.slug}`} className="flex items-center gap-3 border border-line p-2 transition-colors hover:bg-[rgba(124,189,242,0.05)]">
       <img src={m.poster} alt="" className="h-10 w-16 shrink-0 bg-black object-cover" />
       <div className="min-w-0">
-        <p className="truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.04em] text-[#E9F1FB]">{m.name}</p>
-        <p className="truncate text-xs text-[#6E82A0]">{m.tagline}</p>
+        <p className="truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.04em] text-fg">{m.name}</p>
+        <p className="truncate text-xs text-dim">{m.tagline}</p>
       </div>
     </Link>
   );
@@ -60,34 +60,34 @@ export default function DashboardPage() {
   if (!ready) return <div className="min-h-screen" />;
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-[#0A1322]">
+    <div className="relative flex min-h-screen flex-col bg-base-2">
       <SiteHeader />
 
       <main className="relative z-10 w-full flex-1 px-10 py-8">
-        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">Dashboard</span>
+        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">Dashboard</span>
         <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
           Welcome back, {name}
         </h1>
 
         {/* Getting started */}
         <div className="mt-6 flex items-center justify-between">
-          <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Getting started</h2>
-          <span className="font-[family-name:var(--font-jetbrains)] text-xs text-[#6E82A0]">1 of 4 done</span>
+          <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Getting started</h2>
+          <span className="font-[family-name:var(--font-jetbrains)] text-xs text-dim">1 of 4 done</span>
         </div>
-        <div className="mt-3 grid grid-cols-2 border-b border-r border-[#2E466B] sm:grid-cols-4">
+        <div className="mt-3 grid grid-cols-2 border-b border-r border-line sm:grid-cols-4">
           {STEPS.map((s, i) => (
-            <Link key={s.title} href={s.href} className="group border-l border-t border-[#2E466B] p-4 transition-colors hover:bg-[rgba(124,189,242,0.05)]">
+            <Link key={s.title} href={s.href} className="group border-l border-t border-line p-4 transition-colors hover:bg-[rgba(124,189,242,0.05)]">
               <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold ${
-                  s.done ? "bg-[#FF8A1E] text-[#0A1322]" : "border border-[#33507C] font-[family-name:var(--font-jetbrains)] text-[#9FB2CC]"
+                  s.done ? "bg-accent text-ink" : "border border-line-strong font-[family-name:var(--font-jetbrains)] text-muted"
                 }`}
               >
                 {s.done ? "✓" : i + 1}
               </span>
-              <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.04em] text-[#E9F1FB] transition-colors group-hover:text-[#F5C46B]">
+              <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.04em] text-fg transition-colors group-hover:text-gold-soft">
                 {s.title}
               </p>
-              <p className="mt-1 text-xs text-[#6E82A0]">{s.desc}</p>
+              <p className="mt-1 text-xs text-dim">{s.desc}</p>
             </Link>
           ))}
         </div>
@@ -95,28 +95,28 @@ export default function DashboardPage() {
         {/* Quick links + snapshot */}
         <div className="mt-8 grid gap-8 lg:grid-cols-[2fr_1fr] lg:items-start">
           <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Quick actions</h2>
-            <div className="mt-3 grid grid-cols-2 border-b border-r border-[#2E466B]">
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Quick actions</h2>
+            <div className="mt-3 grid grid-cols-2 border-b border-r border-line">
               {LINKS.map((l) => (
-                <Link key={l.title} href={l.href} className="group border-l border-t border-[#2E466B] p-5 transition-colors hover:bg-[rgba(124,189,242,0.05)]">
+                <Link key={l.title} href={l.href} className="group border-l border-t border-line p-5 transition-colors hover:bg-[rgba(124,189,242,0.05)]">
                   <p className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]" style={{ color: l.color }}>{l.title}</p>
-                  <p className="mt-2 text-sm text-[#9FB2CC]">{l.desc}</p>
+                  <p className="mt-2 text-sm text-muted">{l.desc}</p>
                 </Link>
               ))}
             </div>
           </div>
 
           <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Snapshot</h2>
-            <div className="mt-3 grid grid-cols-2 border-b border-r border-[#2E466B]">
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Snapshot</h2>
+            <div className="mt-3 grid grid-cols-2 border-b border-r border-line">
               {[
                 ["Credit balance", "$0.00"],
                 ["Generations", "0"],
                 ["This month", "$0.00"],
                 ["Saved models", String(models.length)],
               ].map(([t, v]) => (
-                <div key={t} className="border-l border-t border-[#2E466B] p-5">
-                  <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">{t}</p>
+                <div key={t} className="border-l border-t border-line p-5">
+                  <p className="text-xs uppercase tracking-[0.06em] text-muted">{t}</p>
                   <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{v}</p>
                 </div>
               ))}
@@ -127,9 +127,9 @@ export default function DashboardPage() {
         {/* Recently used + favorites */}
         <div className="mt-8 grid gap-8 lg:grid-cols-2">
           <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Recently used</h2>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Recently used</h2>
             {recents.length === 0 ? (
-              <p className="mt-3 border border-[#2E466B] p-4 text-sm text-[#6E82A0]">Models you generate with show up here.</p>
+              <p className="mt-3 border border-line p-4 text-sm text-dim">Models you generate with show up here.</p>
             ) : (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {recents.map((s) => <ModelChip key={s} slug={s} />)}
@@ -137,9 +137,9 @@ export default function DashboardPage() {
             )}
           </div>
           <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Favorite models</h2>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Favorite models</h2>
             {favs.length === 0 ? (
-              <p className="mt-3 border border-[#2E466B] p-4 text-sm text-[#6E82A0]">Heart a model in the catalog to save it here.</p>
+              <p className="mt-3 border border-line p-4 text-sm text-dim">Heart a model in the catalog to save it here.</p>
             ) : (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {favs.map((s) => <ModelChip key={s} slug={s} />)}

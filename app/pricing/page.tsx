@@ -26,36 +26,36 @@ export default function PricingPage() {
       <main className="mx-auto w-full max-w-6xl flex-1 px-10 py-8">
         {/* Compact header */}
         <div>
-          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
+          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">
             Pricing
           </span>
           <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
             Pay as you go
           </h1>
-          <p className="mt-2 text-sm text-[#9FB2CC]">
+          <p className="mt-2 text-sm text-muted">
             No subscriptions. You only pay per second of video you generate, priced per model.
           </p>
         </div>
 
         {/* Price info + calculator on one line, in a square shaded box split by a thin rule */}
-        <div className="mt-6 grid border border-[#2E466B] bg-[#0B1524]/50 backdrop-blur-sm lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="mt-6 grid border border-line bg-surface/50 backdrop-blur-sm lg:grid-cols-[0.85fr_1.15fr]">
           {/* left: rate + features + CTA */}
           <div className="flex flex-col justify-center p-6">
             <div className="flex items-baseline gap-1">
-              <span className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-[#FF8A1E]">{PAYG.price}</span>
-              <span className="text-sm text-[#6E82A0]">{PAYG.note}</span>
+              <span className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-accent">{PAYG.price}</span>
+              <span className="text-sm text-dim">{PAYG.note}</span>
             </div>
-            <ul className="mt-4 space-y-1.5 text-sm text-[#A9BBD4]">
+            <ul className="mt-4 space-y-1.5 text-sm text-fg-soft-2">
               {PAYG.features.map((f) => (
                 <li key={f} className="flex items-center gap-2">
-                  <span className="text-[#E0A24E]">•</span>
+                  <span className="text-gold">•</span>
                   {f}
                 </li>
               ))}
             </ul>
             <Link
               href={PAYG.href}
-              className="mt-5 inline-block self-start bg-[#FF8A1E] px-6 py-2.5 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-[#0A1322] transition-colors hover:bg-[#FF9F45]"
+              className="mt-5 inline-block self-start bg-accent px-6 py-2.5 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-ink transition-colors hover:bg-accent-hover"
             >
               {PAYG.cta}
             </Link>
@@ -72,7 +72,7 @@ export default function PricingPage() {
           <h2 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">
             Per-model rates
           </h2>
-          <p className="mt-1 text-sm text-[#9FB2CC]">
+          <p className="mt-1 text-sm text-muted">
             Credits are spent per second. The dollar column assumes 1 credit ≈ $0.01.
           </p>
           <div className="mt-4">

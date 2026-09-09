@@ -24,8 +24,8 @@ function Field({ label, children, hint }: { label: string; children: React.React
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
-        <label className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.06em] text-[#C7D4E6]">{label}</label>
-        {hint && <span className="text-xs text-[#7E8FA8]">{hint}</span>}
+        <label className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.06em] text-fg-soft">{label}</label>
+        {hint && <span className="text-xs text-dim">{hint}</span>}
       </div>
       {children}
     </div>
@@ -35,11 +35,11 @@ function Field({ label, children, hint }: { label: string; children: React.React
 // form controls use the body theme font (Geist), not the browser default.
 // Solid, higher-contrast borders + inner surface so inputs read clearly.
 const selectClass =
-  "w-full rounded-[8px] border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2] focus:ring-1 focus:ring-[#7CBDF2]";
+  "w-full rounded-[8px] border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue focus:ring-1 focus:ring-blue";
 
 // content-width control for short values (aspect ratio, resolution, duration)
 const compactSelect =
-  "rounded-[8px] border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2] focus:ring-1 focus:ring-[#7CBDF2]";
+  "rounded-[8px] border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue focus:ring-1 focus:ring-blue";
 
 // common use for each aspect ratio, shown in the dropdown
 const ASPECT_USE: Record<string, string> = {
@@ -174,20 +174,20 @@ function GenerateInner() {
           <button
             onClick={() => setPickerOpen((o) => !o)}
             aria-expanded={pickerOpen}
-            className="flex w-full items-center justify-between gap-3 border border-[#33507C] bg-[#101E36] px-3 py-2.5 text-left transition-colors hover:border-[#7CBDF2]"
+            className="flex w-full items-center justify-between gap-3 border border-line-strong bg-raised px-3 py-2.5 text-left transition-colors hover:border-blue"
           >
             <span className="min-w-0">
-              <span className="block text-[10px] uppercase tracking-[0.08em] text-[#6E82A0]">Model</span>
-              <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-[#E9F1FB]">{model.name}</span>
+              <span className="block text-[10px] uppercase tracking-[0.08em] text-dim">Model</span>
+              <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-fg">{model.name}</span>
             </span>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className={`shrink-0 transition-transform ${pickerOpen ? "rotate-180" : ""}`}>
               <path d="M3 6 L8 11 L13 6" stroke="#9FB2CC" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
           {pickerOpen && (
-            <div className="absolute left-0 right-0 z-30 mt-1 border border-[#33507C] bg-[#0E1B30] p-2 shadow-xl shadow-black/40">
+            <div className="absolute left-0 right-0 z-30 mt-1 border border-line-strong bg-panel p-2 shadow-xl shadow-black/40">
               <div className="relative">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#6E82A0]">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-dim">
                   <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
                   <path d="M11 11 L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                 </svg>
@@ -196,7 +196,7 @@ function GenerateInner() {
                   value={pickerQuery}
                   onChange={(e) => setPickerQuery(e.target.value)}
                   placeholder="Search models"
-                  className="w-full border border-[#33507C] bg-[#101E36] py-2 pl-8 pr-2 text-sm text-[#E9F1FB] outline-none placeholder:text-[#6E82A0] focus:border-[#7CBDF2]"
+                  className="w-full border border-line-strong bg-raised py-2 pl-8 pr-2 text-sm text-fg outline-none placeholder:text-dim focus:border-blue"
                 />
               </div>
               <div className="mt-2 max-h-72 overflow-y-auto">
@@ -205,7 +205,7 @@ function GenerateInner() {
                   const list = q
                     ? getModels().filter((m) => [m.name, m.tagline, m.description, ...m.capabilities].join(" ").toLowerCase().includes(q))
                     : getModels();
-                  if (list.length === 0) return <p className="p-3 text-sm text-[#6E82A0]">No models match &ldquo;{pickerQuery}&rdquo;.</p>;
+                  if (list.length === 0) return <p className="p-3 text-sm text-dim">No models match &ldquo;{pickerQuery}&rdquo;.</p>;
                   return list.map((m) => (
                     <button
                       key={m.slug}
@@ -216,14 +216,14 @@ function GenerateInner() {
                       }}
                       className={`flex w-full items-center gap-3 p-2 text-left transition-colors hover:bg-[rgba(124,189,242,0.06)] ${m.slug === slug ? "bg-[rgba(255,138,30,0.08)]" : ""}`}
                     >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-[rgba(255,138,30,0.12)] font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-[#FF8A1E]">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-[rgba(255,138,30,0.12)] font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent">
                         {m.name.charAt(0)}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-[#E9F1FB]">{m.name}</span>
-                        <span className="block truncate text-xs text-[#6E82A0]">{m.tagline}</span>
+                        <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-fg">{m.name}</span>
+                        <span className="block truncate text-xs text-dim">{m.tagline}</span>
                       </span>
-                      {m.slug === slug && <span className="shrink-0 text-xs text-[#FF8A1E]">✓</span>}
+                      {m.slug === slug && <span className="shrink-0 text-xs text-accent">✓</span>}
                     </button>
                   ));
                 })()}
@@ -241,7 +241,7 @@ function GenerateInner() {
             key={v}
             onClick={() => setView(v)}
             className={`rounded-[8px] px-3 py-2 text-left transition-colors ${
-              view === v ? "bg-[rgba(255,138,30,0.12)] text-[#FF8A1E]" : "text-[#9FB2CC] hover:bg-[rgba(124,189,242,0.06)] hover:text-[#E9F1FB]"
+              view === v ? "bg-[rgba(255,138,30,0.12)] text-accent" : "text-muted hover:bg-[rgba(124,189,242,0.06)] hover:text-fg"
             }`}
           >
             {v === "playground" ? "Playground" : "API"}
@@ -262,18 +262,18 @@ function GenerateInner() {
       {/* Collapsible left panel */}
       <aside className="min-h-0">
         {panelOpen ? (
-          <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto rounded-[12px] border border-[#2E466B] bg-[#0E1B30] p-4">
+          <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto rounded-[12px] border border-line bg-panel p-4">
             <div>
               <div className="mb-3 flex items-center justify-between gap-2">
                 <div className="flex gap-5 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
                   <button
                     onClick={() => setTab("examples")}
-                    className={`pb-1 transition-colors ${tab === "examples" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
+                    className={`pb-1 transition-colors ${tab === "examples" ? "border-b border-gold-soft text-gold-soft" : "text-muted hover:text-fg"}`}
                   >
                     Examples
                   </button>
                 </div>
-                <button onClick={() => setPanelOpen(false)} aria-label="Collapse panel" className="shrink-0 text-[#9FB2CC] hover:text-[#FF8A1E]">
+                <button onClick={() => setPanelOpen(false)} aria-label="Collapse panel" className="shrink-0 text-muted hover:text-accent">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3 L5 8 L10 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
               </div>
@@ -289,7 +289,7 @@ function GenerateInner() {
                   playsInline
                   preload="auto"
                 />
-                <p className="mt-2 text-xs text-[#6E82A0]">Sample output from {model.name}.</p>
+                <p className="mt-2 text-xs text-dim">Sample output from {model.name}.</p>
               </div>
             </div>
           </div>
@@ -297,7 +297,7 @@ function GenerateInner() {
           <button
             onClick={() => setPanelOpen(true)}
             aria-label="Open panel"
-            className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[#9FB2CC] transition-colors hover:bg-[rgba(124,189,242,0.08)] hover:text-[#FF8A1E]"
+            className="flex h-9 w-9 items-center justify-center rounded-[8px] text-muted transition-colors hover:bg-[rgba(124,189,242,0.08)] hover:text-accent"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3 L11 8 L6 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
@@ -307,7 +307,7 @@ function GenerateInner() {
       {/* Main form (borderless, compact) */}
       <main className="min-h-0 lg:overflow-y-auto">
         <h1 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
-        <p className="mt-1 max-w-2xl text-sm text-[#9FB2CC]">{model.description}</p>
+        <p className="mt-1 max-w-2xl text-sm text-muted">{model.description}</p>
 
         <div className="mt-5 space-y-4">
           <Field label="Prompt" hint={`${prompt.length} chars`}>
@@ -322,9 +322,9 @@ function GenerateInner() {
 
           {model.supports.image && (
             <Field label="Image" hint="Optional">
-              <label className="flex w-fit cursor-pointer items-center gap-3 rounded-[8px] border border-dashed border-[#3E5C87] px-3 py-2 text-sm text-[#C7D4E6] hover:border-[#7CBDF2]">
+              <label className="flex w-fit cursor-pointer items-center gap-3 rounded-[8px] border border-dashed border-line-strong px-3 py-2 text-sm text-fg-soft hover:border-blue">
                 <span className="max-w-[220px] truncate">{imageName ?? "Choose an image"}</span>
-                <span className="text-[#7CBDF2]">Browse</span>
+                <span className="text-blue">Browse</span>
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => setImageName(e.target.files?.[0]?.name ?? null)} />
               </label>
             </Field>
@@ -370,7 +370,7 @@ function GenerateInner() {
                   role="switch"
                   aria-checked={audio}
                   onClick={() => setAudio((v) => !v)}
-                  className={`relative h-6 w-11 rounded-full transition-colors ${audio ? "bg-[#FF8A1E]" : "bg-[#243A57]"}`}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${audio ? "bg-accent" : "bg-track"}`}
                 >
                   <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${audio ? "left-[22px]" : "left-0.5"}`} />
                 </button>
@@ -381,7 +381,7 @@ function GenerateInner() {
           <button
             onClick={onGenerate}
             disabled={status === "generating"}
-            className="w-full rounded-[10px] bg-[#FF8A1E] px-6 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            className="w-full rounded-[10px] bg-accent px-6 py-2.5 font-medium text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {status === "generating" ? "Generating…" : "Generate"}
           </button>
@@ -389,16 +389,16 @@ function GenerateInner() {
 
         {/* Refine session: appears after the first generation; each edit re-generates */}
         {session && (
-          <div className="mt-6 space-y-3 rounded-[10px] border border-[#2E466B] bg-[#101E36] p-4">
+          <div className="mt-6 space-y-3 rounded-[10px] border border-line bg-raised p-4">
             <div className="flex items-center justify-between">
-              <span className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-[#E0A24E]">
+              <span className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-gold">
                 Refine session
               </span>
               <div className="flex items-center gap-3 text-xs">
-                <button onClick={undoRefine} disabled={chat.length === 0} className="text-[#9FB2CC] hover:text-[#E9F1FB] disabled:opacity-40">
+                <button onClick={undoRefine} disabled={chat.length === 0} className="text-muted hover:text-fg disabled:opacity-40">
                   Undo
                 </button>
-                <button onClick={restartRefine} className="text-[#9FB2CC] hover:text-[#E9F1FB]">
+                <button onClick={restartRefine} className="text-muted hover:text-fg">
                   Restart
                 </button>
               </div>
@@ -406,10 +406,10 @@ function GenerateInner() {
 
             <div className="max-h-40 space-y-2 overflow-y-auto">
               {chat.length === 0 ? (
-                <p className="text-xs text-[#6E82A0]">Add an instruction to tweak the video, e.g. &quot;make it slower&quot; or &quot;add rain&quot;. Each edit re-generates.</p>
+                <p className="text-xs text-dim">Add an instruction to tweak the video, e.g. &quot;make it slower&quot; or &quot;add rain&quot;. Each edit re-generates.</p>
               ) : (
                 chat.map((m, i) => (
-                  <div key={i} className="ml-auto max-w-[85%] rounded-[8px] bg-[rgba(124,189,242,0.12)] px-3 py-1.5 text-sm text-[#E9F1FB]">
+                  <div key={i} className="ml-auto max-w-[85%] rounded-[8px] bg-[rgba(124,189,242,0.12)] px-3 py-1.5 text-sm text-fg">
                     {m}
                   </div>
                 ))
@@ -427,7 +427,7 @@ function GenerateInner() {
               <button
                 onClick={sendRefine}
                 disabled={status === "generating" || !refineInput.trim()}
-                className="rounded-[10px] bg-[#FF8A1E] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#FF9F45] disabled:opacity-40"
+                className="rounded-[10px] bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent-hover disabled:opacity-40"
               >
                 Send
               </button>
@@ -439,11 +439,11 @@ function GenerateInner() {
       {/* Preview stage (right): the chosen aspect shape; the video generates here */}
       <section className="flex min-h-0 flex-col gap-3">
         <div className="flex flex-1 flex-col items-center justify-center gap-2">
-        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
+        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">
           Preview
         </span>
         <div
-          className="relative overflow-hidden rounded-[10px] border border-[#3E5C87] bg-black"
+          className="relative overflow-hidden rounded-[10px] border border-line-strong bg-black"
           style={portrait ? { aspectRatio: `${aw} / ${ah}`, height: "min(72vh, 640px)" } : { aspectRatio: `${aw} / ${ah}`, width: "100%", maxWidth: 680 }}
         >
           {status === "complete" && resultUrl ? (
@@ -452,17 +452,17 @@ function GenerateInner() {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
               {status === "generating" ? (
                 <>
-                  <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-[#9FB2CC]">
+                  <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-muted">
                     Hang tight, generating…
                   </p>
-                  <div className="h-1 w-40 overflow-hidden rounded-full bg-[#1D3149]">
-                    <div className="h-full w-1/3 animate-pulse rounded-full bg-[#FF8A1E]" />
+                  <div className="h-1 w-40 overflow-hidden rounded-full bg-raised">
+                    <div className="h-full w-1/3 animate-pulse rounded-full bg-accent" />
                   </div>
                 </>
               ) : status === "failed" ? (
-                <p className="text-sm text-[#E9F1FB]">Generation failed. Try again.</p>
+                <p className="text-sm text-fg">Generation failed. Try again.</p>
               ) : (
-                <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#5A6B84]">
+                <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-muted">
                   {aspect} preview
                 </span>
               )}
@@ -471,7 +471,7 @@ function GenerateInner() {
         </div>
         {status === "complete" && resultUrl && (
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <a href={resultUrl} download="fluxion-video.mp4" className="rounded-[10px] bg-[#FF8A1E] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#FF9F45]">
+            <a href={resultUrl} download="fluxion-video.mp4" className="rounded-[10px] bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent-hover">
               Download MP4
             </a>
             <a href={resultUrl} download="fluxion-video.webm" className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">

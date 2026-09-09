@@ -57,7 +57,7 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Cohesive fixed background - home only */}
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
-        <img src={`${BASE}/backdrop.svg`} alt="" className="no-reinvert h-full w-full object-cover" decoding="async" />
+        <img src={`${BASE}/backdrop.svg`} alt="" className="decor-invert h-full w-full object-cover" decoding="async" />
       </div>
       <SiteHeader />
 
@@ -65,25 +65,25 @@ export default function Home() {
       <section className="relative overflow-hidden lg:h-[68vh]">
         <div className="relative z-10 grid h-full items-center gap-10 px-10 py-20 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
           <div className="max-w-xl lg:pl-12">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-raised px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-muted">
               Text-to-video, image-to-video
             </span>
             <h1 className="mt-6 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-6xl">
               AI video<br />generation
             </h1>
-            <p className="mt-6 max-w-md text-lg text-[#9FB2CC]">
+            <p className="mt-6 max-w-md text-lg text-muted">
               Pick a model, describe the shot, and generate. Download or export the result.
             </p>
             <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
               <Link
                 href="/signup"
-                className="w-full rounded-[10px] bg-[#FF8A1E] px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-[#0A1322] transition-colors hover:bg-[#FF9F45] sm:w-auto"
+                className="w-full rounded-[10px] bg-accent px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-ink transition-colors hover:bg-accent-hover sm:w-auto"
               >
                 Get started
               </Link>
               <a
                 href="#models"
-                className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-[#E9F1FB] transition-colors hover:bg-[#101E36] sm:w-auto"
+                className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-fg transition-colors hover:bg-raised sm:w-auto"
               >
                 Explore models
               </a>
@@ -105,7 +105,7 @@ export default function Home() {
         <Reveal className="px-10">
           <div className="flex items-end justify-between gap-4">
             <SectionHeading index="01" label="Models" title="Explore our models" />
-            <Link href="/models" className="hidden shrink-0 text-sm text-[#9FB2CC] transition-colors hover:text-[#F5C46B] sm:block">
+            <Link href="/models" className="hidden shrink-0 text-sm text-muted transition-colors hover:text-gold-soft sm:block">
               View all
             </Link>
           </div>
@@ -119,7 +119,7 @@ export default function Home() {
       <section className="px-10 py-20">
         <Reveal className="mx-auto max-w-4xl text-center">
           <SectionHeading index="02" label="Walkthrough" title="See it in action" color="#7CBDF2" center />
-          <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
+          <p className="mx-auto mt-4 max-w-xl text-muted">
             Watch a prompt become a finished video in under a minute.
           </p>
           <div className="mt-8 mx-auto max-w-4xl overflow-hidden rounded-[10px] bg-black">
@@ -140,7 +140,7 @@ export default function Home() {
         <Reveal className="mx-auto max-w-5xl">
           <div className="text-center">
             <SectionHeading index="03" label="Pricing" title="Pay as you go" color="#FFB020" center />
-            <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
+            <p className="mx-auto mt-4 max-w-xl text-muted">
               No subscriptions. Pay per second of video, priced per model.
             </p>
           </div>
@@ -150,7 +150,7 @@ export default function Home() {
           <div className="mt-6 text-center">
             <Link
               href="/pricing"
-              className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-[#E9F1FB] transition-colors hover:bg-[#101E36]"
+              className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-fg transition-colors hover:bg-raised"
             >
               See full pricing
             </Link>

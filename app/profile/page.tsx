@@ -12,10 +12,10 @@ import { getModels } from "@/lib/models";
 import { getTheme, applyTheme, type Theme } from "@/lib/prefs";
 
 const inputClass =
-  "w-full rounded-none border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] outline-none focus:border-[#7CBDF2] focus:ring-1 focus:ring-[#7CBDF2]";
-const label = "mb-1.5 block text-xs uppercase tracking-[0.06em] text-[#9FB2CC]";
-const btnPrimary = "rounded-[10px] bg-[#FF8A1E] px-5 py-2.5 text-sm font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]";
-const btnGhost = "rounded-[10px] border border-[rgba(124,189,242,0.24)] px-5 py-2.5 text-sm text-[#E9F1FB] transition-colors hover:bg-[rgba(124,189,242,0.06)]";
+  "w-full rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none focus:border-blue focus:ring-1 focus:ring-blue";
+const label = "mb-1.5 block text-xs uppercase tracking-[0.06em] text-muted";
+const btnPrimary = "rounded-[10px] bg-accent px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-accent-hover";
+const btnGhost = "rounded-[10px] border border-[rgba(124,189,242,0.24)] px-5 py-2.5 text-sm text-fg transition-colors hover:bg-[rgba(124,189,242,0.06)]";
 
 function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
@@ -24,7 +24,7 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
       role="switch"
       aria-checked={on}
       onClick={onClick}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${on ? "bg-[#FF8A1E]" : "bg-[#243A57]"}`}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${on ? "bg-accent" : "bg-track"}`}
     >
       <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${on ? "left-[22px]" : "left-0.5"}`} />
     </button>
@@ -203,13 +203,13 @@ function ProfileInner() {
           <>
             <div className="flex items-center gap-4">
               <label
-                className="group relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-full bg-[#FF8A1E]"
+                className="group relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-full bg-accent"
                 title="Change photo"
               >
                 {avatar ? (
                   <img src={avatar} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center font-[family-name:var(--font-jetbrains)] text-2xl font-semibold text-[#0A1322]">
+                  <span className="flex h-full w-full items-center justify-center font-[family-name:var(--font-jetbrains)] text-2xl font-semibold text-ink">
                     {name.charAt(0).toUpperCase()}
                   </span>
                 )}
@@ -220,19 +220,19 @@ function ProfileInner() {
               </label>
               <div>
                 <h1 className="font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">{name}</h1>
-                <p className="text-sm text-[#9FB2CC]">@{username} · {email}</p>
+                <p className="text-sm text-muted">@{username} · {email}</p>
               </div>
             </div>
 
             <div className="mt-8 grid gap-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:items-start">
               {/* left sidebar nav */}
-              <aside className="flex flex-row flex-wrap gap-1 border border-[#2E466B] p-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col">
+              <aside className="flex flex-row flex-wrap gap-1 border border-line p-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col">
                 {TABS.map((t) => (
                   <button
                     key={t}
                     onClick={() => setTab(t)}
                     className={`px-4 py-2.5 text-left transition-colors ${
-                      tab === t ? "bg-[rgba(255,138,30,0.12)] text-[#FF8A1E]" : "text-[#9FB2CC] hover:bg-[rgba(124,189,242,0.06)] hover:text-[#E9F1FB]"
+                      tab === t ? "bg-[rgba(255,138,30,0.12)] text-accent" : "text-muted hover:bg-[rgba(124,189,242,0.06)] hover:text-fg"
                     }`}
                   >
                     {t}
@@ -262,12 +262,12 @@ function ProfileInner() {
                 </div>
                 <div className="flex items-center gap-3">
                   <button onClick={save} className={btnPrimary}>Save changes</button>
-                  {saved && <span className="text-sm text-[#FF8A1E]">Saved ✓</span>}
+                  {saved && <span className="text-sm text-accent">Saved ✓</span>}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 border-t border-[rgba(124,189,242,0.14)] pt-6">
                   <button onClick={out} className={btnGhost}>Sign out</button>
-                  <button onClick={del} className="rounded-[10px] border border-[rgba(255,107,107,0.4)] px-5 py-2.5 text-sm text-[#FF6B6B] transition-colors hover:bg-[rgba(255,107,107,0.08)]">
+                  <button onClick={del} className="rounded-[10px] border border-[rgba(255,107,107,0.4)] px-5 py-2.5 text-sm text-danger transition-colors hover:bg-[rgba(255,107,107,0.08)]">
                     Delete account
                   </button>
                 </div>
@@ -276,13 +276,13 @@ function ProfileInner() {
 
             {/* BILLING - touching bento grid, unshaded (border-only), square */}
             {tab === "billing" && (
-              <div className="grid grid-cols-4 border-b border-r border-[#2E466B]">
+              <div className="grid grid-cols-4 border-b border-r border-line">
                 {/* balance - large anchor tile */}
-                <div className="col-span-4 row-span-2 flex flex-col justify-between border-l border-t border-[#2E466B] p-6 sm:col-span-2">
+                <div className="col-span-4 row-span-2 flex flex-col justify-between border-l border-t border-line p-6 sm:col-span-2">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Current balance</p>
-                    <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold text-[#FF8A1E]">$0.00</p>
-                    <p className="mt-2 text-xs text-[#6E82A0]">Balance may lag recent usage by up to an hour.</p>
+                    <p className="text-xs uppercase tracking-[0.06em] text-muted">Current balance</p>
+                    <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold text-accent">$0.00</p>
+                    <p className="mt-2 text-xs text-dim">Balance may lag recent usage by up to an hour.</p>
                   </div>
                   <div className="mt-5">
                     <button onClick={() => setAddOpen(true)} className={btnPrimary}>Add credits</button>
@@ -290,24 +290,24 @@ function ProfileInner() {
                 </div>
 
                 {/* expiring */}
-                <div className="col-span-2 border-l border-t border-[#2E466B] p-5">
-                  <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Credits expiring in the next 30 days</p>
+                <div className="col-span-2 border-l border-t border-line p-5">
+                  <p className="text-xs uppercase tracking-[0.06em] text-muted">Credits expiring in the next 30 days</p>
                   <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">$0.00</p>
                 </div>
 
                 {/* usage this month */}
-                <div className="col-span-2 border-l border-t border-[#2E466B] p-5">
-                  <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Usage this month</p>
+                <div className="col-span-2 border-l border-t border-line p-5">
+                  <p className="text-xs uppercase tracking-[0.06em] text-muted">Usage this month</p>
                   <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">$0.00</p>
-                  <p className="mt-1 text-xs text-[#6E82A0]">$0.00 daily average</p>
+                  <p className="mt-1 text-xs text-dim">$0.00 daily average</p>
                 </div>
 
                 {/* auto top-up */}
-                <div className="col-span-4 border-l border-t border-[#2E466B] p-5 sm:col-span-2">
+                <div className="col-span-4 border-l border-t border-line p-5 sm:col-span-2">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm text-[#E9F1FB]">Auto top-up</p>
-                      <p className="text-xs text-[#6E82A0]">Buy credits when the balance runs low.</p>
+                      <p className="text-sm text-fg">Auto top-up</p>
+                      <p className="text-xs text-dim">Buy credits when the balance runs low.</p>
                     </div>
                     <Toggle on={autoTopup} onClick={() => setAutoTopup((v) => !v)} />
                   </div>
@@ -330,18 +330,18 @@ function ProfileInner() {
                         >
                           Confirm top-up
                         </button>
-                        {topupSaved && <span className="text-sm text-[#FF8A1E]">Saved ✓</span>}
+                        {topupSaved && <span className="text-sm text-accent">Saved ✓</span>}
                       </div>
                     </>
                   )}
                 </div>
 
                 {/* low-balance alert */}
-                <div className="col-span-4 border-l border-t border-[#2E466B] p-5 sm:col-span-2">
+                <div className="col-span-4 border-l border-t border-line p-5 sm:col-span-2">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm text-[#E9F1FB]">Low-balance alert</p>
-                      <p className="text-xs text-[#6E82A0]">Email me below a set threshold.</p>
+                      <p className="text-sm text-fg">Low-balance alert</p>
+                      <p className="text-xs text-dim">Email me below a set threshold.</p>
                     </div>
                     <Toggle on={alertOn} onClick={() => setAlertOn((v) => !v)} />
                   </div>
@@ -353,12 +353,12 @@ function ProfileInner() {
                     <button onClick={() => setAlertOpen(true)} disabled={!alertOn} className={`${btnPrimary} disabled:opacity-40`}>
                       Set
                     </button>
-                    {alertSaved && <span className="pb-2.5 text-sm text-[#FF8A1E]">Saved ✓</span>}
+                    {alertSaved && <span className="pb-2.5 text-sm text-accent">Saved ✓</span>}
                   </div>
                 </div>
 
                 {/* footer strip */}
-                <div className="col-span-4 border-l border-t border-[#2E466B] px-5 py-3 text-xs text-[#6E82A0]">
+                <div className="col-span-4 border-l border-t border-line px-5 py-3 text-xs text-dim">
                   Billing period: Sep 1 to Sep 30, 2026
                 </div>
               </div>
@@ -369,44 +369,44 @@ function ProfileInner() {
               <div className="grid max-w-5xl gap-10 lg:grid-cols-2 lg:items-start">
                 <div>
                   <div className="flex items-center justify-between gap-4">
-                    <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
+                    <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">
                       Payment methods
                     </h2>
                     <button onClick={() => setCardOpen(true)} className={btnPrimary}>Add method</button>
                   </div>
 
                   {cards.length === 0 ? (
-                    <p className="mt-4 border border-[#2E466B] p-5 text-sm text-[#6E82A0]">
+                    <p className="mt-4 border border-line p-5 text-sm text-dim">
                       No payment methods yet. Add one to buy credits.
                     </p>
                   ) : (
-                    <div className="mt-4 flex flex-col border border-[#2E466B]">
+                    <div className="mt-4 flex flex-col border border-line">
                       {cards.map((c, i) => (
                         <div
                           key={c.id}
-                          className={`flex items-center gap-4 p-4 ${i > 0 ? "border-t border-[#2E466B]" : ""}`}
+                          className={`flex items-center gap-4 p-4 ${i > 0 ? "border-t border-line" : ""}`}
                         >
-                          <span className="flex h-8 w-12 shrink-0 items-center justify-center border border-[#33507C] font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.04em] text-[#E9F1FB]">
+                          <span className="flex h-8 w-12 shrink-0 items-center justify-center border border-line-strong font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.04em] text-fg">
                             {c.brand}
                           </span>
                           <div className="min-w-0 flex-1">
-                            <p className="font-[family-name:var(--font-jetbrains)] text-sm text-[#E9F1FB]">
+                            <p className="font-[family-name:var(--font-jetbrains)] text-sm text-fg">
                               •••• •••• •••• {c.last4}
                             </p>
-                            <p className="text-xs text-[#6E82A0]">Expires {c.exp}</p>
+                            <p className="text-xs text-dim">Expires {c.exp}</p>
                           </div>
                           {c.primary ? (
-                            <span className="font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-[#FF8A1E]">
+                            <span className="font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-accent">
                               Default
                             </span>
                           ) : (
-                            <button onClick={() => makePrimary(c.id)} className="text-xs text-[#7CBDF2] hover:text-[#F5C46B]">
+                            <button onClick={() => makePrimary(c.id)} className="text-xs text-blue hover:text-gold-soft">
                               Make default
                             </button>
                           )}
                           <button
                             onClick={() => removeCard(c.id)}
-                            className="text-xs text-[#FF6B6B] hover:text-[#ff8f8f]"
+                            className="text-xs text-danger hover:text-danger-hover"
                           >
                             Remove
                           </button>
@@ -417,7 +417,7 @@ function ProfileInner() {
                 </div>
 
                 <div>
-                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
+                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">
                     Billing address
                   </h2>
                   <div className="mt-4 grid gap-5 sm:grid-cols-2">
@@ -443,11 +443,11 @@ function ProfileInner() {
             {tab === "usage" && (
               <div className="grid gap-8 lg:grid-cols-[2.1fr_0.9fr] lg:items-start">
                 {/* left: daily usage graph + asymmetric stat tiles (unshaded) */}
-                <div className="grid grid-cols-3 border-b border-r border-[#2E466B]">
-                  <div className="col-span-3 border-l border-t border-[#2E466B] p-5">
+                <div className="grid grid-cols-3 border-b border-r border-line">
+                  <div className="col-span-3 border-l border-t border-line p-5">
                     <div className="flex items-baseline justify-between">
-                      <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Daily usage</p>
-                      <p className="text-xs text-[#6E82A0]">Last 20 days</p>
+                      <p className="text-xs uppercase tracking-[0.06em] text-muted">Daily usage</p>
+                      <p className="text-xs text-dim">Last 20 days</p>
                     </div>
                     <UsageChart className="mt-4" plotHeight={150} />
                   </div>
@@ -458,32 +458,32 @@ function ProfileInner() {
                     ["Daily burn", "$0.00", "Avg over period", ""],
                     ["Model API usage", "$0.00", "This period", ""],
                   ].map(([t, v, s, span]) => (
-                    <div key={t} className={`border-l border-t border-[#2E466B] p-5 ${span}`}>
-                      <p className="whitespace-nowrap text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">{t}</p>
+                    <div key={t} className={`border-l border-t border-line p-5 ${span}`}>
+                      <p className="whitespace-nowrap text-xs uppercase tracking-[0.06em] text-muted">{t}</p>
                       <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{v}</p>
-                      {s && <p className="mt-1 text-xs text-[#6E82A0]">{s}</p>}
+                      {s && <p className="mt-1 text-xs text-dim">{s}</p>}
                     </div>
                   ))}
                 </div>
 
                 {/* right: generation history, aligned to the right edge */}
                 <div className="lg:justify-self-end lg:w-full">
-                  <h2 className="text-right font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
+                  <h2 className="text-right font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">
                     Generation history
                   </h2>
-                  <div className="mt-4 flex flex-col border border-[#2E466B]">
+                  <div className="mt-4 flex flex-col border border-line">
                     {history.map((h, i) => (
                       <Link
                         key={h.id}
                         href={`/generate?model=${h.slug}`}
-                        className={`flex items-center gap-3 p-3 transition-colors hover:bg-[#101E36] ${
-                          i > 0 ? "border-t border-[#2E466B]" : ""
+                        className={`flex items-center gap-3 p-3 transition-colors hover:bg-raised ${
+                          i > 0 ? "border-t border-line" : ""
                         }`}
                       >
                         <img src={h.poster} alt="" className="h-11 w-[74px] shrink-0 bg-black object-cover" />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm text-[#E9F1FB]">{h.prompt}</p>
-                          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-[#E0A24E]">
+                          <p className="truncate text-sm text-fg">{h.prompt}</p>
+                          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">
                             {h.model} · {h.when}
                           </p>
                         </div>
@@ -498,36 +498,36 @@ function ProfileInner() {
             {tab === "preferences" && (
               <div className="max-w-3xl space-y-8">
                 <section>
-                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Appearance</h2>
+                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Appearance</h2>
                   <div className="mt-4">
                     <label className={label}>Theme</label>
-                    <div className="inline-flex border border-[#33507C] font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
+                    <div className="inline-flex border border-line-strong font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
                       {(["dark", "light"] as Theme[]).map((t) => (
                         <button
                           key={t}
                           onClick={() => chooseTheme(t)}
                           className={`px-5 py-2 transition-colors ${
-                            theme === t ? "bg-[#FF8A1E] text-[#0A1322]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"
+                            theme === t ? "bg-accent text-ink" : "text-muted hover:text-fg"
                           }`}
                         >
                           {t}
                         </button>
                       ))}
                     </div>
-                    <p className="mt-2 text-xs text-[#6E82A0]">Light theme matches the Fluxion site.</p>
+                    <p className="mt-2 text-xs text-dim">Light theme matches the Fluxion site.</p>
                   </div>
                   <div className="mt-4 space-y-3">
-                    <div className="flex items-center justify-between gap-4 border border-[#2E466B] p-4">
+                    <div className="flex items-center justify-between gap-4 border border-line p-4">
                       <div>
-                        <p className="text-sm text-[#E9F1FB]">Autoplay previews</p>
-                        <p className="text-xs text-[#6E82A0]">Play video thumbnails on hover.</p>
+                        <p className="text-sm text-fg">Autoplay previews</p>
+                        <p className="text-xs text-dim">Play video thumbnails on hover.</p>
                       </div>
                       <Toggle on={autoplay} onClick={() => setAutoplay((v) => !v)} />
                     </div>
-                    <div className="flex items-center justify-between gap-4 border border-[#2E466B] p-4">
+                    <div className="flex items-center justify-between gap-4 border border-line p-4">
                       <div>
-                        <p className="text-sm text-[#E9F1FB]">Reduce motion</p>
-                        <p className="text-xs text-[#6E82A0]">Dim background animations.</p>
+                        <p className="text-sm text-fg">Reduce motion</p>
+                        <p className="text-xs text-dim">Dim background animations.</p>
                       </div>
                       <Toggle on={reduceMotion} onClick={() => setReduceMotion((v) => !v)} />
                     </div>
@@ -535,7 +535,7 @@ function ProfileInner() {
                 </section>
 
                 <section className="border-t border-[rgba(124,189,242,0.14)] pt-6">
-                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Generation defaults</h2>
+                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Generation defaults</h2>
                   <div className="mt-4 grid gap-5 sm:grid-cols-2">
                     <div>
                       <label className={label}>Default model</label>
@@ -553,24 +553,24 @@ function ProfileInner() {
                 </section>
 
                 <section className="border-t border-[rgba(124,189,242,0.14)] pt-6">
-                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Notifications</h2>
-                  <div className="mt-4 flex items-center justify-between gap-4 border border-[#2E466B] p-4">
+                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Notifications</h2>
+                  <div className="mt-4 flex items-center justify-between gap-4 border border-line p-4">
                     <div>
-                      <p className="text-sm text-[#E9F1FB]">Product email updates</p>
-                      <p className="text-xs text-[#6E82A0]">Occasional news about new models and features.</p>
+                      <p className="text-sm text-fg">Product email updates</p>
+                      <p className="text-xs text-dim">Occasional news about new models and features.</p>
                     </div>
                     <Toggle on={emailUpdates} onClick={() => setEmailUpdates((v) => !v)} />
                   </div>
                 </section>
 
                 <section className="border-t border-[rgba(124,189,242,0.14)] pt-6">
-                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Help &amp; resources</h2>
-                  <Link href="/docs" className="mt-4 flex items-center justify-between gap-4 border border-[#2E466B] p-4 transition-colors hover:border-[rgba(124,189,242,0.5)]">
+                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Help &amp; resources</h2>
+                  <Link href="/docs" className="mt-4 flex items-center justify-between gap-4 border border-line p-4 transition-colors hover:border-[rgba(124,189,242,0.5)]">
                     <div>
-                      <p className="text-sm text-[#E9F1FB]">Documentation</p>
-                      <p className="text-xs text-[#6E82A0]">Guides, quickstart, and API reference.</p>
+                      <p className="text-sm text-fg">Documentation</p>
+                      <p className="text-xs text-dim">Guides, quickstart, and API reference.</p>
                     </div>
-                    <span className="font-[family-name:var(--font-jetbrains)] text-sm text-[#7CBDF2]">Open →</span>
+                    <span className="font-[family-name:var(--font-jetbrains)] text-sm text-blue">Open →</span>
                   </Link>
                 </section>
 
@@ -578,7 +578,7 @@ function ProfileInner() {
                   <button onClick={() => { setPrefSaved(true); setTimeout(() => setPrefSaved(false), 1600); }} className={btnPrimary}>
                     Save settings
                   </button>
-                  {prefSaved && <span className="text-sm text-[#FF8A1E]">Saved ✓</span>}
+                  {prefSaved && <span className="text-sm text-accent">Saved ✓</span>}
                 </div>
               </div>
             )}
@@ -596,9 +596,9 @@ function ProfileInner() {
       {/* Add credits modal (mock) */}
       {addOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-6" onClick={() => setAddOpen(false)}>
-          <div className="w-full max-w-sm rounded-[14px] border border-[#2E466B] bg-[#0B1524] p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Add credits</h3>
-            <p className="mt-1 text-xs text-[#6E82A0]">Pick a preset or enter an amount.</p>
+            <p className="mt-1 text-xs text-dim">Pick a preset or enter an amount.</p>
             <div className="mt-4 grid grid-cols-3 gap-2">
               {[10, 25, 50].map((a) => (
                 <button
@@ -606,8 +606,8 @@ function ProfileInner() {
                   onClick={() => setAddAmount(a)}
                   className={`rounded-[10px] border py-3 font-[family-name:var(--font-jetbrains)] text-sm transition-colors ${
                     addAmount === a
-                      ? "border-[#FF8A1E] text-[#FF8A1E]"
-                      : "border-[rgba(124,189,242,0.24)] hover:border-[#FF8A1E] hover:text-[#FF8A1E]"
+                      ? "border-accent text-accent"
+                      : "border-[rgba(124,189,242,0.24)] hover:border-accent hover:text-accent"
                   }`}
                 >
                   ${a}
@@ -634,9 +634,9 @@ function ProfileInner() {
       {/* Add payment method modal */}
       {cardOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-6" onClick={() => setCardOpen(false)}>
-          <div className="w-full max-w-sm rounded-[14px] border border-[#2E466B] bg-[#0B1524] p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Add payment method</h3>
-            <p className="mt-1 text-xs text-[#6E82A0]">Card details are not stored. Mock entry only.</p>
+            <p className="mt-1 text-xs text-dim">Card details are not stored. Mock entry only.</p>
             <div className="mt-4 space-y-3">
               <div>
                 <label className={label}>Cardholder name</label>
@@ -668,17 +668,17 @@ function ProfileInner() {
       {/* Low-balance alert confirm modal */}
       {alertOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-6" onClick={() => setAlertOpen(false)}>
-          <div className="w-full max-w-sm rounded-[14px] border border-[#2E466B] bg-[#0B1524] p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Confirm alert</h3>
-            <p className="mt-1 text-xs text-[#6E82A0]">We&apos;ll email you when your balance drops below this amount.</p>
+            <p className="mt-1 text-xs text-dim">We&apos;ll email you when your balance drops below this amount.</p>
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-[#9FB2CC]">Threshold</dt>
-                <dd className="font-[family-name:var(--font-jetbrains)] text-[#FF8A1E]">${alertThreshold}</dd>
+                <dt className="text-muted">Threshold</dt>
+                <dd className="font-[family-name:var(--font-jetbrains)] text-accent">${alertThreshold}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-[#9FB2CC]">Email</dt>
-                <dd className="truncate text-[#E9F1FB]">{email}</dd>
+                <dt className="text-muted">Email</dt>
+                <dd className="truncate text-fg">{email}</dd>
               </div>
             </dl>
             <div className="mt-6 flex gap-3">

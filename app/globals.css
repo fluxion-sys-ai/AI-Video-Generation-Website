@@ -129,20 +129,108 @@
   }
 }
 
-/* All buttons use the typewriter (JetBrains Mono) face. */
-button {
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+/* ============================================================================
+   DESIGN TOKENS  (single source of truth for the whole app)
+   ----------------------------------------------------------------------------
+   Colors are semantic CSS variables. Dark is the default (:root); `.light`
+   overrides the same names. They are exposed to Tailwind as utilities
+   (bg-surface, text-muted, border-line, text-accent, …) via `@theme inline`
+   below, so every page/component reads from here and both themes swap by only
+   changing these variables — no per-page color edits.
+
+   Fonts come from next/font (see app/layout.tsx): --font-jetbrains (headings,
+   UI, all buttons), --font-geist-sans (body), --font-sora (logo wordmark).
+   Radii tokens live here too so card/input shapes stay consistent.
+   ============================================================================ */
+:root {
+  /* Surfaces, back-to-front */
+  --c-base: #070d1a;        /* page canvas / body */
+  --c-base-2: #0a1322;      /* secondary surface (e.g. dashboard) */
+  --c-surface: #0b1524;     /* cards, tables */
+  --c-panel: #0e1b30;       /* side panels, dropdowns, menus */
+  --c-raised: #101e36;      /* inputs, chips, raised controls */
+  --c-track: #243a57;       /* toggle "off" track */
+  /* Ink = fixed near-black text that sits on the accent; same in both themes */
+  --c-ink: #0a1322;
+  /* Text */
+  --c-fg: #e9f1fb;          /* primary text */
+  --c-fg-strong: #f4f8fe;   /* headings / emphasis */
+  --c-fg-soft: #c7d4e6;     /* secondary text */
+  --c-fg-soft-2: #a9bbd4;   /* nav / softer secondary */
+  --c-muted: #9fb2cc;       /* muted body text */
+  --c-dim: #6e82a0;         /* captions / hints */
+  /* Lines */
+  --c-line: #2e466b;        /* default border */
+  --c-line-strong: #33507c; /* input / stronger border */
+  /* Brand accents — identical in both themes */
+  --c-accent: #ff8a1e;
+  --c-accent-hover: #ff9f45;
+  --c-gold: #e0a24e;
+  --c-gold-soft: #f5c46b;
+  --c-gold-bright: #ffb020;
+  --c-gold-2: #ffc15e;
+  --c-blue: #7cbdf2;
+  --c-danger: #ff6b6b;
+  --c-danger-hover: #ff8f8f;
+  /* Shapes */
+  --radius-card: 12px;
+  --radius-control: 10px;
+  --radius-chip: 8px;
 }
 
-/* Light theme (matches the Fluxion site's light look). The UI is authored in
-   dark hex values, so we flip the whole page and keep hues stable with a
-   hue-rotate, then re-invert real media (photos/videos/uploads) so they stay
-   true color. The decorative hero art (.no-reinvert) flips with the page. */
-html.light {
-  filter: invert(1) hue-rotate(180deg);
-  background-color: #ffffff;
+/* Light theme — matches the Fluxion site's light look. Only surfaces, text,
+   and lines flip; brand accents stay the same. */
+.light {
+  --c-base: #ffffff;
+  --c-base-2: #eef2f8;
+  --c-surface: #ffffff;
+  --c-panel: #f4f7fc;
+  --c-raised: #eaf0f8;
+  --c-track: #cbd6e6;
+  --c-ink: #0a1322;
+  --c-fg: #0b1524;
+  --c-fg-strong: #060b14;
+  --c-fg-soft: #2e466b;
+  --c-fg-soft-2: #3e5c87;
+  --c-muted: #5a6b84;
+  --c-dim: #7e8fa8;
+  --c-line: #dce3ef;
+  --c-line-strong: #c4cfe0;
 }
-html.light :is(img, video):not(.no-reinvert) {
+
+/* Expose the tokens as Tailwind color utilities. `inline` makes them resolve at
+   the use site so `.light` overrides take effect without rebuilding classes. */
+@theme inline {
+  --color-base: var(--c-base);
+  --color-base-2: var(--c-base-2);
+  --color-surface: var(--c-surface);
+  --color-panel: var(--c-panel);
+  --color-raised: var(--c-raised);
+  --color-track: var(--c-track);
+  --color-ink: var(--c-ink);
+  --color-fg: var(--c-fg);
+  --color-fg-strong: var(--c-fg-strong);
+  --color-fg-soft: var(--c-fg-soft);
+  --color-fg-soft-2: var(--c-fg-soft-2);
+  --color-muted: var(--c-muted);
+  --color-dim: var(--c-dim);
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+  --color-accent: var(--c-accent);
+  --color-accent-hover: var(--c-accent-hover);
+  --color-gold: var(--c-gold);
+  --color-gold-soft: var(--c-gold-soft);
+  --color-gold-bright: var(--c-gold-bright);
+  --color-gold-2: var(--c-gold-2);
+  --color-blue: var(--c-blue);
+  --color-danger: var(--c-danger);
+  --color-danger-hover: var(--c-danger-hover);
+}
+
+/* The decorative background art (dark SVG hero + glow/dot fields) is authored
+   dark; in light mode we invert just those layers so they read light, while all
+   UI color comes from the tokens above. */
+.light .decor-invert {
   filter: invert(1) hue-rotate(180deg);
 }
 

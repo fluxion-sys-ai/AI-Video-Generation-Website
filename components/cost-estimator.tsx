@@ -8,7 +8,7 @@ const RES_MULT: Record<string, number> = { "480p": 1, "720p": 1.5, "1080p": 2.5 
 const PER_CREDIT = 0.01;
 
 const sel =
-  "rounded-none border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2]";
+  "rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue";
 
 export function CostEstimator({ bare = false }: { bare?: boolean }) {
   const models = getModels();
@@ -28,13 +28,13 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
   const dollars = (credits * PER_CREDIT).toFixed(2);
 
   return (
-    <div className={bare ? "" : "border border-[#2E466B] bg-[#0B1524]/70 p-6 backdrop-blur-sm"}>
-      <h3 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#C7D4E6]">
+    <div className={bare ? "" : "border border-line bg-surface/70 p-6 backdrop-blur-sm"}>
+      <h3 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">
         Estimate a clip
       </h3>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div>
-          <label className="mb-1.5 block text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Model</label>
+          <label className="mb-1.5 block text-xs uppercase tracking-[0.06em] text-muted">Model</label>
           <select value={slug} onChange={(e) => setSlug(e.target.value)} className={`${sel} w-full`}>
             {models.map((m) => (
               <option key={m.slug} value={m.slug}>{m.name}</option>
@@ -42,7 +42,7 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Duration (sec)</label>
+          <label className="mb-1.5 block text-xs uppercase tracking-[0.06em] text-muted">Duration (sec)</label>
           <input
             type="number"
             min={3}
@@ -53,7 +53,7 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Resolution</label>
+          <label className="mb-1.5 block text-xs uppercase tracking-[0.06em] text-muted">Resolution</label>
           <select value={resolution} onChange={(e) => setResolution(e.target.value)} className={`${sel} w-full`}>
             {model.resolutions.map((r) => (
               <option key={r} value={r}>{r}</option>
@@ -62,8 +62,8 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
         </div>
       </div>
       <div className="mt-4 flex items-baseline gap-3 border-t border-[rgba(124,189,242,0.14)] pt-3">
-        <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold text-[#FF8A1E]">≈ ${dollars}</span>
-        <span className="text-sm text-[#9FB2CC]">{credits} credits · {duration}s · {resolution}</span>
+        <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold text-accent">≈ ${dollars}</span>
+        <span className="text-sm text-muted">{credits} credits · {duration}s · {resolution}</span>
       </div>
     </div>
   );

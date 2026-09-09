@@ -34,7 +34,7 @@ function NavMenu({ label, href, children }: { label: string; href?: string; chil
         <Link
           href={href}
           aria-expanded={open}
-          className="flex items-center gap-1 text-sm uppercase tracking-[0.06em] text-[#A9BBD4] transition-colors hover:text-[#F5C46B]"
+          className="flex items-center gap-1 text-sm uppercase tracking-[0.06em] text-fg-soft-2 transition-colors hover:text-gold-soft"
         >
           {label}
           <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="mt-0.5 opacity-70">
@@ -46,7 +46,7 @@ function NavMenu({ label, href, children }: { label: string; href?: string; chil
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-1 text-sm uppercase tracking-[0.06em] text-[#A9BBD4] transition-colors hover:text-[#F5C46B]"
+          className="flex items-center gap-1 text-sm uppercase tracking-[0.06em] text-fg-soft-2 transition-colors hover:text-gold-soft"
         >
           {label}
           <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="mt-0.5 opacity-70">
@@ -56,7 +56,7 @@ function NavMenu({ label, href, children }: { label: string; href?: string; chil
       )}
       {open && (
         <div className="absolute left-0 top-full min-w-56 pt-3">
-          <div className="overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0E1730] p-1 shadow-xl shadow-black/40">
+          <div className="overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-panel p-1 shadow-xl shadow-black/40">
             {children}
           </div>
         </div>
@@ -73,8 +73,8 @@ function MenuItem({ href, title, sub, icon }: { href: string; title: string; sub
     >
       {icon && <span className="shrink-0">{icon}</span>}
       <span>
-        <span className="block text-sm uppercase tracking-[0.04em] text-[#E9F1FB] transition-colors group-hover:text-[#F5C46B]">{title}</span>
-        {sub && <span className="block text-xs normal-case tracking-normal text-[#6E82A0]">{sub}</span>}
+        <span className="block text-sm uppercase tracking-[0.04em] text-fg transition-colors group-hover:text-gold-soft">{title}</span>
+        {sub && <span className="block text-xs normal-case tracking-normal text-dim">{sub}</span>}
       </span>
     </Link>
   );
@@ -83,7 +83,7 @@ function MenuItem({ href, title, sub, icon }: { href: string; title: string; sub
 // small square icon chip with the model initial
 function ModelIcon({ letter }: { letter: string }) {
   return (
-    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-[rgba(255,138,30,0.12)] font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-[#FF8A1E]">
+    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-[rgba(255,138,30,0.12)] font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent">
       {letter}
     </span>
   );
@@ -92,7 +92,7 @@ function ModelIcon({ letter }: { letter: string }) {
 // blue icon chip for the profile tab menu
 function TabChip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(124,189,242,0.35)] bg-[rgba(124,189,242,0.1)] text-[#7CBDF2]">
+    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(124,189,242,0.35)] bg-[rgba(124,189,242,0.1)] text-blue">
       {children}
     </span>
   );
@@ -176,10 +176,10 @@ function ProfileMenu({ user }: { user: User }) {
   return (
     <div ref={ref} className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
       <Link href="/profile" aria-expanded={open} className="group flex items-center gap-2" title="Your profile">
-        <span className="hidden max-w-[160px] truncate normal-case text-[#E9F1FB] transition-colors group-hover:text-[#FF8A1E] sm:block">
+        <span className="hidden max-w-[160px] truncate normal-case text-fg transition-colors group-hover:text-accent sm:block">
           {user.name}
         </span>
-        <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#FF8A1E] font-medium text-[#0A1322]">
+        <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-accent font-medium text-ink">
           {user.avatar ? (
             <img src={user.avatar} alt="" className="h-full w-full object-cover" />
           ) : (
@@ -189,7 +189,7 @@ function ProfileMenu({ user }: { user: User }) {
       </Link>
       {open && (
         <div className="absolute right-0 top-full min-w-52 pt-3">
-          <div className="overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0E1730] p-1 shadow-xl shadow-black/40">
+          <div className="overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-panel p-1 shadow-xl shadow-black/40">
             {PROFILE_TABS.map((t) => (
               <MenuItem key={t.key} href={`/profile?tab=${t.key}`} title={t.title} icon={t.icon} />
             ))}
@@ -212,7 +212,7 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
     <Link
       href={href}
       className={`text-sm uppercase tracking-[0.06em] transition-colors ${
-        active ? "text-[#FF8A1E]" : "text-[#A9BBD4] hover:text-[#F5C46B]"
+        active ? "text-accent" : "text-fg-soft-2 hover:text-gold-soft"
       }`}
     >
       {label}
@@ -239,7 +239,7 @@ export function SiteHeader() {
   const dashMode = ready && !!user && mode === "dashboard";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#070D1A]/80 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-base/80 backdrop-blur">
       <nav className="flex h-20 items-center justify-between px-10 font-[family-name:var(--font-jetbrains)]">
         <div className="flex items-center gap-8">
           <Brand />
@@ -269,7 +269,7 @@ export function SiteHeader() {
                 title="All models"
                 sub="Browse the full catalog"
                 icon={
-                  <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(124,189,242,0.35)] bg-[rgba(124,189,242,0.1)] text-[#7CBDF2]">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(124,189,242,0.35)] bg-[rgba(124,189,242,0.1)] text-blue">
                     <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" fill="currentColor">
                       <rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" />
                       <rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" />
@@ -280,7 +280,7 @@ export function SiteHeader() {
             </NavMenu>
             <Link
               href="/pricing"
-              className="text-sm uppercase tracking-[0.06em] text-[#A9BBD4] transition-colors hover:text-[#F5C46B]"
+              className="text-sm uppercase tracking-[0.06em] text-fg-soft-2 transition-colors hover:text-gold-soft"
             >
               Pricing
             </Link>
@@ -288,7 +288,7 @@ export function SiteHeader() {
               href="/info"
               aria-label="Info"
               title="Info and contact"
-              className="flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(148,170,200,0.4)] text-[11px] text-[#A9BBD4] transition-colors hover:border-[#F5C46B] hover:text-[#F5C46B]"
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(148,170,200,0.4)] text-[11px] text-fg-soft-2 transition-colors hover:border-gold-soft hover:text-gold-soft"
             >
               i
             </Link>
@@ -302,7 +302,7 @@ export function SiteHeader() {
               {!dashMode && (
                 <Link
                   href="/dashboard"
-                  className="hidden items-center border border-[rgba(255,138,30,0.55)] px-3 py-1.5 text-xs uppercase tracking-[0.08em] text-[#FF8A1E] transition-colors hover:bg-[rgba(255,138,30,0.1)] sm:flex"
+                  className="hidden items-center border border-[rgba(255,138,30,0.55)] px-3 py-1.5 text-xs uppercase tracking-[0.08em] text-accent transition-colors hover:bg-[rgba(255,138,30,0.1)] sm:flex"
                 >
                   Create
                 </Link>
@@ -311,12 +311,12 @@ export function SiteHeader() {
             </>
           ) : (
             <>
-              <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#F5C46B] sm:block">
+              <Link href="/login" className="hidden text-fg-soft-2 transition-colors hover:text-gold-soft sm:block">
                 Login
               </Link>
               <Link
                 href="/signup"
-                className="rounded-[10px] bg-[#FF8A1E] px-5 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]"
+                className="rounded-[10px] bg-accent px-5 py-2.5 font-medium text-ink transition-colors hover:bg-accent-hover"
               >
                 Sign up
               </Link>

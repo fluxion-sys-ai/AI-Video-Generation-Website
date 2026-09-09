@@ -85,22 +85,22 @@ print(result["video"]["url"])`,
 
   return (
     <div className="max-w-3xl">
-      <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">API</span>
+      <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">API</span>
       <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">
         {model.name} API
       </h1>
-      <p className="mt-2 text-sm text-[#9FB2CC]">
+      <p className="mt-2 text-sm text-muted">
         Call this model over HTTP. Endpoint id:{" "}
-        <code className="rounded bg-[#101E36] px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[#FFC15E]">{id}</code>
+        <code className="rounded bg-raised px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-gold-2">{id}</code>
       </p>
 
       {/* auth */}
       <section className="mt-8">
-        <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#C7D4E6]">1. Authenticate</h2>
-        <p className="mt-2 text-sm text-[#9FB2CC]">
+        <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">1. Authenticate</h2>
+        <p className="mt-2 text-sm text-muted">
           Create a key in your dashboard and set it as an environment variable:
         </p>
-        <pre className="mt-3 overflow-x-auto rounded-[10px] border border-[#33507C] bg-[#0B1524] p-4 font-[family-name:var(--font-jetbrains)] text-sm text-[#E9F1FB]">
+        <pre className="mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
           <code>export FLUXION_API_KEY=&quot;sk-fluxion-xxxxxxxxxxxx&quot;</code>
         </pre>
       </section>
@@ -108,8 +108,8 @@ print(result["video"]["url"])`,
       {/* request */}
       <section className="mt-8">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#C7D4E6]">2. Run the model</h2>
-          <button onClick={copy} className="rounded-[8px] border border-[rgba(124,189,242,0.24)] px-3 py-1 text-xs text-[#9FB2CC] transition-colors hover:text-[#FF8A1E]">
+          <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">2. Run the model</h2>
+          <button onClick={copy} className="rounded-[8px] border border-[rgba(124,189,242,0.24)] px-3 py-1 text-xs text-muted transition-colors hover:text-accent">
             {copied ? "Copied ✓" : "Copy"}
           </button>
         </div>
@@ -118,24 +118,24 @@ print(result["video"]["url"])`,
             <button
               key={l}
               onClick={() => setLang(l)}
-              className={`pb-1 transition-colors ${lang === l ? "border-b border-[#FF8A1E] text-[#FF8A1E]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
+              className={`pb-1 transition-colors ${lang === l ? "border-b border-accent text-accent" : "text-muted hover:text-fg"}`}
             >
               {langLabel[l]}
             </button>
           ))}
         </div>
-        <pre className="mt-3 overflow-x-auto rounded-[10px] border border-[#33507C] bg-[#0B1524] p-4 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-[#E9F1FB]">
+        <pre className="mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
           <code>{snippets[lang]}</code>
         </pre>
       </section>
 
       {/* input schema */}
       <section className="mt-8">
-        <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#C7D4E6]">Input parameters</h2>
-        <div className="mt-3 overflow-hidden rounded-[10px] border border-[#33507C]">
+        <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">Input parameters</h2>
+        <div className="mt-3 overflow-hidden rounded-[10px] border border-line-strong">
           <table className="w-full text-left text-sm">
-            <thead className="font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-[#9FB2CC]">
-              <tr className="border-b border-[#33507C]">
+            <thead className="font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-muted">
+              <tr className="border-b border-line-strong">
                 <th className="px-4 py-2.5">Field</th>
                 <th className="px-4 py-2.5">Type</th>
                 <th className="px-4 py-2.5">Description</th>
@@ -144,26 +144,26 @@ print(result["video"]["url"])`,
             <tbody>
               {params.map((p) => (
                 <tr key={p.name} className="border-b border-[rgba(124,189,242,0.12)] last:border-0 align-top">
-                  <td className="px-4 py-2.5 font-[family-name:var(--font-jetbrains)] text-[#FFC15E]">
-                    {p.name}{p.req && <span className="text-[#FF6B6B]"> *</span>}
+                  <td className="px-4 py-2.5 font-[family-name:var(--font-jetbrains)] text-gold-2">
+                    {p.name}{p.req && <span className="text-danger"> *</span>}
                   </td>
-                  <td className="px-4 py-2.5 text-[#9FB2CC]">{p.type}</td>
-                  <td className="px-4 py-2.5 text-[#C7D4E6]">{p.desc}</td>
+                  <td className="px-4 py-2.5 text-muted">{p.type}</td>
+                  <td className="px-4 py-2.5 text-fg-soft">{p.desc}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-xs text-[#6E82A0]"><span className="text-[#FF6B6B]">*</span> required</p>
+        <p className="mt-2 text-xs text-dim"><span className="text-danger">*</span> required</p>
       </section>
 
       {/* response */}
       <section className="mt-8">
-        <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#C7D4E6]">Response</h2>
-        <pre className="mt-3 overflow-x-auto rounded-[10px] border border-[#33507C] bg-[#0B1524] p-4 font-[family-name:var(--font-jetbrains)] text-sm text-[#E9F1FB]">
+        <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">Response</h2>
+        <pre className="mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
           <code>{response}</code>
         </pre>
-        <p className="mt-3 text-xs text-[#6E82A0]">Illustrative only. No live API here.</p>
+        <p className="mt-3 text-xs text-dim">Illustrative only. No live API here.</p>
       </section>
     </div>
   );

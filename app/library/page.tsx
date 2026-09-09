@@ -45,9 +45,9 @@ export default function LibraryPage() {
       <SiteHeader />
 
       <main className="relative z-10 w-full flex-1 px-10 py-10">
-        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">Library</span>
+        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">Library</span>
         <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">Your library</h1>
-        <p className="mt-2 text-sm text-[#9FB2CC]">Everything you&apos;ve generated and uploaded.</p>
+        <p className="mt-2 text-sm text-muted">Everything you&apos;ve generated and uploaded.</p>
 
         <div className="mt-8 flex gap-6 border-b border-[rgba(124,189,242,0.14)] font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
           {(["videos", "images"] as const).map((t) => (
@@ -55,7 +55,7 @@ export default function LibraryPage() {
               key={t}
               onClick={() => setTab(t)}
               className={`-mb-px border-b-2 pb-3 transition-colors ${
-                tab === t ? "border-[#FF8A1E] text-[#FF8A1E]" : "border-transparent text-[#9FB2CC] hover:text-[#E9F1FB]"
+                tab === t ? "border-accent text-accent" : "border-transparent text-muted hover:text-fg"
               }`}
             >
               {t}
@@ -66,12 +66,12 @@ export default function LibraryPage() {
         {tab === "videos" && (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {videos.map((v) => (
-              <Link key={v.id} href={`/generate?model=${v.model.slug}`} className="group border border-[#2E466B] p-3 transition-colors hover:border-[rgba(124,189,242,0.5)]">
+              <Link key={v.id} href={`/generate?model=${v.model.slug}`} className="group border border-line p-3 transition-colors hover:border-[rgba(124,189,242,0.5)]">
                 <div className="aspect-video w-full overflow-hidden bg-black">
                   <video src={v.model.demoVideo} poster={v.model.poster} muted loop playsInline className="h-full w-full object-cover" onMouseEnter={(e) => e.currentTarget.play()} onMouseLeave={(e) => e.currentTarget.pause()} />
                 </div>
-                <p className="mt-3 truncate text-sm text-[#E9F1FB]">{v.prompt}</p>
-                <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-[#E0A24E]">{v.model.name} · {v.when}</p>
+                <p className="mt-3 truncate text-sm text-fg">{v.prompt}</p>
+                <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">{v.model.name} · {v.when}</p>
               </Link>
             ))}
           </div>
@@ -80,11 +80,11 @@ export default function LibraryPage() {
         {tab === "images" && (
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
             {images.map((img) => (
-              <div key={img.id} className="border border-[#2E466B] p-2">
+              <div key={img.id} className="border border-line p-2">
                 <div className="aspect-square w-full overflow-hidden bg-black">
                   <img src={img.src} alt="" className="h-full w-full object-cover" />
                 </div>
-                <p className="mt-2 truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-[#6E82A0]">{img.name}</p>
+                <p className="mt-2 truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-dim">{img.name}</p>
               </div>
             ))}
           </div>

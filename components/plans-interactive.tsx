@@ -34,14 +34,14 @@ function Bar({
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className="cursor-default">
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span className={active ? "text-[#FF8A1E]" : "text-[#C7D4E6]"}>{label}</span>
-        <span className={`font-[family-name:var(--font-jetbrains)] ${active ? "text-[#FF8A1E]" : "text-[#9FB2CC]"}`}>
+        <span className={active ? "text-accent" : "text-fg-soft"}>{label}</span>
+        <span className={`font-[family-name:var(--font-jetbrains)] ${active ? "text-accent" : "text-muted"}`}>
           {display}
         </span>
       </div>
-      <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-[#101E36]">
+      <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-raised">
         <div
-          className={`h-full rounded-full transition-all ${active ? "bg-[#FF8A1E] shadow-[0_0_14px_2px_rgba(255,138,30,0.75)]" : "bg-[#3E6FB5]"}`}
+          className={`h-full rounded-full transition-all ${active ? "bg-accent shadow-[0_0_14px_2px_rgba(255,138,30,0.75)]" : "bg-line-strong"}`}
           style={{ width: `${Math.max(4, pct)}%` }}
         />
       </div>
@@ -71,7 +71,7 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
               onMouseEnter={on(p.id)}
               onMouseLeave={off}
               className={`scroll-mt-24 rounded-[14px] border p-6 transition-colors ${
-                active ? "border-[#FF8A1E] bg-[rgba(255,138,30,0.08)]" : "border-[#2E466B] bg-[#0B1524]"
+                active ? "border-accent bg-[rgba(255,138,30,0.08)]" : "border-line bg-surface"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -79,20 +79,20 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
                   {p.name}
                 </h2>
                 {p.popular && (
-                  <span title="Most popular" className="text-[#FFB020]" aria-label="Most popular">
+                  <span title="Most popular" className="text-gold-bright" aria-label="Most popular">
                     ★
                   </span>
                 )}
               </div>
               <div className="mt-3 flex items-baseline gap-1">
                 <span className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold">{p.price}</span>
-                <span className="text-sm text-[#6E82A0]">{p.period}</span>
+                <span className="text-sm text-dim">{p.period}</span>
               </div>
-              <p className="mt-1 text-sm text-[#9FB2CC]">{p.credits}</p>
-              <ul className="mt-4 space-y-1.5 text-sm text-[#A9BBD4]">
+              <p className="mt-1 text-sm text-muted">{p.credits}</p>
+              <ul className="mt-4 space-y-1.5 text-sm text-fg-soft-2">
                 {p.features.map((f) => (
                   <li key={f} className="flex items-center gap-2">
-                    <span className="text-[#E0A24E]">•</span>
+                    <span className="text-gold">•</span>
                     {f}
                   </li>
                 ))}
@@ -101,8 +101,8 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
                 href="/signup"
                 className={`mt-6 block rounded-[10px] px-4 py-2.5 text-center font-medium transition-colors ${
                   active
-                    ? "bg-[#FF8A1E] text-[#0A1322] hover:bg-[#FF9F45]"
-                    : "border border-[rgba(124,189,242,0.24)] text-[#E9F1FB] hover:bg-[rgba(124,189,242,0.06)]"
+                    ? "bg-accent text-ink hover:bg-accent-hover"
+                    : "border border-[rgba(124,189,242,0.24)] text-fg hover:bg-[rgba(124,189,242,0.06)]"
                 }`}
               >
                 {p.cta}
@@ -115,7 +115,7 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
       {/* Plan value charts - the hovered plan's bar glows (hover a card or a bar) */}
       <div className="mt-8 grid gap-8 sm:grid-cols-2">
         <div>
-          <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
+          <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">
             Monthly credits by plan
           </h3>
           <div className="mt-4 space-y-3">
@@ -134,7 +134,7 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
         </div>
 
         <div>
-          <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
+          <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">
             Credits per $ (value)
           </h3>
           <div className="mt-4 space-y-3">

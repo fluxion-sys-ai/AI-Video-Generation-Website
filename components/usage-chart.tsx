@@ -37,7 +37,7 @@ export function UsageChart({
     <div className={`flex gap-2 ${className}`}>
       {/* Y axis */}
       <div
-        className="flex flex-col justify-between text-right font-[family-name:var(--font-jetbrains)] text-[10px] text-[#6E82A0]"
+        className="flex flex-col justify-between text-right font-[family-name:var(--font-jetbrains)] text-[10px] text-dim"
         style={{ height: plotHeight }}
       >
         {ticks.map((t) => (
@@ -48,7 +48,7 @@ export function UsageChart({
       <div className="min-w-0 flex-1">
         {/* plot area with horizontal gridlines */}
         <div
-          className="relative flex items-end gap-[3px] border-b border-l border-[#2E466B]"
+          className="relative flex items-end gap-[3px] border-b border-l border-line"
           style={{ height: plotHeight }}
         >
           {ticks.slice(0, -1).map((t) => (
@@ -71,7 +71,7 @@ export function UsageChart({
           ))}
         </div>
         {/* X axis */}
-        <div className="mt-1.5 flex gap-[3px] font-[family-name:var(--font-jetbrains)] text-[9px] text-[#6E82A0]">
+        <div className="mt-1.5 flex gap-[3px] font-[family-name:var(--font-jetbrains)] text-[9px] text-dim">
           {labels.map((l, i) => (
             <span key={i} className="flex-1 text-center">{l}</span>
           ))}

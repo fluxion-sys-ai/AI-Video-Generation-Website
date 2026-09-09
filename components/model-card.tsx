@@ -53,19 +53,19 @@ export function ModelCard({ model }: { model: Model }) {
       </div>
       <div className="mt-4">
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em] text-[#F4F8FE] transition-colors group-hover:text-[#F5C46B]">
+          <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em] text-fg-strong transition-colors group-hover:text-gold-soft">
             {model.name}
           </h3>
-          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-[#E0A24E]">
+          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-gold">
             {model.tagline}
           </span>
         </div>
-        <p className="mt-2 text-sm text-[#9FB2CC]">{model.description}</p>
+        <p className="mt-2 text-sm text-muted">{model.description}</p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {model.capabilities.map((c) => (
             <span
               key={c}
-              className="rounded-full border border-[#33507C] bg-[#101E36] px-2.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-[#C7D4E6]"
+              className="rounded-full border border-line-strong bg-raised px-2.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-fg-soft"
             >
               {c}
             </span>

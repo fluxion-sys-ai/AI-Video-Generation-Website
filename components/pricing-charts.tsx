@@ -6,11 +6,11 @@ function BarRow({ label, value, max, display }: { label: string; value: number; 
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span className="text-[#C7D4E6]">{label}</span>
-        <span className="font-[family-name:var(--font-jetbrains)] text-[#FFB020]">{display}</span>
+        <span className="text-fg-soft">{label}</span>
+        <span className="font-[family-name:var(--font-jetbrains)] text-gold-bright">{display}</span>
       </div>
-      <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-[#101E36]" role="img" aria-label={`${label}: ${display}`}>
-        <div className="h-full rounded-full bg-[#FF8A1E]" style={{ width: `${pct}%` }} />
+      <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-raised" role="img" aria-label={`${label}: ${display}`}>
+        <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -22,7 +22,7 @@ export function PricingCharts() {
 
   return (
     <div>
-      <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
+      <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">
         Credits / second by model
       </h3>
       <div className="mt-4 space-y-3">

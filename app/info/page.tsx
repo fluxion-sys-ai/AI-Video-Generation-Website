@@ -12,25 +12,25 @@ export default function InfoPage() {
       <PlansDots variant="c" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
       <main className="relative z-10 mx-auto w-full max-w-3xl flex-1 px-6 py-16 text-center">
-        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
+        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">
           Info
         </span>
         <h1 className="mt-2 font-[family-name:var(--font-jetbrains)] text-4xl font-medium uppercase tracking-[0.01em]">
           About Fluxion AI Video
         </h1>
-        <span className="mx-auto mt-3 block h-px w-10 bg-[#E0A24E]" />
+        <span className="mx-auto mt-3 block h-px w-10 bg-gold" />
 
-        <p className="mt-6 text-[#9FB2CC]">
+        <p className="mt-6 text-muted">
           Fluxion AI Video turns a prompt into video. Choose a model, set your options, and
           generate.
         </p>
 
         <div className="mt-10 grid gap-8 sm:grid-cols-2">
           <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#E9F1FB]">
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg">
               Basics
             </h2>
-            <ul className="mt-3 space-y-2 text-sm text-[#9FB2CC]">
+            <ul className="mt-3 space-y-2 text-sm text-muted">
               <li>Text-to-video and image-to-video models</li>
               <li>Adjustable duration, aspect ratio, and resolution</li>
               <li>Credit-based pricing per second of output</li>
@@ -38,19 +38,19 @@ export default function InfoPage() {
             </ul>
           </div>
           <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#E9F1FB]">
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg">
               Contact us
             </h2>
-            <ul className="mt-3 space-y-2 text-sm text-[#9FB2CC]">
+            <ul className="mt-3 space-y-2 text-sm text-muted">
               <li>
                 Email:{" "}
-                <a href="mailto:example-info@fluxion-sys.ai" className="text-[#7CBDF2] hover:text-[#F5C46B]">
+                <a href="mailto:example-info@fluxion-sys.ai" className="text-blue hover:text-gold-soft">
                   hello@fluxion-sys.ai
                 </a>
               </li>
               <li>
                 Web:{" "}
-                <a href="https://fluxion-sys.ai" target="_blank" rel="noopener noreferrer" className="text-[#7CBDF2] hover:text-[#F5C46B]">
+                <a href="https://fluxion-sys.ai" target="_blank" rel="noopener noreferrer" className="text-blue hover:text-gold-soft">
                   fluxion-sys.ai
                 </a>
               </li>
