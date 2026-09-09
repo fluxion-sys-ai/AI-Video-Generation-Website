@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
+import { ApiDocs } from "@/components/api-docs";
 import { SiteFooter } from "@/components/site-footer";
 import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
@@ -66,6 +67,7 @@ function GenerateInner() {
   const [status, setStatus] = useState<Status>("idle");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<"examples" | "change">("examples");
+  const [view, setView] = useState<"playground" | "api">("playground");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Refine session: appears automatically after the first generation.
@@ -158,7 +160,28 @@ function GenerateInner() {
   const portrait = ah > aw;
 
   return (
-    <div className="grid gap-8 px-8 py-8 lg:h-[calc(100vh-5rem)] lg:grid-cols-[300px_minmax(0,1fr)_minmax(0,40%)]">
+    <div className="grid gap-6 px-6 py-6 lg:h-[calc(100vh-5rem)] lg:grid-cols-[150px_1fr]">
+      {/* Left rail: Playground / API */}
+      <nav className="flex gap-2 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col lg:gap-1">
+        {(["playground", "api"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={`rounded-[8px] px-3 py-2 text-left transition-colors ${
+              view === v ? "bg-[rgba(255,138,30,0.12)] text-[#FF8A1E]" : "text-[#9FB2CC] hover:bg-[rgba(124,189,242,0.06)] hover:text-[#E9F1FB]"
+            }`}
+          >
+            {v === "playground" ? "Playground" : "API"}
+          </button>
+        ))}
+      </nav>
+
+      {view === "api" ? (
+        <div className="min-h-0 lg:overflow-y-auto">
+          <ApiDocs model={model} />
+        </div>
+      ) : (
+      <div className="grid gap-8 lg:h-full lg:grid-cols-[280px_minmax(0,1fr)_minmax(0,40%)]">
       {/* Sidebar (borderless) */}
       <aside className="flex min-h-0 flex-col gap-8 lg:overflow-y-auto">
         <div>
@@ -402,6 +425,8 @@ function GenerateInner() {
         )}
         </div>
       </section>
+      </div>
+      )}
     </div>
   );
 }
