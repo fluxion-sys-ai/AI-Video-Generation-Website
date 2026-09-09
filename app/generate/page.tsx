@@ -353,10 +353,10 @@ function GenerateInner() {
 
       {/* Preview stage (right): the chosen aspect shape; the video generates here */}
       <section className="flex min-h-0 flex-col gap-3">
+        <div className="flex flex-1 flex-col items-center justify-center gap-2">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
           Preview
         </span>
-        <div className="flex flex-1 flex-col items-center justify-center gap-3">
         <div
           className="relative overflow-hidden rounded-[10px] border border-[#3E5C87] bg-black"
           style={portrait ? { aspectRatio: `${aw} / ${ah}`, height: "min(72vh, 640px)" } : { aspectRatio: `${aw} / ${ah}`, width: "100%", maxWidth: 680 }}
