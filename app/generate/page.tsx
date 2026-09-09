@@ -387,13 +387,17 @@ function GenerateInner() {
                         onClick={() => setLightbox(img)}
                         className="h-36 w-auto max-w-[320px] cursor-zoom-in object-contain"
                       />
+                      {/* hover: shade the thumbnail (visual only) */}
+                      <div className="pointer-events-none absolute inset-0 bg-black/45 opacity-0 transition-opacity group-hover:opacity-100" />
+                      {/* hover: centered trash button → deletes this image */}
                       <button
                         type="button"
-                        onClick={() => removeImage(i)}
-                        aria-label={`Remove ${img.name}`}
-                        className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity hover:bg-danger group-hover:opacity-100"
+                        onClick={(e) => { e.stopPropagation(); removeImage(i); }}
+                        aria-label={`Delete ${img.name}`}
+                        title="Delete"
+                        className="absolute inset-0 m-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-all hover:bg-danger group-hover:opacity-100"
                       >
-                        <svg width="10" height="10" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5a1 1 0 0 0 1 .9h3.8a1 1 0 0 0 1-.9l.6-8.5M7 7v4M9 7v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                       </button>
                     </div>
                   ))}
