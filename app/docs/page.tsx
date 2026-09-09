@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { DocsSidebar } from "@/components/docs-sidebar";
 
 export const metadata = { title: "Documentation · Fluxion AI Video" };
 
@@ -58,29 +59,12 @@ export default function DocsPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-10 px-10 py-10">
-        {/* sidebar */}
-        <aside className="hidden w-56 shrink-0 lg:block">
-          <div className="sticky top-28 space-y-6">
-            {NAV.map((g) => (
-              <div key={g.group}>
-                <p className="font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.1em] text-[#6E82A0]">{g.group}</p>
-                <ul className="mt-2 space-y-1">
-                  {g.items.map((it) => (
-                    <li key={it.id}>
-                      <a href={`#${it.id}`} className="block py-1 text-sm text-[#9FB2CC] transition-colors hover:text-[#F5C46B]">
-                        {it.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </aside>
+      <div className="flex flex-1">
+        {/* shaded sidebar, ~1/4 of the screen, with search */}
+        <DocsSidebar nav={NAV} />
 
         {/* content */}
-        <main className="min-w-0 max-w-2xl flex-1 space-y-12">
+        <main className="min-w-0 max-w-3xl flex-1 space-y-12 px-10 py-10">
           <div>
             <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">Documentation</span>
             <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-4xl font-medium uppercase tracking-[0.01em]">Fluxion docs</h1>
