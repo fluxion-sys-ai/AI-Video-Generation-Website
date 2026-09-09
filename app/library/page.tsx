@@ -18,6 +18,41 @@ import {
   type LibImage,
 } from "@/lib/prefs";
 
+type VideoItem = { id: number; prompt: string; model: Model; when: string };
+
+// Video card: the model poster is an <img> thumbnail that always loads; the
+// actual clip is only mounted (and plays) while hovering, so it never covers the
+// thumbnail with a black first frame.
+function VideoThumb({ v }: { v: VideoItem }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <Link
+      href={`/generate?model=${v.model.slug}`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className="group border border-line p-3 transition-colors hover:border-[rgba(124,189,242,0.5)]"
+    >
+      <div className="relative aspect-video w-full overflow-hidden bg-black">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={v.model.poster} alt="" className="h-full w-full object-cover" />
+        {hover && (
+          <video
+            src={v.model.demoVideo}
+            poster={v.model.poster}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+      </div>
+      <p className="mt-3 truncate text-sm text-fg">{v.prompt}</p>
+      <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">{v.model.name} · {v.when}</p>
+    </Link>
+  );
+}
+
 export default function LibraryPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -227,29 +262,11 @@ export default function LibraryPage() {
           ))}
         </div>
 
-        {/* VIDEOS — thumbnails that play on hover */}
+        {/* VIDEOS — poster thumbnail always shown; hover plays the clip */}
         {tab === "videos" && (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {videos.map((v) => (
-              <Link key={v.id} href={`/generate?model=${v.model.slug}`} className="group border border-line p-3 transition-colors hover:border-[rgba(124,189,242,0.5)]">
-                <div className="aspect-video w-full overflow-hidden bg-black">
-                  <video
-                    src={v.model.demoVideo}
-                    poster={v.model.poster}
-                    muted
-                    loop
-                    playsInline
-                    // Load every clip's first frame up front so all thumbnails
-                    // show without hovering; hover then plays the video.
-                    preload="auto"
-                    className="h-full w-full object-cover"
-                    onMouseEnter={(e) => e.currentTarget.play()}
-                    onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
-                  />
-                </div>
-                <p className="mt-3 truncate text-sm text-fg">{v.prompt}</p>
-                <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">{v.model.name} · {v.when}</p>
-              </Link>
+              <VideoThumb key={v.id} v={v} />
             ))}
           </div>
         )}
