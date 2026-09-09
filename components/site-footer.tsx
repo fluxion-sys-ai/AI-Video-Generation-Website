@@ -3,7 +3,7 @@ import { Brand } from "@/components/brand";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-10 border-t border-[rgba(124,189,242,0.12)]">
+    <footer className="mt-10 border-t border-hairline">
       <div className="flex flex-col items-center justify-between gap-4 px-10 py-8 text-sm text-dim sm:flex-row">
         <Brand mark="h-6 w-6" boxText="AI" href="https://fluxion-sys.ai" external />
         <div className="flex items-center gap-5">

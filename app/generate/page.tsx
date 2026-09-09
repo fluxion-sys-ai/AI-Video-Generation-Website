@@ -214,9 +214,9 @@ function GenerateInner() {
                         setPickerQuery("");
                         router.push(`/generate?model=${m.slug}`);
                       }}
-                      className={`flex w-full items-center gap-3 p-2 text-left transition-colors hover:bg-[rgba(124,189,242,0.06)] ${m.slug === slug ? "bg-[rgba(255,138,30,0.08)]" : ""}`}
+                      className={`flex w-full items-center gap-3 p-2 text-left transition-colors hover:bg-hover ${m.slug === slug ? "bg-[rgba(255,138,30,0.08)]" : ""}`}
                     >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-[rgba(255,138,30,0.12)] font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-accent-soft font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent">
                         {m.name.charAt(0)}
                       </span>
                       <span className="min-w-0 flex-1">
@@ -241,7 +241,7 @@ function GenerateInner() {
             key={v}
             onClick={() => setView(v)}
             className={`rounded-[8px] px-3 py-2 text-left transition-colors ${
-              view === v ? "bg-[rgba(255,138,30,0.12)] text-accent" : "text-muted hover:bg-[rgba(124,189,242,0.06)] hover:text-fg"
+              view === v ? "bg-accent-soft text-accent" : "text-muted hover:bg-hover hover:text-fg"
             }`}
           >
             {v === "playground" ? "Playground" : "API"}
@@ -297,7 +297,7 @@ function GenerateInner() {
           <button
             onClick={() => setPanelOpen(true)}
             aria-label="Open panel"
-            className="flex h-9 w-9 items-center justify-center rounded-[8px] text-muted transition-colors hover:bg-[rgba(124,189,242,0.08)] hover:text-accent"
+            className="flex h-9 w-9 items-center justify-center rounded-[8px] text-muted transition-colors hover:bg-hover hover:text-accent"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3 L11 8 L6 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
@@ -474,13 +474,13 @@ function GenerateInner() {
             <a href={resultUrl} download="fluxion-video.mp4" className="rounded-[10px] bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent-hover">
               Download MP4
             </a>
-            <a href={resultUrl} download="fluxion-video.webm" className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
+            <a href={resultUrl} download="fluxion-video.webm" className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm hover:bg-hover">
               WebM
             </a>
-            <a href={resultUrl} download="fluxion-video.gif" className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
+            <a href={resultUrl} download="fluxion-video.gif" className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm hover:bg-hover">
               GIF
             </a>
-            <button onClick={regen} className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">
+            <button onClick={regen} className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm hover:bg-hover">
               Regenerate
             </button>
           </div>

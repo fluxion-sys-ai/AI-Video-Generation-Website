@@ -33,9 +33,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${jetbrainsMono.variable} ${sora.variable} h-full scroll-smooth antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-base text-fg font-[family-name:var(--font-geist-sans)]">
+        {/* No-flash theme boot: runs before paint so the correct look is set
+            on <html> immediately. Adds `.light` when the saved setting is
+            "light", or when it's "system" (or unset defaults to dark, so only
+            explicit "system") and the OS currently prefers a light scheme. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{if(localStorage.getItem('fluxion.theme')==='light')document.documentElement.classList.add('light')}catch(e){}",
+            __html:
+              "try{var t=localStorage.getItem('fluxion.theme');if(t==='light'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.classList.add('light')}catch(e){}",
           }}
         />
         <Spotlight />

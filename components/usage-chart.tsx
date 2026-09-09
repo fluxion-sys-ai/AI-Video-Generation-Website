@@ -54,7 +54,7 @@ export function UsageChart({
           {ticks.slice(0, -1).map((t) => (
             <span
               key={t}
-              className="pointer-events-none absolute left-0 right-0 border-t border-[rgba(124,189,242,0.1)]"
+              className="pointer-events-none absolute left-0 right-0 border-t border-hairline"
               style={{ bottom: `${(t / top) * 100}%` }}
             />
           ))}

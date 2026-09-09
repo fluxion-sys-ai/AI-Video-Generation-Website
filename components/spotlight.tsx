@@ -2,11 +2,17 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { watchSystemTheme } from "@/lib/prefs";
 
 // Site-wide soft glow that follows the cursor (off on the video-gen pages).
+// This component is mounted once in the root layout, so it's also a convenient
+// home for the "follow the OS theme" listener used by the `system` setting.
 export function Spotlight() {
   const pathname = usePathname();
   const dotRef = useRef<HTMLDivElement>(null);
+
+  // Keep the effective look in sync with the OS while on the "system" setting.
+  useEffect(() => watchSystemTheme(), []);
 
   useEffect(() => {
     const dot = dotRef.current;
@@ -23,12 +29,11 @@ export function Spotlight() {
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-30">
+      {/* The gradient itself is defined via the `--spotlight` token in
+          globals.css so light mode can dial it down to a softer tint. */}
       <div
         ref={dotRef}
-        className="absolute -left-[45px] -top-[45px] h-[90px] w-[90px] rounded-full opacity-0 transition-opacity duration-300"
-        style={{
-          background: "radial-gradient(circle, rgba(255,138,30,0.15), rgba(124,189,242,0.06) 42%, transparent 68%)",
-        }}
+        className="spotlight-glow absolute -left-[45px] -top-[45px] h-[90px] w-[90px] rounded-full opacity-0 transition-opacity duration-300"
       />
     </div>
   );

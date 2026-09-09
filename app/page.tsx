@@ -33,7 +33,7 @@ function SectionHeading({
     <div className="relative">
       <span
         aria-hidden="true"
-        className={`pointer-events-none absolute -top-12 select-none font-[family-name:var(--font-jetbrains)] text-8xl font-bold leading-none text-white/[0.05] ${
+        className={`pointer-events-none absolute -top-12 select-none font-[family-name:var(--font-jetbrains)] text-8xl font-bold leading-none text-fg-strong/[0.05] ${
           center ? "left-1/2 -translate-x-1/2" : "-left-1"
         }`}
       >
@@ -65,7 +65,12 @@ export default function Home() {
       <section className="relative overflow-hidden lg:h-[68vh]">
         <div className="relative z-10 grid h-full items-center gap-10 px-10 py-20 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
           <div className="max-w-xl lg:pl-12">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-raised px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-muted">
+            {/* Big brand wordmark in the logo font (Sora, via --font-sora).
+                The gold dot echoes the node in the Fluxion logo mark. */}
+            <p className="mb-6 font-[family-name:var(--font-sora)] text-6xl font-medium leading-none tracking-[-0.03em] text-fg-strong sm:text-7xl lg:text-8xl">
+              fluxion<span className="text-gold">.</span>
+            </p>
+            <span className="inline-flex items-center gap-2 rounded-full border border-hairline-strong bg-raised px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-muted">
               Text-to-video, image-to-video
             </span>
             <h1 className="mt-6 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-6xl">
@@ -83,7 +88,7 @@ export default function Home() {
               </Link>
               <a
                 href="#models"
-                className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-fg transition-colors hover:bg-raised sm:w-auto"
+                className="w-full rounded-[10px] border border-hairline-strong px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-fg transition-colors hover:bg-raised sm:w-auto"
               >
                 Explore models
               </a>
@@ -150,7 +155,7 @@ export default function Home() {
           <div className="mt-6 text-center">
             <Link
               href="/pricing"
-              className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-fg transition-colors hover:bg-raised"
+              className="rounded-[10px] border border-hairline-strong px-6 py-3 font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-fg transition-colors hover:bg-raised"
             >
               See full pricing
             </Link>

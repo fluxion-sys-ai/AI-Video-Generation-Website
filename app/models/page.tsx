@@ -24,8 +24,8 @@ export default function ModelsPage() {
         <p className="mt-4 max-w-xl text-muted">
           Compare models by capability, duration, and resolution. Hover a card to preview.
         </p>
-        <GlowBlobs variant="b" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
-        <PlansDots variant="b" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+        <GlowBlobs variant="b" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+        <PlansDots variant="b" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
         <ModelCatalog models={models} />
       </main>
       <SiteFooter />

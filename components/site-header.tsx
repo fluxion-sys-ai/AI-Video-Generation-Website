@@ -56,7 +56,7 @@ function NavMenu({ label, href, children }: { label: string; href?: string; chil
       )}
       {open && (
         <div className="absolute left-0 top-full min-w-56 pt-3">
-          <div className="overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-panel p-1 shadow-xl shadow-black/40">
+          <div className="overflow-hidden rounded-[10px] border border-hairline bg-panel p-1 shadow-xl shadow-black/40">
             {children}
           </div>
         </div>
@@ -69,7 +69,7 @@ function MenuItem({ href, title, sub, icon }: { href: string; title: string; sub
   return (
     <Link
       href={href}
-      className="group flex items-center gap-3 rounded-[7px] px-3 py-2 transition-colors hover:bg-[rgba(124,189,242,0.08)]"
+      className="group flex items-center gap-3 rounded-[7px] px-3 py-2 transition-colors hover:bg-hover"
     >
       {icon && <span className="shrink-0">{icon}</span>}
       <span>
@@ -83,7 +83,7 @@ function MenuItem({ href, title, sub, icon }: { href: string; title: string; sub
 // small square icon chip with the model initial
 function ModelIcon({ letter }: { letter: string }) {
   return (
-    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-[rgba(255,138,30,0.12)] font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent">
+    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-accent-soft font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent">
       {letter}
     </span>
   );
@@ -189,7 +189,7 @@ function ProfileMenu({ user }: { user: User }) {
       </Link>
       {open && (
         <div className="absolute right-0 top-full min-w-52 pt-3">
-          <div className="overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-panel p-1 shadow-xl shadow-black/40">
+          <div className="overflow-hidden rounded-[10px] border border-hairline bg-panel p-1 shadow-xl shadow-black/40">
             {PROFILE_TABS.map((t) => (
               <MenuItem key={t.key} href={`/profile?tab=${t.key}`} title={t.title} icon={t.icon} />
             ))}
@@ -238,8 +238,11 @@ export function SiteHeader() {
 
   const dashMode = ready && !!user && mode === "dashboard";
 
+  // Clear/transparent top bar: no solid fill — the page (and its decorative
+  // background) shows straight through. A light backdrop-blur keeps the nav
+  // legible over busy content, and a faint hairline separates it.
   return (
-    <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-base/80 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-hairline bg-transparent backdrop-blur-md">
       <nav className="flex h-20 items-center justify-between px-10 font-[family-name:var(--font-jetbrains)]">
         <div className="flex items-center gap-8">
           <Brand />
@@ -302,7 +305,7 @@ export function SiteHeader() {
               {!dashMode && (
                 <Link
                   href="/dashboard"
-                  className="hidden items-center border border-[rgba(255,138,30,0.55)] px-3 py-1.5 text-xs uppercase tracking-[0.08em] text-accent transition-colors hover:bg-[rgba(255,138,30,0.1)] sm:flex"
+                  className="hidden items-center border border-accent-border px-3 py-1.5 text-xs uppercase tracking-[0.08em] text-accent transition-colors hover:bg-accent-soft sm:flex"
                 >
                   Create
                 </Link>

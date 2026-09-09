@@ -109,7 +109,7 @@ print(result["video"]["url"])`,
       <section className="mt-8">
         <div className="flex items-center justify-between gap-4">
           <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">2. Run the model</h2>
-          <button onClick={copy} className="rounded-[8px] border border-[rgba(124,189,242,0.24)] px-3 py-1 text-xs text-muted transition-colors hover:text-accent">
+          <button onClick={copy} className="rounded-[8px] border border-hairline-strong px-3 py-1 text-xs text-muted transition-colors hover:text-accent">
             {copied ? "Copied ✓" : "Copy"}
           </button>
         </div>
@@ -143,7 +143,7 @@ print(result["video"]["url"])`,
             </thead>
             <tbody>
               {params.map((p) => (
-                <tr key={p.name} className="border-b border-[rgba(124,189,242,0.12)] last:border-0 align-top">
+                <tr key={p.name} className="border-b border-hairline last:border-0 align-top">
                   <td className="px-4 py-2.5 font-[family-name:var(--font-jetbrains)] text-gold-2">
                     {p.name}{p.req && <span className="text-danger"> *</span>}
                   </td>

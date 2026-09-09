@@ -162,6 +162,14 @@
   /* Lines */
   --c-line: #2e466b;        /* default border */
   --c-line-strong: #33507c; /* input / stronger border */
+  /* Translucent blue "hairlines" and hover washes used all over the chrome
+     (headers, dropdowns, ghost buttons, dividers). Kept as tokens so both
+     themes tune them in one place instead of repeating rgba() literals. */
+  --c-hairline: rgba(124, 189, 242, 0.14);        /* faint divider / border */
+  --c-hairline-strong: rgba(124, 189, 242, 0.24); /* ghost-button border */
+  --c-hover: rgba(124, 189, 242, 0.06);           /* row / button hover wash */
+  --c-accent-soft: rgba(255, 138, 30, 0.12);      /* active-tab accent tint */
+  --c-accent-border: rgba(255, 138, 30, 0.55);    /* accent outline button */
   /* Brand accents — identical in both themes */
   --c-accent: #ff8a1e;
   --c-accent-hover: #ff9f45;
@@ -176,6 +184,9 @@
   --radius-card: 12px;
   --radius-control: 10px;
   --radius-chip: 8px;
+  /* Cursor spotlight gradient (see components/spotlight.tsx). Dark mode uses a
+     warm, visible glow. */
+  --spotlight: radial-gradient(circle, rgba(255, 138, 30, 0.15), rgba(124, 189, 242, 0.06) 42%, transparent 68%);
 }
 
 /* Light theme — matches the Fluxion site's light look. Only surfaces, text,
@@ -196,6 +207,14 @@
   --c-dim: #7e8fa8;
   --c-line: #dce3ef;
   --c-line-strong: #c4cfe0;
+  /* On white, translucent light-blue is nearly invisible, so hairlines/hover
+     use a darker slate tint here to stay legible. */
+  --c-hairline: rgba(46, 70, 107, 0.16);
+  --c-hairline-strong: rgba(46, 70, 107, 0.26);
+  --c-hover: rgba(46, 70, 107, 0.05);
+  /* Cursor spotlight: much lighter/softer in light mode so it doesn't smear
+     over the bright canvas. */
+  --spotlight: radial-gradient(circle, rgba(255, 138, 30, 0.08), rgba(124, 189, 242, 0.05) 42%, transparent 70%);
 }
 
 /* Expose the tokens as Tailwind color utilities. `inline` makes them resolve at
@@ -216,6 +235,11 @@
   --color-dim: var(--c-dim);
   --color-line: var(--c-line);
   --color-line-strong: var(--c-line-strong);
+  --color-hairline: var(--c-hairline);
+  --color-hairline-strong: var(--c-hairline-strong);
+  --color-hover: var(--c-hover);
+  --color-accent-soft: var(--c-accent-soft);
+  --color-accent-border: var(--c-accent-border);
   --color-accent: var(--c-accent);
   --color-accent-hover: var(--c-accent-hover);
   --color-gold: var(--c-gold);
@@ -232,6 +256,21 @@
    UI color comes from the tokens above. */
 .light .decor-invert {
   filter: invert(1) hue-rotate(180deg);
+}
+
+/* Cursor spotlight fill — token-driven so light mode softens it. */
+.spotlight-glow {
+  background: var(--spotlight);
+}
+
+/* Onboarding slideshow: each slide fades/slides up as it mounts. The wizard
+   remounts the slide on step change (React key), so this replays per step. */
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* horizontal auto-scroll marquee */

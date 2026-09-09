@@ -46,11 +46,12 @@ The same header switches between two "modes":
 | `/generate?model=<slug>` | Generation playground | Form + live preview + refine chat; **API** tab with code snippets |
 | `/pricing` | Pricing | Pay-as-you-go rate + **cost estimator** + per-model rate table |
 | `/docs` | Documentation | fal.ai-style docs: section sidebar + quickstart/auth/API/etc. |
-| `/login`, `/signup` | Mock auth | Sets a `localStorage` flag |
+| `/login` | Mock auth | Email/Google (mock) — sets a `localStorage` flag |
+| `/signup` | **Guided onboarding slideshow** | Multi-step wizard: account → name (email autofilled) → who-are-you → payment + billing (optional) → add credits (optional) → dashboard |
 | `/info` | Info + contact | Placeholder contact links |
 | `/dashboard` | **App** dashboard | Getting-started checklist, quick actions, snapshot, recents + favorites |
 | `/library` | **App** library | Your generated videos + uploaded images (tabs) |
-| `/profile` | **App** account hub | Left sidebar: Account · Billing · Payment · Usage · Settings |
+| `/profile` | **App** account hub | Left sidebar: Account · Billing · Payment · Usage · Settings. Payment methods sort the **default card first**; Usage shows a **searchable, scrollable** generation history |
 | `/settings` | Redirect | Sends you to `/profile?tab=preferences` |
 
 Deep links: the profile hub reads `?tab=` (e.g. `/profile?tab=billing`), used by
@@ -81,6 +82,7 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | **Contact email / links** (`hello@fluxion-sys.ai`) | placeholder | `app/info/page.tsx`, `components/site-footer.tsx` |
 | **Generated result video** | replays the model's sample clip (no real AI) | mock in `app/generate/page.tsx` |
 | **Sign in / accounts / credits / favorites** | fake (`localStorage`) | `lib/auth.ts`, `lib/prefs.ts` |
+| **Sign-up onboarding** (persona list, credit presets, card entry) | mock, nothing sent anywhere | `components/onboarding.tsx` |
 
 ### `localStorage` keys used
 | Key | Meaning | Set in |
@@ -91,7 +93,10 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | `fluxion.mode` | `public` \| `dashboard` (which nav to show) | `components/site-header.tsx` |
 | `fluxion.favorites` | array of favorited model slugs | `lib/prefs.ts` |
 | `fluxion.recents` | recently-used model slugs (max 8) | `lib/prefs.ts` |
-| `fluxion.theme` | `dark` \| `light` | `lib/prefs.ts` + `app/layout.tsx` |
+| `fluxion.theme` | `dark` \| `light` \| `system` (follows the OS) | `lib/prefs.ts` + `app/layout.tsx` |
+| `fluxion.persona` | who-are-you answer from onboarding (student, developer, …) | `components/onboarding.tsx` |
+| `fluxion.hasCard` | mock "a card was added during signup" flag | `components/onboarding.tsx` |
+| `fluxion.credits` | starting credit amount chosen during signup | `components/onboarding.tsx` |
 
 ---
 
@@ -127,18 +132,36 @@ anymore. This is the one place to restyle the whole app.
   - Surfaces: `bg-base`, `bg-base-2`, `bg-surface`, `bg-panel`, `bg-raised`, `bg-track`
   - Text: `text-fg`, `text-fg-strong`, `text-fg-soft`, `text-fg-soft-2`, `text-muted`, `text-dim`, `text-ink` (on-accent)
   - Lines: `border-line`, `border-line-strong`
+  - Chrome hairlines/hover washes (translucent, used by headers, dropdowns,
+    ghost buttons, dividers): `border-hairline`, `border-hairline-strong`,
+    `bg-hover`, `bg-accent-soft`, `border-accent-border`
   - Brand: `text-/bg-accent`, `bg-accent-hover`, `text-gold`, `text-gold-soft`, `text-gold-bright`, `text-gold-2`, `text-blue`, `text-danger`
+  - Cursor spotlight gradient: the `--spotlight` token (softened in `.light`),
+    consumed by `.spotlight-glow` in `components/spotlight.tsx`
 - **Fonts** come from `next/font` in `app/layout.tsx` and are referenced as
   `var(--font-jetbrains)` (headings/UI/buttons), `var(--font-geist-sans)` (body),
   `var(--font-sora)` (logo). All `<button>`s default to JetBrains Mono.
 - **Shapes**: `--radius-card`, `--radius-control`, `--radius-chip`.
 
-**Light vs dark:** switching themes only swaps the `:root` → `.light` variable
-values (no per-page edits). The theme is toggled in **Settings → Appearance**,
-persisted as `fluxion.theme`, and applied before paint by a tiny script in
-`app/layout.tsx` (no flash). The only pixels not driven by tokens are the
-decorative dark hero art, which is inverted in light mode via the
-`.decor-invert` class (`app/globals.css`).
+**Light vs dark vs system:** switching themes only swaps the `:root` → `.light`
+variable values (no per-page edits). The setting is chosen in **Settings →
+Appearance** with three options:
+
+- **Dark** — the default brand look.
+- **Light** — matches the Fluxion marketing site.
+- **System** — follows the OS `prefers-color-scheme` and live-updates when it
+  changes (listener mounted in `components/spotlight.tsx` via
+  `watchSystemTheme`).
+
+It's persisted as `fluxion.theme` and applied before paint by a tiny script in
+`app/layout.tsx` (no flash). All the theme logic lives in `lib/prefs.ts`
+(`getTheme` / `resolveTheme` / `applyTheme` / `watchSystemTheme`).
+
+The only pixels not driven by tokens are the decorative dark background art
+(hero SVG + the glow-orb / moving line-dot fields). These are authored dark, so
+in light mode they'd wash out — every decorative layer carries the
+`.decor-invert` class, which inverts just those layers so the lines and moving
+dots stay visible on the light canvas (`app/globals.css`).
 
 To retheme: edit the variables in `app/globals.css`. To add a color: add a
 `--c-name` (both `:root` and `.light`), map it under `@theme inline`, then use
@@ -190,6 +213,9 @@ components/              Reusable UI
   stats.tsx              Landing stats row
   reveal.tsx             Scroll-in animation wrapper
   brand.tsx              Logo mark + wordmark
+  onboarding.tsx         Sign-up "slideshow" wizard (account → name → persona → payment → credits)
+  auth-form.tsx          Mock login form (used by /login)
+  spotlight.tsx          Cursor-following glow + OS-theme sync
 lib/
   models.ts              Model data (edit me)
   auth.ts                Mock auth + form draft

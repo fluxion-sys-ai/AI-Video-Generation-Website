@@ -20,8 +20,8 @@ const PAYG = {
 export default function PricingPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <GlowBlobs variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
-      <PlansDots className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <GlowBlobs variant="a" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <PlansDots className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl flex-1 px-10 py-8">
         {/* Compact header */}
@@ -62,7 +62,7 @@ export default function PricingPage() {
           </div>
 
           {/* thin chic divider + calculator */}
-          <div className="border-t border-[rgba(124,189,242,0.2)] p-6 lg:border-l lg:border-t-0">
+          <div className="border-t border-hairline-strong p-6 lg:border-l lg:border-t-0">
             <CostEstimator bare />
           </div>
         </div>

@@ -15,7 +15,7 @@ const inputClass =
   "w-full rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none focus:border-blue focus:ring-1 focus:ring-blue";
 const label = "mb-1.5 block text-xs uppercase tracking-[0.06em] text-muted";
 const btnPrimary = "rounded-[10px] bg-accent px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-accent-hover";
-const btnGhost = "rounded-[10px] border border-[rgba(124,189,242,0.24)] px-5 py-2.5 text-sm text-fg transition-colors hover:bg-[rgba(124,189,242,0.06)]";
+const btnGhost = "rounded-[10px] border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover";
 
 function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
@@ -31,6 +31,8 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   );
 }
 
+// Mock list of past generations. Intentionally long so the history panel
+// demonstrates scrolling + search (see the Usage tab).
 function mockHistory() {
   const models = getModels();
   const prompts = [
@@ -38,8 +40,20 @@ function mockHistory() {
     "Close-up of rain on a neon-lit window, slow motion",
     "A paper boat drifting down a rushing gutter",
     "Timelapse of clouds over a mountain ridge",
+    "Macro shot of ink blooming in clear water",
+    "Drone flyover of a foggy pine forest at dawn",
+    "Neon city street reflections after the rain",
+    "Slow orbit around a floating crystal monolith",
+    "Hand-drawn storyboard sketch coming to life",
+    "Cozy cabin interior with a crackling fireplace",
+    "Sweeping desert dunes under a starfield sky",
+    "Underwater coral reef teeming with fish",
   ];
-  const when = ["2h ago", "Yesterday", "3 days ago", "Last week"];
+  const when = [
+    "2h ago", "Yesterday", "3 days ago", "Last week", "Last week",
+    "2 weeks ago", "2 weeks ago", "3 weeks ago", "Last month",
+    "Last month", "Last month", "2 months ago",
+  ];
   return prompts.map((p, i) => {
     const m = models[i % models.length];
     return { id: i, prompt: p, model: m.name, slug: m.slug, poster: m.poster, when: when[i] };
@@ -189,13 +203,23 @@ function ProfileInner() {
     setCards((cs) => cs.map((c) => ({ ...c, primary: c.id === id })));
   }
 
+  // Generation-history search box (Usage tab). Filters by prompt or model name.
+  const [historyQuery, setHistoryQuery] = useState("");
   const history = mockHistory();
+  const q = historyQuery.trim().toLowerCase();
+  const filteredHistory = q
+    ? history.filter((h) => `${h.prompt} ${h.model}`.toLowerCase().includes(q))
+    : history;
+
+  // Payment methods: always show the default card first.
+  const sortedCards = [...cards].sort((a, b) => Number(b.primary) - Number(a.primary));
+
   const prefModels = getModels();
   const prefModel = prefModels.find((m) => m.slug === prefModelSlug) || prefModels[0];
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      <GlowBlobs variant="d" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <GlowBlobs variant="d" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
 
       <main className="relative z-10 w-full flex-1 px-10 py-10">
@@ -232,7 +256,7 @@ function ProfileInner() {
                     key={t}
                     onClick={() => setTab(t)}
                     className={`px-4 py-2.5 text-left transition-colors ${
-                      tab === t ? "bg-[rgba(255,138,30,0.12)] text-accent" : "text-muted hover:bg-[rgba(124,189,242,0.06)] hover:text-fg"
+                      tab === t ? "bg-accent-soft text-accent" : "text-muted hover:bg-hover hover:text-fg"
                     }`}
                   >
                     {t}
@@ -265,7 +289,7 @@ function ProfileInner() {
                   {saved && <span className="text-sm text-accent">Saved ✓</span>}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 border-t border-[rgba(124,189,242,0.14)] pt-6">
+                <div className="flex flex-wrap items-center gap-4 border-t border-hairline pt-6">
                   <button onClick={out} className={btnGhost}>Sign out</button>
                   <button onClick={del} className="rounded-[10px] border border-[rgba(255,107,107,0.4)] px-5 py-2.5 text-sm text-danger transition-colors hover:bg-[rgba(255,107,107,0.08)]">
                     Delete account
@@ -381,7 +405,8 @@ function ProfileInner() {
                     </p>
                   ) : (
                     <div className="mt-4 flex flex-col border border-line">
-                      {cards.map((c, i) => (
+                      {/* sortedCards puts the default method first. */}
+                      {sortedCards.map((c, i) => (
                         <div
                           key={c.id}
                           className={`flex items-center gap-4 p-4 ${i > 0 ? "border-t border-line" : ""}`}
@@ -466,29 +491,48 @@ function ProfileInner() {
                   ))}
                 </div>
 
-                {/* right: generation history, aligned to the right edge */}
+                {/* right: generation history, aligned to the right edge.
+                    Searchable (filters by prompt/model) and capped in height so
+                    a long list scrolls instead of pushing the page down. */}
                 <div className="lg:justify-self-end lg:w-full">
                   <h2 className="text-right font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">
                     Generation history
                   </h2>
-                  <div className="mt-4 flex flex-col border border-line">
-                    {history.map((h, i) => (
-                      <Link
-                        key={h.id}
-                        href={`/generate?model=${h.slug}`}
-                        className={`flex items-center gap-3 p-3 transition-colors hover:bg-raised ${
-                          i > 0 ? "border-t border-line" : ""
-                        }`}
-                      >
-                        <img src={h.poster} alt="" className="h-11 w-[74px] shrink-0 bg-black object-cover" />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm text-fg">{h.prompt}</p>
-                          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">
-                            {h.model} · {h.when}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
+                  {/* search box */}
+                  <div className="mt-4">
+                    <label htmlFor="history-search" className="sr-only">Search generation history</label>
+                    <input
+                      id="history-search"
+                      type="search"
+                      value={historyQuery}
+                      onChange={(e) => setHistoryQuery(e.target.value)}
+                      placeholder="Search history…"
+                      className={inputClass}
+                    />
+                  </div>
+                  {/* scrollable list (max height ≈ 5 rows, then scrolls) */}
+                  <div className="mt-3 flex max-h-[22rem] flex-col overflow-y-auto border border-line">
+                    {filteredHistory.length === 0 ? (
+                      <p className="p-4 text-sm text-dim">No generations match “{historyQuery}”.</p>
+                    ) : (
+                      filteredHistory.map((h, i) => (
+                        <Link
+                          key={h.id}
+                          href={`/generate?model=${h.slug}`}
+                          className={`flex items-center gap-3 p-3 transition-colors hover:bg-raised ${
+                            i > 0 ? "border-t border-line" : ""
+                          }`}
+                        >
+                          <img src={h.poster} alt="" className="h-11 w-[74px] shrink-0 bg-black object-cover" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm text-fg">{h.prompt}</p>
+                            <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">
+                              {h.model} · {h.when}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -502,7 +546,7 @@ function ProfileInner() {
                   <div className="mt-4">
                     <label className={label}>Theme</label>
                     <div className="inline-flex border border-line-strong font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
-                      {(["dark", "light"] as Theme[]).map((t) => (
+                      {(["system", "dark", "light"] as Theme[]).map((t) => (
                         <button
                           key={t}
                           onClick={() => chooseTheme(t)}
@@ -514,7 +558,9 @@ function ProfileInner() {
                         </button>
                       ))}
                     </div>
-                    <p className="mt-2 text-xs text-dim">Light theme matches the Fluxion site.</p>
+                    <p className="mt-2 text-xs text-dim">
+                      System follows your device setting. Light theme matches the Fluxion site.
+                    </p>
                   </div>
                   <div className="mt-4 space-y-3">
                     <div className="flex items-center justify-between gap-4 border border-line p-4">
@@ -534,7 +580,7 @@ function ProfileInner() {
                   </div>
                 </section>
 
-                <section className="border-t border-[rgba(124,189,242,0.14)] pt-6">
+                <section className="border-t border-hairline pt-6">
                   <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Generation defaults</h2>
                   <div className="mt-4 grid gap-5 sm:grid-cols-2">
                     <div>
@@ -552,7 +598,7 @@ function ProfileInner() {
                   </div>
                 </section>
 
-                <section className="border-t border-[rgba(124,189,242,0.14)] pt-6">
+                <section className="border-t border-hairline pt-6">
                   <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Notifications</h2>
                   <div className="mt-4 flex items-center justify-between gap-4 border border-line p-4">
                     <div>
@@ -563,7 +609,7 @@ function ProfileInner() {
                   </div>
                 </section>
 
-                <section className="border-t border-[rgba(124,189,242,0.14)] pt-6">
+                <section className="border-t border-hairline pt-6">
                   <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Help &amp; resources</h2>
                   <Link href="/docs" className="mt-4 flex items-center justify-between gap-4 border border-line p-4 transition-colors hover:border-[rgba(124,189,242,0.5)]">
                     <div>
@@ -607,7 +653,7 @@ function ProfileInner() {
                   className={`rounded-[10px] border py-3 font-[family-name:var(--font-jetbrains)] text-sm transition-colors ${
                     addAmount === a
                       ? "border-accent text-accent"
-                      : "border-[rgba(124,189,242,0.24)] hover:border-accent hover:text-accent"
+                      : "border-hairline-strong hover:border-accent hover:text-accent"
                   }`}
                 >
                   ${a}

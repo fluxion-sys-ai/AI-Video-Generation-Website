@@ -61,7 +61,7 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
           </select>
         </div>
       </div>
-      <div className="mt-4 flex items-baseline gap-3 border-t border-[rgba(124,189,242,0.14)] pt-3">
+      <div className="mt-4 flex items-baseline gap-3 border-t border-hairline pt-3">
         <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold text-accent">≈ ${dollars}</span>
         <span className="text-sm text-muted">{credits} credits · {duration}s · {resolution}</span>
       </div>

@@ -27,7 +27,7 @@ function ModelChip({ slug }: { slug: string }) {
   const m = getModel(slug);
   if (!m) return null;
   return (
-    <Link href={`/generate?model=${m.slug}`} className="flex items-center gap-3 border border-line p-2 transition-colors hover:bg-[rgba(124,189,242,0.05)]">
+    <Link href={`/generate?model=${m.slug}`} className="flex items-center gap-3 border border-line p-2 transition-colors hover:bg-hover">
       <img src={m.poster} alt="" className="h-10 w-16 shrink-0 bg-black object-cover" />
       <div className="min-w-0">
         <p className="truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.04em] text-fg">{m.name}</p>
@@ -76,7 +76,7 @@ export default function DashboardPage() {
         </div>
         <div className="mt-3 grid grid-cols-2 border-b border-r border-line sm:grid-cols-4">
           {STEPS.map((s, i) => (
-            <Link key={s.title} href={s.href} className="group border-l border-t border-line p-4 transition-colors hover:bg-[rgba(124,189,242,0.05)]">
+            <Link key={s.title} href={s.href} className="group border-l border-t border-line p-4 transition-colors hover:bg-hover">
               <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold ${
                   s.done ? "bg-accent text-ink" : "border border-line-strong font-[family-name:var(--font-jetbrains)] text-muted"
@@ -98,7 +98,7 @@ export default function DashboardPage() {
             <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Quick actions</h2>
             <div className="mt-3 grid grid-cols-2 border-b border-r border-line">
               {LINKS.map((l) => (
-                <Link key={l.title} href={l.href} className="group border-l border-t border-line p-5 transition-colors hover:bg-[rgba(124,189,242,0.05)]">
+                <Link key={l.title} href={l.href} className="group border-l border-t border-line p-5 transition-colors hover:bg-hover">
                   <p className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]" style={{ color: l.color }}>{l.title}</p>
                   <p className="mt-2 text-sm text-muted">{l.desc}</p>
                 </Link>

@@ -41,7 +41,7 @@ export default function LibraryPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      <GlowBlobs variant="b" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <GlowBlobs variant="b" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
 
       <main className="relative z-10 w-full flex-1 px-10 py-10">
@@ -49,7 +49,7 @@ export default function LibraryPage() {
         <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">Your library</h1>
         <p className="mt-2 text-sm text-muted">Everything you&apos;ve generated and uploaded.</p>
 
-        <div className="mt-8 flex gap-6 border-b border-[rgba(124,189,242,0.14)] font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
+        <div className="mt-8 flex gap-6 border-b border-hairline font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
           {(["videos", "images"] as const).map((t) => (
             <button
               key={t}

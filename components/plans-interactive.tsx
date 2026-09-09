@@ -102,7 +102,7 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
                 className={`mt-6 block rounded-[10px] px-4 py-2.5 text-center font-medium transition-colors ${
                   active
                     ? "bg-accent text-ink hover:bg-accent-hover"
-                    : "border border-[rgba(124,189,242,0.24)] text-fg hover:bg-[rgba(124,189,242,0.06)]"
+                    : "border border-hairline-strong text-fg hover:bg-hover"
                 }`}
               >
                 {p.cta}

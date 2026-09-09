@@ -19,7 +19,7 @@ export function ModelPricingTable() {
         </thead>
         <tbody>
           {models.map((m) => (
-            <tr key={m.slug} className="border-b border-[rgba(124,189,242,0.12)] last:border-0">
+            <tr key={m.slug} className="border-b border-hairline last:border-0">
               <td className="px-5 py-3.5 font-[family-name:var(--font-jetbrains)] uppercase tracking-[0.02em] text-fg-strong">
                 {m.name}
               </td>

@@ -1,20 +1,19 @@
-import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { AuthForm } from "@/components/auth-form";
+import { Onboarding } from "@/components/onboarding";
 import { PlansDots } from "@/components/plans-dots";
 import { GlowBlobs } from "@/components/glow-blobs";
 
+// Sign-up is a guided, multi-step "slideshow" (components/onboarding.tsx):
+// account → name → who-are-you → payment → credits.
 export default function SignupPage() {
   return (
     <div className="relative flex min-h-screen flex-col">
-      <GlowBlobs variant="b" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
-      <PlansDots variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <GlowBlobs variant="b" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <PlansDots variant="a" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
-      <div className="relative z-10 flex-1">
-        <Suspense fallback={null}>
-          <AuthForm mode="signup" />
-        </Suspense>
+      <div className="relative z-10 flex flex-1 flex-col">
+        <Onboarding />
       </div>
       <div className="relative z-10">
         <SiteFooter />

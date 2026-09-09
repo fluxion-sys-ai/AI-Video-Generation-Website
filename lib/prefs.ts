@@ -39,17 +39,57 @@ export function addRecent(slug: string) {
   localStorage.setItem(REC_KEY, JSON.stringify(next));
 }
 
-// Theme (dark default, light matches the Fluxion site).
+// Theme setting.
+//   - "dark"   → always the dark (default brand) look.
+//   - "light"  → always the light look (matches the Fluxion marketing site).
+//   - "system" → follow the OS `prefers-color-scheme`, and live-update when it
+//                changes (see `watchSystemTheme`).
+// The stored value is one of these three; the *effective* look ("dark"/"light")
+// is derived by `resolveTheme`. Nothing stored ⇒ "dark" (brand default).
 const THEME_KEY = "fluxion.theme";
-export type Theme = "dark" | "light";
+export type Theme = "dark" | "light" | "system";
+export type EffectiveTheme = "dark" | "light";
 
 export function getTheme(): Theme {
   if (typeof window === "undefined") return "dark";
-  return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
+  const v = localStorage.getItem(THEME_KEY);
+  return v === "light" || v === "system" ? v : "dark";
 }
 
+// Does the OS currently ask for a light color scheme?
+function systemPrefersLight(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    !!window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: light)").matches
+  );
+}
+
+// Collapse a setting into the actual look to render.
+export function resolveTheme(t: Theme): EffectiveTheme {
+  if (t === "system") return systemPrefersLight() ? "light" : "dark";
+  return t;
+}
+
+// Persist the setting and reflect it on <html> immediately (toggling `.light`,
+// which every design token keys off of — see app/globals.css).
 export function applyTheme(t: Theme) {
   if (typeof window === "undefined") return;
   localStorage.setItem(THEME_KEY, t);
-  document.documentElement.classList.toggle("light", t === "light");
+  document.documentElement.classList.toggle("light", resolveTheme(t) === "light");
+}
+
+// Re-apply the effective look whenever the OS scheme flips, but only while the
+// user is on "system". Returns an unsubscribe fn. Mounted once site-wide in
+// components/spotlight.tsx.
+export function watchSystemTheme(): () => void {
+  if (typeof window === "undefined" || !window.matchMedia) return () => {};
+  const mq = window.matchMedia("(prefers-color-scheme: light)");
+  const onChange = () => {
+    if (getTheme() === "system") {
+      document.documentElement.classList.toggle("light", mq.matches);
+    }
+  };
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
 }
