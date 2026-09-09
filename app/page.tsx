@@ -77,13 +77,13 @@ export default function Home() {
             <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
               <Link
                 href="/signup"
-                className="w-full rounded-[10px] bg-[#FF8A1E] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45] sm:w-auto"
+                className="w-full rounded-[10px] bg-[#FF8A1E] px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-[#0A1322] transition-colors hover:bg-[#FF9F45] sm:w-auto"
               >
                 Get started
               </Link>
               <a
                 href="#models"
-                className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 text-center font-medium text-[#E9F1FB] transition-colors hover:bg-[#101E36] sm:w-auto"
+                className="w-full rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-[#E9F1FB] transition-colors hover:bg-[#101E36] sm:w-auto"
               >
                 Explore models
               </a>
