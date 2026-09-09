@@ -4,6 +4,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { ModelMarquee } from "@/components/model-marquee";
 import { Reveal } from "@/components/reveal";
 import { HeroReels } from "@/components/hero-reels";
+import { Stats } from "@/components/stats";
+import { ModelPricingTable } from "@/components/model-pricing-table";
 
 function Kicker({ label, color = "#E0A24E" }: { label: string; color?: string }) {
   return (
@@ -40,7 +42,7 @@ export default function Home() {
             <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
               <Link
                 href="/signup"
-                className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] sm:w-auto"
+                className="w-full rounded-[10px] bg-[#FF8A1E] px-6 py-3 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45] sm:w-auto"
               >
                 Get started
               </Link>
@@ -81,6 +83,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Stats */}
+      <Stats />
+
       {/* Walkthrough */}
       <section className="px-8 py-20">
         <Reveal className="mx-auto max-w-4xl text-center">
@@ -101,6 +106,33 @@ export default function Home() {
               preload="metadata"
               playsInline
             />
+          </div>
+        </Reveal>
+      </section>
+
+      {/* Per-model pricing */}
+      <section className="px-8 pb-24">
+        <Reveal className="mx-auto max-w-4xl">
+          <div className="text-center">
+            <Kicker label="Pricing" color="#FFB020" />
+            <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
+              Per-model pricing
+            </h2>
+            <span className="mx-auto mt-3 block h-px w-10 bg-[#FFB020]" />
+            <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
+              Pay by the second in credits. Predictable, and priced per model.
+            </p>
+          </div>
+          <div className="mt-8">
+            <ModelPricingTable />
+          </div>
+          <div className="mt-6 text-center">
+            <Link
+              href="/pricing"
+              className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 font-medium text-[#E9F1FB] transition-colors hover:bg-[#101E36]"
+            >
+              See all plans
+            </Link>
           </div>
         </Reveal>
       </section>

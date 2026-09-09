@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PlansDots } from "@/components/plans-dots";
+import { ModelPricingTable } from "@/components/model-pricing-table";
 
 export const metadata = { title: "Pricing · Fluxion AI Video" };
 
@@ -92,7 +93,7 @@ export default function PricingPage() {
                 href="/signup"
                 className={`mt-8 block rounded-[10px] px-4 py-2.5 text-center font-medium transition-colors ${
                   p.highlight
-                    ? "bg-[#7CBDF2] text-[#0A1322] hover:bg-[#A6D4F8]"
+                    ? "bg-[#FF8A1E] text-[#0A1322] hover:bg-[#FF9F45]"
                     : "border border-[rgba(124,189,242,0.24)] text-[#E9F1FB] hover:bg-[rgba(124,189,242,0.06)]"
                 }`}
               >
@@ -101,6 +102,19 @@ export default function PricingPage() {
             </div>
           ))}
         </div>
+        </div>
+
+        {/* Per-model pricing */}
+        <div className="mt-20">
+          <h2 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">
+            Per-model pricing
+          </h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-[#9FB2CC]">
+            Credits are spent per second. The dollar column assumes 1 credit ≈ $0.01.
+          </p>
+          <div className="mx-auto mt-8 max-w-3xl text-left">
+            <ModelPricingTable />
+          </div>
         </div>
       </main>
       <SiteFooter />

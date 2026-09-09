@@ -273,7 +273,7 @@ function GenerateInner() {
           <button
             onClick={onGenerate}
             disabled={status === "generating"}
-            className="w-full rounded-[10px] bg-[#7CBDF2] px-6 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            className="w-full rounded-[10px] bg-[#FF8A1E] px-6 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {status === "generating" ? "Generating…" : "Generate"}
           </button>
@@ -322,7 +322,7 @@ function GenerateInner() {
               <button
                 onClick={sendRefine}
                 disabled={status === "generating" || !refineInput.trim()}
-                className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#A6D4F8] disabled:opacity-40"
+                className="rounded-[10px] bg-[#FF8A1E] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#FF9F45] disabled:opacity-40"
               >
                 Send
               </button>
@@ -347,7 +347,7 @@ function GenerateInner() {
                     Hang tight, generating…
                   </p>
                   <div className="h-1 w-40 overflow-hidden rounded-full bg-[#1D3149]">
-                    <div className="h-full w-1/3 animate-pulse rounded-full bg-[#7CBDF2]" />
+                    <div className="h-full w-1/3 animate-pulse rounded-full bg-[#FF8A1E]" />
                   </div>
                 </>
               ) : status === "failed" ? (
@@ -362,7 +362,7 @@ function GenerateInner() {
         </div>
         {status === "complete" && resultUrl && (
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <a href={resultUrl} download="fluxion-video.mp4" className="rounded-[10px] bg-[#7CBDF2] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#A6D4F8]">
+            <a href={resultUrl} download="fluxion-video.mp4" className="rounded-[10px] bg-[#FF8A1E] px-4 py-2 text-sm font-medium text-[#0A1322] hover:bg-[#FF9F45]">
               Download MP4
             </a>
             <a href={resultUrl} download="fluxion-video.webm" className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-4 py-2 text-sm hover:bg-[rgba(124,189,242,0.06)]">

@@ -64,7 +64,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             className="w-full rounded-[10px] border border-[rgba(124,189,242,0.2)] bg-[#0E1730] px-3 py-2.5 text-sm outline-none focus:border-[#7CBDF2]"
           />
         </div>
-        <button type="submit" className="w-full rounded-[10px] bg-[#7CBDF2] px-4 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#A6D4F8]">
+        <button type="submit" className="w-full rounded-[10px] bg-[#FF8A1E] px-4 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]">
           {title}
         </button>
       </form>
