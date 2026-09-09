@@ -478,7 +478,7 @@ function GenerateInner() {
           Preview
         </span>
         <div
-          className="relative overflow-hidden rounded-[10px] border border-line-strong bg-black"
+          className="relative overflow-hidden rounded-none border border-line-strong bg-black"
           style={portrait ? { aspectRatio: `${aw} / ${ah}`, height: "min(72vh, 640px)" } : { aspectRatio: `${aw} / ${ah}`, width: "100%", maxWidth: 680 }}
         >
           {status === "complete" && resultUrl ? (
