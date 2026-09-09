@@ -45,7 +45,7 @@ const C: Variant = {
 const VARIANTS: Record<string, Variant> = { a: A, b: B, c: C };
 
 export function PlansDots({ className = "", variant = "a" }: { className?: string; variant?: "a" | "b" | "c" }) {
-  const { lines, node } = VARIANTS[variant] ?? A;
+  const { lines } = VARIANTS[variant] ?? A;
 
   return (
     <svg
@@ -70,13 +70,6 @@ export function PlansDots({ className = "", variant = "a" }: { className?: strin
           <path key={l.id} id={l.id} d={l.d} />
         ))}
       </g>
-
-      {node && (
-        <>
-          <circle cx={node.x} cy={node.y} r="10" fill="url(#pdFill)" opacity="0.5" />
-          <circle cx={node.x} cy={node.y} r="2.5" fill="#FFB020" />
-        </>
-      )}
 
       <g fill="url(#pdFill)">
         {lines.map((l) => (
