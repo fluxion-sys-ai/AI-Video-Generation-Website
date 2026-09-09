@@ -45,9 +45,9 @@ const PLANS = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-6 py-16">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-16">
         <div className="text-center">
           <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
             Pricing
