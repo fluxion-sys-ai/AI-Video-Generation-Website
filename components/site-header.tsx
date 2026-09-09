@@ -225,8 +225,9 @@ export function SiteHeader() {
             {dashMode ? (
               <>
                 <NavLink href="/dashboard" label="Dashboard" active={pathname.startsWith("/dashboard")} />
-                <NavLink href="/models" label="Generate" active={pathname.startsWith("/models") || pathname.startsWith("/generate")} />
+                <NavLink href="/generate" label="Generate" active={pathname.startsWith("/generate") || pathname.startsWith("/models")} />
                 <NavLink href="/library" label="Library" active={pathname.startsWith("/library")} />
+                <NavLink href="/profile" label="Profile" active={pathname.startsWith("/profile")} />
                 <NavLink href="/settings" label="Settings" active={pathname.startsWith("/settings")} />
               </>
             ) : (
