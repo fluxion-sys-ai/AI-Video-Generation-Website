@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
+import { Heart } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { ApiDocs } from "@/components/api-docs";
@@ -364,9 +365,7 @@ function GenerateInner() {
             title={fav ? "Remove from favorites" : "Add to favorites"}
             className="shrink-0 text-fg transition-transform hover:scale-110"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill={fav ? "var(--c-accent)" : "none"} stroke={fav ? "var(--c-accent)" : "currentColor"} strokeWidth="2">
-              <path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z" strokeLinejoin="round" />
-            </svg>
+            <Heart size={20} strokeWidth={2} fill={fav ? "var(--c-accent)" : "none"} color={fav ? "var(--c-accent)" : "currentColor"} />
           </button>
         </div>
         <p className="mt-1 max-w-2xl text-sm text-muted">{model.description}</p>

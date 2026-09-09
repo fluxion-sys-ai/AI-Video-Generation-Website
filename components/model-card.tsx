@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Model } from "@/lib/models";
 import { isFavorite, toggleFavorite } from "@/lib/prefs";
+import { Heart } from "lucide-react";
 
 export function ModelCard({ model }: { model: Model }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -46,9 +47,7 @@ export function ModelCard({ model }: { model: Model }) {
           }}
           className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 backdrop-blur transition-colors hover:bg-black/70"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={fav ? "#FF8A1E" : "none"} stroke={fav ? "#FF8A1E" : "#E9F1FB"} strokeWidth="2">
-            <path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z" strokeLinejoin="round" />
-          </svg>
+          <Heart size={16} strokeWidth={2} fill={fav ? "#FF8A1E" : "none"} color={fav ? "#FF8A1E" : "#E9F1FB"} />
         </button>
       </div>
       <div className="mt-4">
