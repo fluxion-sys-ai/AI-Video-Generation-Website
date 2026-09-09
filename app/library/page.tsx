@@ -297,109 +297,111 @@ export default function LibraryPage() {
             {/* hidden file input for uploads */}
             <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={onUploadFiles} />
 
-            {/* toolbar — right-aligned: [Upload] [Select] [New folder] */}
-            <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
-              {selectMode ? (
-                <>
-                  <span className="mr-auto text-sm text-muted">{selected.size} selected</span>
-                  <button onClick={toggleAll} className={toolbarBtn}>{allSelected ? "Deselect all" : "Select all"}</button>
-                  <button
-                    onClick={() => setAddFolderOpen(true)}
-                    disabled={selected.size === 0}
-                    className={`${toolbarBtn} disabled:cursor-not-allowed disabled:opacity-40`}
-                  >
-                    Add to folder
-                  </button>
-                  <button
-                    onClick={() => setUploadOpen(true)}
-                    disabled={selected.size === 0}
-                    className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Upload to model
-                  </button>
-                  <button
-                    onClick={() => setDeleteIds([...selected])}
-                    disabled={selected.size === 0}
-                    aria-label="Delete selected"
-                    title="Delete selected"
-                    className="flex items-center justify-center rounded-none border border-[rgba(255,107,107,0.4)] px-3 py-2 text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)] disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5a1 1 0 0 0 1 .9h3.8a1 1 0 0 0 1-.9l.6-8.5M7 7v4M9 7v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  </button>
-                  <button onClick={exitSelect} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
-                </>
-              ) : (
-                <>
-                  <button onClick={() => uploadRef.current?.click()} className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">
-                    Upload {activeFolderObj ? "to folder" : "images"}
-                  </button>
-                  <button onClick={() => setSelectMode(true)} className={toolbarBtn}>Select</button>
-                  {creatingFolder ? (
-                    <>
-                      <input
-                        autoFocus
-                        value={newFolderName}
-                        onChange={(e) => setNewFolderName(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") createFolder(newFolderName); if (e.key === "Escape") { setCreatingFolder(false); setNewFolderName(""); } }}
-                        placeholder="Folder name"
-                        className="rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none placeholder:text-dim focus:border-blue"
-                      />
-                      <button onClick={() => createFolder(newFolderName)} className="rounded-none bg-accent px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">Add</button>
-                      <button onClick={() => { setCreatingFolder(false); setNewFolderName(""); }} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
-                    </>
-                  ) : (
-                    <button onClick={() => setCreatingFolder(true)} className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:border-accent hover:text-accent">
-                      New folder +
-                    </button>
-                  )}
-                  {/* while viewing a folder: delete it (top-right) */}
-                  {activeFolderObj && (
-                    <button
-                      onClick={() => setDeleteFolderId(activeFolderObj.id)}
-                      className="rounded-none border border-[rgba(255,107,107,0.4)] px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)]"
-                    >
-                      Delete folder
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* folders row — drop targets */}
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setActiveFolder(null)}
-                disabled={selectMode}
-                className={`rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors disabled:opacity-50 ${
-                  activeFolder === null ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
-                }`}
-              >
-                All ({libImages.length})
-              </button>
-              {folders.map((f) => (
+            {/* toolbar row: folder tabs (left) on the same line as the actions (right) */}
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
+              {/* left: All + folder tabs (drop targets) */}
+              <div className="flex flex-wrap items-center gap-2">
                 <button
-                  key={f.id}
-                  // Folders aren't clickable while selecting — use the "Add to
-                  // folder" button in the toolbar instead.
-                  onClick={selectMode ? undefined : () => setActiveFolder(f.id)}
-                  onDoubleClick={selectMode ? undefined : () => setDeleteFolderId(f.id)}
+                  onClick={() => setActiveFolder(null)}
                   disabled={selectMode}
-                  onDragOver={(e) => { e.preventDefault(); setDragOverFolder(f.id); }}
-                  onDragLeave={() => setDragOverFolder((d) => (d === f.id ? null : d))}
-                  onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) addToFolder(f.id, id); setDragOverFolder(null); }}
-                  title={selectMode ? "Use “Add to folder” to file selected images" : "Click to view · double-click to delete"}
-                  className={`flex items-center gap-1.5 rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors disabled:opacity-50 ${
-                    dragOverFolder === f.id
-                      ? "border-accent bg-accent-soft text-accent"
-                      : activeFolder === f.id
-                        ? "border-accent text-accent"
-                        : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                  className={`rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors disabled:opacity-50 ${
+                    activeFolder === null ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                   }`}
                 >
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V12 A1 1 0 0 1 13.5 13 H2.5 A1 1 0 0 1 1.5 12 Z" stroke="currentColor" strokeWidth="1.2" /></svg>
-                  {f.name} ({folderCount(f)})
+                  All ({libImages.length})
                 </button>
-              ))}
+                {folders.map((f) => (
+                  <button
+                    key={f.id}
+                    // Folders aren't clickable while selecting — use the "Add to
+                    // folder" button in the toolbar instead.
+                    onClick={selectMode ? undefined : () => setActiveFolder(f.id)}
+                    onDoubleClick={selectMode ? undefined : () => setDeleteFolderId(f.id)}
+                    disabled={selectMode}
+                    onDragOver={(e) => { e.preventDefault(); setDragOverFolder(f.id); }}
+                    onDragLeave={() => setDragOverFolder((d) => (d === f.id ? null : d))}
+                    onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) addToFolder(f.id, id); setDragOverFolder(null); }}
+                    title={selectMode ? "Use “Add to folder” to file selected images" : "Click to view · double-click to delete"}
+                    className={`flex items-center gap-1.5 rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors disabled:opacity-50 ${
+                      dragOverFolder === f.id
+                        ? "border-accent bg-accent-soft text-accent"
+                        : activeFolder === f.id
+                          ? "border-accent text-accent"
+                          : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                    }`}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V12 A1 1 0 0 1 13.5 13 H2.5 A1 1 0 0 1 1.5 12 Z" stroke="currentColor" strokeWidth="1.2" /></svg>
+                    {f.name} ({folderCount(f)})
+                  </button>
+                ))}
+              </div>
+
+              {/* right: action buttons */}
+              <div className="flex flex-wrap items-center gap-3">
+                {selectMode ? (
+                  <>
+                    <span className="text-sm text-muted">{selected.size} selected</span>
+                    <button onClick={toggleAll} className={toolbarBtn}>{allSelected ? "Deselect all" : "Select all"}</button>
+                    <button
+                      onClick={() => setAddFolderOpen(true)}
+                      disabled={selected.size === 0}
+                      className={`${toolbarBtn} disabled:cursor-not-allowed disabled:opacity-40`}
+                    >
+                      Add to folder
+                    </button>
+                    <button
+                      onClick={() => setUploadOpen(true)}
+                      disabled={selected.size === 0}
+                      className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Upload to model
+                    </button>
+                    <button
+                      onClick={() => setDeleteIds([...selected])}
+                      disabled={selected.size === 0}
+                      aria-label="Delete selected"
+                      title="Delete selected"
+                      className="flex items-center justify-center rounded-none border border-[rgba(255,107,107,0.4)] px-3 py-2 text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5a1 1 0 0 0 1 .9h3.8a1 1 0 0 0 1-.9l.6-8.5M7 7v4M9 7v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </button>
+                    <button onClick={exitSelect} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => uploadRef.current?.click()} className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">
+                      Upload {activeFolderObj ? "to folder" : "images"}
+                    </button>
+                    <button onClick={() => setSelectMode(true)} className={toolbarBtn}>Select</button>
+                    {creatingFolder ? (
+                      <>
+                        <input
+                          autoFocus
+                          value={newFolderName}
+                          onChange={(e) => setNewFolderName(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") createFolder(newFolderName); if (e.key === "Escape") { setCreatingFolder(false); setNewFolderName(""); } }}
+                          placeholder="Folder name"
+                          className="rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none placeholder:text-dim focus:border-blue"
+                        />
+                        <button onClick={() => createFolder(newFolderName)} className="rounded-none bg-accent px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">Add</button>
+                        <button onClick={() => { setCreatingFolder(false); setNewFolderName(""); }} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
+                      </>
+                    ) : (
+                      <button onClick={() => setCreatingFolder(true)} className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:border-accent hover:text-accent">
+                        New folder +
+                      </button>
+                    )}
+                    {activeFolderObj && (
+                      <button
+                        onClick={() => setDeleteFolderId(activeFolderObj.id)}
+                        className="rounded-none border border-[rgba(255,107,107,0.4)] px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)]"
+                      >
+                        Delete folder
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
             {folders.length === 0 && !creatingFolder ? (
               <p className="mt-2 text-xs text-dim">Tip: create a folder, then drag images onto it (or right-click an image) to organize them.</p>
