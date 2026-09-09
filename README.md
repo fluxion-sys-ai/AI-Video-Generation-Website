@@ -9,32 +9,53 @@ inference: all data and generation is mocked behind a swappable service layer.
 Styled to match [Fluxion](https://fluxion-sys.ai): dark UI, JetBrains Mono
 headings, sky-blue (`#7CBDF2`) accent with a warm gold (`#E0A24E`) highlight.
 
-## Where to change the media (no code needed)
+## ⚠️ Everything is a placeholder / stand-in
+
+Nothing on this site is real yet. All of the following are **made-up sample
+content** you should replace before showing it as real:
+
+| Stand-in | What it currently is | Where to edit |
+| --- | --- | --- |
+| **Model names** (Aurora, Pulse, Volt, Nova) | invented | `lib/models.ts` → `MODELS[].name` / `slug` |
+| **Model taglines & descriptions** | invented | `lib/models.ts` → `tagline`, `description` |
+| **Model capabilities / durations / resolutions / aspect ratios** | invented | `lib/models.ts` → `capabilities`, `durations`, `resolutions`, `aspectRatios` |
+| **Model price (credits/second)** | invented numbers | `lib/models.ts` → `creditsPerSecond` |
+| **Model poster images** | Google "gtv-videos-bucket" **sample images** (external URLs) | `lib/models.ts` → `poster` |
+| **Pricing plans** — names, `$0/$24/$96`, credit amounts, feature bullets | invented | `app/pricing/page.tsx` → `PLANS` array |
+| **"Credits per $" figure** | derived, assuming **1 credit ≈ $0.01** (made up) | `components/plans-interactive.tsx` (`cpd`) + table below |
+| **Per-model table `$ / 5s clip`** | same made-up `$0.01/credit` rate | `components/model-pricing-table.tsx` |
+| **Landing stats** (`3.5K+`, `10x`, `100x`, `99.9% SLA`) | invented marketing numbers | `components/stats.tsx` → `STATS` |
+| **Aspect-ratio use labels** (YouTube, Reels/TikTok…) | my guesses | `app/generate/page.tsx` → `ASPECT_USE` |
+| **Contact email / links** (`hello@fluxion-sys.ai`) | placeholder | `app/info/page.tsx` |
+| **Generated result video** | just replays the model's sample clip (no real AI) | mock in `app/generate/page.tsx` |
+| **Sign in / accounts / credits** | fake (`localStorage` flag) | `lib/auth.ts` |
+
+## Where to change the media (videos & images)
 
 All swappable videos live under **`public/`**. Drop files in with the exact
-names below and they show up automatically (rebuild/redeploy to publish).
+names below; they show up automatically (rebuild/redeploy to publish). These are
+also stand-ins — the reel/thumbnail clips are sample footage you uploaded.
 
 | What | Location | File names |
 | --- | --- | --- |
-| **Hero reels** (3 slots, auto-swipe carousel) | `public/reels/slot1/`, `public/reels/slot2/`, `public/reels/slot3/` | `a.mp4`, `b.mp4`, `c.mp4` in each slot (each slot cycles through whatever it has) |
-| **Model card thumbnails** | `public/models/` | `aurora.mp4`, `pulse.mp4`, `volt.mp4`, `nova.mp4` (must match the model slug) |
+| **Hero reels** (3 slots, auto-swipe) | `public/reels/slot1/`, `slot2/`, `slot3/` | `a.mp4`, `b.mp4`, `c.mp4` per slot (each slot cycles all it has) |
+| **Model card thumbnails** | `public/models/` | `aurora.mp4`, `pulse.mp4`, `volt.mp4`, `nova.mp4` (name = model slug) |
 | **"See it in action" walkthrough** | `public/demos/` | `walkthrough.mp4` |
-| **Other demo videos** | `public/demos/` | any name; reference them where you use them |
+| **Model poster images** (shown before hover) | external sample URLs today | swap in `lib/models.ts` → `poster` |
+| **Hero background art** | animated SVG | `public/backdrop.svg` |
 
 Notes:
-- Reels are vertical (9:16) and `object-cover`, so any clip is cropped to fit.
+- Reels are vertical (9:16), `object-cover`, so any clip is cropped to fit.
 - Keep clips small (1–3 MB) — the hero plays several at once.
 - A model with no uploaded thumbnail falls back to its poster image (no black card).
 
-## Where to change the text / data
+## Other things you can tune (not placeholders, just settings)
 
 | What | File |
 | --- | --- |
-| Model names, taglines, descriptions, capabilities, durations, resolutions, aspect ratios, pricing-per-second | `lib/models.ts` (the `MODELS` array) |
-| Pricing plans (price, credits, features) | `app/pricing/page.tsx` (the `PLANS` array) |
-| Reel timing (which slot swipes when) | `components/hero-reels.tsx` (the `SLOTS` array: `startMs` / `holdMs`) |
-| Info + contact details | `app/info/page.tsx` |
-| Mock auth / saved-form logic | `lib/auth.ts` |
+| Reel timing / order (which slot swipes when) | `components/hero-reels.tsx` (`SLOTS`, `order`, `GAP`) |
+| Accent colors, cursor, animations | `app/globals.css` |
+| Background blob placement per page | `components/glow-blobs.tsx` (`VARIANTS`) |
 
 ## Repo organization
 
