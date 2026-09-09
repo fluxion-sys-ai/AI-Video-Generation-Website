@@ -7,7 +7,7 @@ import { ApiDocs } from "@/components/api-docs";
 import { SiteFooter } from "@/components/site-footer";
 import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
-import { addRecent, takePendingImages, addLibraryImages } from "@/lib/prefs";
+import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite } from "@/lib/prefs";
 
 type Status = "idle" | "generating" | "complete" | "failed";
 
@@ -96,6 +96,10 @@ function GenerateInner() {
   }
   // Expanded image viewer (click a thumbnail to open, × to close).
   const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
+
+  // Favorite (heart) for the current model — shared with the model catalog.
+  const [fav, setFav] = useState(false);
+  useEffect(() => setFav(isFavorite(slug)), [slug]);
 
   const [status, setStatus] = useState<Status>("idle");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
@@ -351,7 +355,20 @@ function GenerateInner() {
 
       {/* Main form (borderless, compact) */}
       <main className="min-h-0 lg:overflow-y-auto">
-        <h1 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
+        <div className="flex items-center gap-2.5">
+          <h1 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
+          <button
+            type="button"
+            onClick={() => setFav(toggleFavorite(slug))}
+            aria-label={fav ? "Remove from favorites" : "Add to favorites"}
+            title={fav ? "Remove from favorites" : "Add to favorites"}
+            className="shrink-0 text-fg transition-transform hover:scale-110"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill={fav ? "var(--c-accent)" : "none"} stroke={fav ? "var(--c-accent)" : "currentColor"} strokeWidth="2">
+              <path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
         <p className="mt-1 max-w-2xl text-sm text-muted">{model.description}</p>
 
         <div className="mt-5 space-y-4">
