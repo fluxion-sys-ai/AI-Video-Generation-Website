@@ -1,11 +1,11 @@
 // Decorative animated line-and-dot field. Each line is a single continuous
 // path that runs fully off-screen left to off-screen right, so a dot never
-// stops or vanishes mid-view — it glides in from the left edge, across, and
+// stops or vanishes mid-view - it glides in from the left edge, across, and
 // out the right edge, then loops off-screen. Kept faint so it never distracts.
 
 type Line = { id: string; d: string; dur: number; begin: number };
 
-// A: default (pricing) — gentle full-width flows.
+// A: default (pricing) - gentle full-width flows.
 const A: Line[] = [
   { id: "a1", d: "M-160 150 C 320 110, 780 250, 1600 230", dur: 16, begin: 0 },
   { id: "a2", d: "M-160 300 C 360 300, 900 330, 1600 320", dur: 19, begin: 2.5 },
@@ -20,11 +20,13 @@ const B: Line[] = [
   { id: "b3", d: "M-160 520 C 400 560, 980 400, 1600 470", dur: 17, begin: 3.2 },
 ];
 
-// C: flowing horizontal waves.
+// C: asymmetric, overlapping, twirling curves that cross each other. Still
+// enters off-screen left and exits off-screen right so dots never stall.
 const C: Line[] = [
-  { id: "c1", d: "M-160 170 C 360 90, 720 260, 1080 170 C 1320 100, 1460 200, 1600 175", dur: 22, begin: 0 },
-  { id: "c2", d: "M-160 330 C 360 270, 720 420, 1080 330 C 1320 270, 1460 380, 1600 345", dur: 24, begin: 2 },
-  { id: "c3", d: "M-160 500 C 360 440, 720 600, 1080 500 C 1320 440, 1460 550, 1600 515", dur: 26, begin: 1 },
+  { id: "c1", d: "M-160 520 C 220 80, 520 720, 720 360 C 880 100, 980 660, 1600 250", dur: 23, begin: 0 },
+  { id: "c2", d: "M-160 150 C 320 540, 640 40, 840 400 C 1020 700, 1220 100, 1600 470", dur: 26, begin: 1.5 },
+  { id: "c3", d: "M-160 360 C 260 -60, 700 520, 900 200 C 1140 -80, 1320 580, 1600 300", dur: 21, begin: 3 },
+  { id: "c4", d: "M-160 640 C 420 280, 660 740, 1000 440 C 1260 200, 1440 640, 1600 540", dur: 28, begin: 0.8 },
 ];
 
 const VARIANTS: Record<string, Line[]> = { a: A, b: B, c: C };

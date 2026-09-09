@@ -55,7 +55,7 @@ const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Websi
 export default function Home() {
   return (
     <div className="min-h-screen">
-      {/* Cohesive fixed background — home only */}
+      {/* Cohesive fixed background - home only */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 -z-10"
@@ -94,7 +94,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Vertical reels (3 slots) — large block on the right */}
+          {/* Vertical reels (3 slots) - large block on the right */}
           <div className="hidden justify-self-end lg:block">
             <HeroReels />
           </div>
@@ -145,7 +145,7 @@ export default function Home() {
           <div className="text-center">
             <SectionHeading index="03" label="Pricing" title="Pay as you go" color="#FFB020" center />
             <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
-              No subscriptions — pay per second of video, priced per model.
+              No subscriptions. Pay per second of video, priced per model.
             </p>
           </div>
           <div className="mt-8">

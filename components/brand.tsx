@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-/* Fluxion icon — three lines converging on a gold node */
+/* Fluxion icon - three lines converging on a gold node */
 export function LogoMark({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden="true">

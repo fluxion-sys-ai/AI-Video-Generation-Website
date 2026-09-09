@@ -9,7 +9,7 @@ import { getUser, isSignedIn, type User } from "@/lib/auth";
 
 const models = getModels();
 
-/* Hover/click dropdown — no extra deps, keyboard + outside-click aware.
+/* Hover/click dropdown - no extra deps, keyboard + outside-click aware.
    With `href`, clicking the label navigates (hover still opens the menu). */
 function NavMenu({ label, href, children }: { label: string; href?: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);

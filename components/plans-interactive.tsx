@@ -60,7 +60,7 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
 
   return (
     <div>
-      {/* Plan cards — accent on hover; Pro just gets a star */}
+      {/* Plan cards - accent on hover; Pro just gets a star */}
       <div className="grid gap-6 sm:grid-cols-3">
         {plans.map((p) => {
           const active = hovered === p.id;
@@ -112,7 +112,7 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
         })}
       </div>
 
-      {/* Plan value charts — the hovered plan's bar glows (hover a card or a bar) */}
+      {/* Plan value charts - the hovered plan's bar glows (hover a card or a bar) */}
       <div className="mt-8 grid gap-8 sm:grid-cols-2">
         <div>
           <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">

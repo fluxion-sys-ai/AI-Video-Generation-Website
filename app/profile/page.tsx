@@ -157,10 +157,10 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* BILLING — touching bento grid, square corners */}
+            {/* BILLING - touching bento grid, square corners */}
             {tab === "billing" && (
               <div className="mt-8 grid grid-cols-4 gap-px border border-[#2E466B] bg-[#2E466B]">
-                {/* balance — large anchor tile */}
+                {/* balance - large anchor tile */}
                 <div className="col-span-4 row-span-2 flex flex-col justify-between bg-[#0B1524] p-6 sm:col-span-2">
                   <div>
                     <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Current balance</p>
@@ -235,21 +235,20 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* USAGE — bento stats + history, fits one screen */}
+            {/* USAGE - bento stats + history, fits one screen */}
             {tab === "usage" && (
               <div className="mt-8 grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:items-start">
                 {/* stat bento (touching, square) */}
-                <div className="grid grid-cols-2 gap-px border border-[#2E466B] bg-[#2E466B] sm:grid-cols-3">
+                <div className="grid grid-cols-2 gap-px border border-[#2E466B] bg-[#2E466B]">
                   {[
                     ["Current invoice due", "$0.00", "View invoices"],
                     ["Credit balance", "$0.00", "May lag usage"],
                     ["Subtotal (pre-discount)", "$0.00", "Selected period"],
                     ["Daily burn", "$0.00", "Avg over period"],
                     ["Model API usage", "$0.00", "This period"],
-                    ["Discounts applied", "$0.00", "This period"],
-                  ].map(([t, v, s]) => (
-                    <div key={t} className="bg-[#0B1524] p-5">
-                      <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">{t}</p>
+                  ].map(([t, v, s], i) => (
+                    <div key={t} className={`bg-[#0B1524] p-5 ${i === 4 ? "col-span-2" : ""}`}>
+                      <p className="whitespace-nowrap text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">{t}</p>
                       <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{v}</p>
                       <p className="mt-1 text-xs text-[#6E82A0]">{s}</p>
                     </div>
@@ -296,7 +295,7 @@ export default function ProfilePage() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-6" onClick={() => setAddOpen(false)}>
           <div className="w-full max-w-sm rounded-[14px] border border-[#2E466B] bg-[#0B1524] p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Add credits</h3>
-            <p className="mt-1 text-xs text-[#6E82A0]">Choose an amount. Frontend demo — no real charge.</p>
+            <p className="mt-1 text-xs text-[#6E82A0]">Choose an amount. Frontend demo, no real charge.</p>
             <div className="mt-4 grid grid-cols-3 gap-2">
               {[10, 25, 50].map((a) => (
                 <button key={a} className="rounded-[10px] border border-[rgba(124,189,242,0.24)] py-3 font-[family-name:var(--font-jetbrains)] text-sm hover:border-[#FF8A1E] hover:text-[#FF8A1E]">

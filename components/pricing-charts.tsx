@@ -1,6 +1,6 @@
 import { getModels } from "@/lib/models";
 
-// Single-series magnitude bars — one accent hue, value labels in ink tokens.
+// Single-series magnitude bars - one accent hue, value labels in ink tokens.
 function BarRow({ label, value, max, display }: { label: string; value: number; max: number; display: string }) {
   const pct = Math.max(4, (value / max) * 100);
   return (
