@@ -56,13 +56,6 @@ export default function LibraryPage() {
       router.replace("/login?next=/library");
       return;
     }
-    // Load folders.
-    try {
-      const raw = localStorage.getItem(FOLDERS_KEY);
-      if (raw) setFolders(JSON.parse(raw));
-    } catch {
-      /* ignore */
-    }
     // Load images; seed with sample references on first visit.
     let imgs = getLibraryImages();
     if (imgs.length === 0) {
@@ -72,6 +65,18 @@ export default function LibraryPage() {
       ]);
       saveLibraryImages(imgs);
     }
+    // Load folders and prune any stale/duplicate image ids (self-heals bad data
+    // left in storage before the count fix) against the images that exist.
+    let loaded: Folder[] = [];
+    try {
+      const raw = localStorage.getItem(FOLDERS_KEY);
+      if (raw) loaded = JSON.parse(raw);
+    } catch {
+      /* ignore */
+    }
+    const idSet = new Set(imgs.map((i) => i.id));
+    const cleaned = loaded.map((f) => ({ ...f, imageIds: [...new Set((f.imageIds || []).filter((id) => idSet.has(id)))] }));
+    setFolders(cleaned);
     setLibImages(imgs);
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,6 +133,11 @@ export default function LibraryPage() {
   }, [folders]);
 
   // ---- image helpers --------------------------------------------------------
+  // A folder's real count = its ids that still exist in the library, deduped.
+  // (Guards against stale/duplicate ids left over in storage.)
+  const libIdSet = new Set(libImages.map((i) => i.id));
+  const folderCount = (f: Folder) => new Set(f.imageIds.filter((id) => libIdSet.has(id))).size;
+
   const activeFolderObj = folders.find((f) => f.id === activeFolder) || null;
   const shownImages = activeFolderObj ? libImages.filter((img) => activeFolderObj.imageIds.includes(img.id)) : libImages;
 
@@ -328,7 +338,7 @@ export default function LibraryPage() {
                 >
                   <button onClick={() => setActiveFolder(f.id)} className="flex items-center gap-1.5" title="View folder">
                     <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V12 A1 1 0 0 1 13.5 13 H2.5 A1 1 0 0 1 1.5 12 Z" stroke="currentColor" strokeWidth="1.2" /></svg>
-                    {f.name} ({f.imageIds.length})
+                    {f.name} ({folderCount(f)})
                   </button>
                   <button onClick={() => deleteFolder(f.id)} aria-label={`Delete ${f.name}`} className="text-dim hover:text-danger" title="Delete folder">
                     <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
