@@ -24,7 +24,7 @@ export default function ModelsPage() {
           Compare models by capability, duration, and resolution. Hover a card to preview.
         </p>
         <div className="relative mt-10 py-12">
-          <PlansDots className="pointer-events-none absolute left-1/2 top-0 h-full w-screen -translate-x-1/2" />
+          <PlansDots variant="b" className="pointer-events-none absolute left-1/2 top-0 h-full w-screen -translate-x-1/2" />
           <div className="relative grid grid-cols-2 gap-8 lg:grid-cols-4">
             {models.map((m) => (
               <ModelCard key={m.slug} model={m} />
