@@ -6,12 +6,48 @@ import { Reveal } from "@/components/reveal";
 import { HeroReels } from "@/components/hero-reels";
 import { Stats } from "@/components/stats";
 import { ModelPricingTable } from "@/components/model-pricing-table";
+import { HeroSpotlight } from "@/components/hero-spotlight";
 
 function Kicker({ label, color = "#E0A24E" }: { label: string; color?: string }) {
   return (
     <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em]" style={{ color }}>
       {label}
     </span>
+  );
+}
+
+// Section heading with a big faded index number behind it.
+function SectionHeading({
+  index,
+  label,
+  title,
+  color = "#E0A24E",
+  center = false,
+}: {
+  index: string;
+  label: string;
+  title: string;
+  color?: string;
+  center?: boolean;
+}) {
+  return (
+    <div className="relative">
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute -top-12 select-none font-[family-name:var(--font-jetbrains)] text-8xl font-bold leading-none text-white/[0.05] ${
+          center ? "left-1/2 -translate-x-1/2" : "-left-1"
+        }`}
+      >
+        {index}
+      </span>
+      <div className="relative">
+        <Kicker label={label} color={color} />
+        <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
+          {title}
+        </h2>
+        <span className={`mt-3 block h-px w-10 ${center ? "mx-auto" : ""}`} style={{ background: color }} />
+      </div>
+    </div>
   );
 }
 
@@ -28,7 +64,8 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative overflow-hidden lg:h-[68vh]">
-        <div className="grid h-full items-center gap-10 px-8 py-20 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
+        <HeroSpotlight />
+        <div className="relative z-10 grid h-full items-center gap-10 px-8 py-20 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
           <div className="max-w-xl lg:pl-12">
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
               Text-to-video, image-to-video
@@ -69,13 +106,7 @@ export default function Home() {
       <section id="models" className="scroll-mt-24 pb-20 pt-14">
         <Reveal className="px-8">
           <div className="flex items-end justify-between gap-4">
-            <div>
-              <Kicker label="Models" />
-              <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
-                Explore our models
-              </h2>
-              <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
-            </div>
+            <SectionHeading index="01" label="Models" title="Explore our models" />
             <Link href="/models" className="hidden shrink-0 text-sm text-[#9FB2CC] transition-colors hover:text-[#F5C46B] sm:block">
               View all
             </Link>
@@ -89,11 +120,7 @@ export default function Home() {
       {/* Walkthrough */}
       <section className="px-8 py-20">
         <Reveal className="mx-auto max-w-4xl text-center">
-          <Kicker label="Walkthrough" color="#4EC98F" />
-          <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
-            See it in action
-          </h2>
-          <span className="mx-auto mt-3 block h-px w-10 bg-[#4EC98F]" />
+          <SectionHeading index="02" label="Walkthrough" title="See it in action" color="#4EC98F" center />
           <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
             Watch a prompt become a finished video in under a minute.
           </p>
@@ -114,11 +141,7 @@ export default function Home() {
       <section className="px-8 pb-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="text-center">
-            <Kicker label="Pricing" color="#FFB020" />
-            <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
-              Per-model pricing
-            </h2>
-            <span className="mx-auto mt-3 block h-px w-10 bg-[#FFB020]" />
+            <SectionHeading index="03" label="Pricing" title="Per-model pricing" color="#FFB020" center />
             <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
               Pay by the second in credits. Predictable, and priced per model.
             </p>
