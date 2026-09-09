@@ -37,9 +37,10 @@ function Field({ label, children, hint }: { label: string; children: React.React
 const selectClass =
   "w-full rounded-[8px] border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue focus:ring-1 focus:ring-blue";
 
-// content-width control for short values (aspect ratio, resolution, duration)
+// content-width dropdown for short values (aspect ratio, resolution, duration).
+// Square corners + custom caret via `pg-select` (see app/globals.css).
 const compactSelect =
-  "rounded-[8px] border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue focus:ring-1 focus:ring-blue";
+  "rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue focus:ring-1 focus:ring-blue pg-select";
 
 // common use for each aspect ratio, shown in the dropdown
 const ASPECT_USE: Record<string, string> = {

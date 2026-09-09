@@ -263,6 +263,21 @@
   background: var(--spotlight);
 }
 
+/* Playground <select> dropdowns: replace the native caret (which sits hard
+   against the right edge) with our own chevron, inset from the edge with extra
+   right padding so there's breathing room between the value, the caret, and the
+   border. Square corners to match the rest of the playground chrome. */
+.pg-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'><path d='M3 6 L8 11 L13 6' stroke='%239FB2CC' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center; /* caret nudged in from the edge */
+  background-size: 13px 13px;
+  padding-right: 2.4rem;                     /* room for text + caret */
+}
+
 /* Docs search highlight: <mark> wrappers injected by components/docs-sidebar.tsx
    around keyword matches in the docs content. Uses the accent tokens. */
 mark.doc-hl {
