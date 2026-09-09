@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DocsSidebar } from "@/components/docs-sidebar";
+import { CopyButton } from "@/components/copy-button";
 
 export const metadata = { title: "Documentation · Fluxion AI Video" };
 
@@ -44,7 +45,8 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
 
 function Code({ children }: { children: string }) {
   return (
-    <pre className="mt-3 overflow-x-auto border border-line-strong bg-surface p-4 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+    <pre className="relative mt-3 overflow-x-auto border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+      <CopyButton text={children} />
       <code>{children}</code>
     </pre>
   );

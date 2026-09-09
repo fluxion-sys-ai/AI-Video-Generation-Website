@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import type { Model } from "@/lib/models";
+import { CopyButton } from "@/components/copy-button";
 
 type Lang = "js" | "python" | "curl";
 
 export function ApiDocs({ model }: { model: Model }) {
   const [lang, setLang] = useState<Lang>("js");
-  const [copied, setCopied] = useState(false);
 
   const ar = model.aspectRatios[0];
   const res = model.popularResolutions[0] || model.resolutions[0];
@@ -74,13 +74,6 @@ print(result["video"]["url"])`,
   "timings": { "inference": 8.4 }
 }`;
 
-  function copy() {
-    navigator.clipboard?.writeText(snippets[lang]).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1400);
-    });
-  }
-
   const langLabel: Record<Lang, string> = { js: "JavaScript", python: "Python", curl: "cURL" };
 
   return (
@@ -100,19 +93,15 @@ print(result["video"]["url"])`,
         <p className="mt-2 text-sm text-muted">
           Create a key in your dashboard and set it as an environment variable:
         </p>
-        <pre className="mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
+        <pre className="relative mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
+          <CopyButton text={'export FLUXION_API_KEY="sk-fluxion-xxxxxxxxxxxx"'} />
           <code>export FLUXION_API_KEY=&quot;sk-fluxion-xxxxxxxxxxxx&quot;</code>
         </pre>
       </section>
 
       {/* request */}
       <section className="mt-8">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">2. Run the model</h2>
-          <button onClick={copy} className="rounded-[8px] border border-hairline-strong px-3 py-1 text-xs text-muted transition-colors hover:text-accent">
-            {copied ? "Copied ✓" : "Copy"}
-          </button>
-        </div>
+        <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">2. Run the model</h2>
         <div className="mt-3 flex gap-4 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em]">
           {(["js", "python", "curl"] as Lang[]).map((l) => (
             <button
@@ -124,7 +113,8 @@ print(result["video"]["url"])`,
             </button>
           ))}
         </div>
-        <pre className="mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+        <pre className="relative mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+          <CopyButton text={snippets[lang]} />
           <code>{snippets[lang]}</code>
         </pre>
       </section>
@@ -160,7 +150,8 @@ print(result["video"]["url"])`,
       {/* response */}
       <section className="mt-8">
         <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">Response</h2>
-        <pre className="mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
+        <pre className="relative mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
+          <CopyButton text={response} />
           <code>{response}</code>
         </pre>
         <p className="mt-3 text-xs text-dim">Illustrative only. No live API here.</p>
