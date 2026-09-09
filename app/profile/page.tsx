@@ -45,8 +45,8 @@ function mockHistory() {
   });
 }
 
-type Tab = "account" | "billing" | "payment" | "usage";
-const TABS: Tab[] = ["account", "billing", "payment", "usage"];
+type Tab = "account" | "billing" | "payment" | "usage" | "preferences";
+const TABS: Tab[] = ["account", "billing", "payment", "usage", "preferences"];
 
 function ProfileInner() {
   const router = useRouter();
@@ -88,6 +88,15 @@ function ProfileInner() {
   const [cardNumber, setCardNumber] = useState("");
   const [cardExp, setCardExp] = useState("");
   const [cardCvc, setCardCvc] = useState("");
+
+  // preferences (mock)
+  const [prefTheme, setPrefTheme] = useState("Dark");
+  const [prefModelSlug, setPrefModelSlug] = useState(() => getModels()[0].slug);
+  const [prefRes, setPrefRes] = useState("720p");
+  const [autoplay, setAutoplay] = useState(true);
+  const [emailUpdates, setEmailUpdates] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const [prefSaved, setPrefSaved] = useState(false);
 
   useEffect(() => {
     if (!isSignedIn()) {
@@ -172,6 +181,8 @@ function ProfileInner() {
   }
 
   const history = mockHistory();
+  const prefModels = getModels();
+  const prefModel = prefModels.find((m) => m.slug === prefModelSlug) || prefModels[0];
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -204,23 +215,28 @@ function ProfileInner() {
               </div>
             </div>
 
-            <div className="mt-8 flex gap-6 border-b border-[rgba(124,189,242,0.14)] font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
-              {(["account", "billing", "payment", "usage"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={`-mb-px border-b-2 pb-3 transition-colors ${
-                    tab === t ? "border-[#FF8A1E] text-[#FF8A1E]" : "border-transparent text-[#9FB2CC] hover:text-[#E9F1FB]"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <div className="mt-8 grid gap-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:items-start">
+              {/* left sidebar nav */}
+              <aside className="flex flex-row flex-wrap gap-1 border border-[#2E466B] p-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col">
+                {TABS.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTab(t)}
+                    className={`px-4 py-2.5 text-left transition-colors ${
+                      tab === t ? "bg-[rgba(255,138,30,0.12)] text-[#FF8A1E]" : "text-[#9FB2CC] hover:bg-[rgba(124,189,242,0.06)] hover:text-[#E9F1FB]"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </aside>
+
+              {/* content column */}
+              <div className="min-w-0">
 
             {/* ACCOUNT */}
             {tab === "account" && (
-              <div className="mt-8 max-w-3xl space-y-8">
+              <div className="max-w-3xl space-y-8">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
                     <label className={label}>Name</label>
@@ -251,7 +267,7 @@ function ProfileInner() {
 
             {/* BILLING - touching bento grid, unshaded (border-only), square */}
             {tab === "billing" && (
-              <div className="mt-8 grid grid-cols-4 border-b border-r border-[#2E466B]">
+              <div className="grid grid-cols-4 border-b border-r border-[#2E466B]">
                 {/* balance - large anchor tile */}
                 <div className="col-span-4 row-span-2 flex flex-col justify-between border-l border-t border-[#2E466B] p-6 sm:col-span-2">
                   <div>
@@ -341,7 +357,7 @@ function ProfileInner() {
 
             {/* PAYMENT - saved methods (left) + billing address (right) */}
             {tab === "payment" && (
-              <div className="mt-8 grid max-w-5xl gap-10 lg:grid-cols-2 lg:items-start">
+              <div className="grid max-w-5xl gap-10 lg:grid-cols-2 lg:items-start">
                 <div>
                   <div className="flex items-center justify-between gap-4">
                     <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
@@ -416,7 +432,7 @@ function ProfileInner() {
 
             {/* USAGE - extended asymmetric bento (graph + stats) | history right */}
             {tab === "usage" && (
-              <div className="mt-8 grid gap-8 lg:grid-cols-[2.1fr_0.9fr] lg:items-start">
+              <div className="grid gap-8 lg:grid-cols-[2.1fr_0.9fr] lg:items-start">
                 {/* left: daily usage graph + asymmetric stat tiles (unshaded) */}
                 <div className="grid grid-cols-3 border-b border-r border-[#2E466B]">
                   <div className="col-span-3 border-l border-t border-[#2E466B] p-5">
@@ -468,6 +484,78 @@ function ProfileInner() {
                 </div>
               </div>
             )}
+
+            {/* PREFERENCES (settings) */}
+            {tab === "preferences" && (
+              <div className="max-w-3xl space-y-8">
+                <section>
+                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Appearance</h2>
+                  <div className="mt-4 grid gap-5 sm:grid-cols-2">
+                    <div>
+                      <label className={label}>Theme</label>
+                      <select value={prefTheme} onChange={(e) => setPrefTheme(e.target.value)} className={inputClass}>
+                        {["Dark", "Midnight", "System"].map((t) => <option key={t}>{t}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center justify-between gap-4 border border-[#2E466B] p-4">
+                      <div>
+                        <p className="text-sm text-[#E9F1FB]">Autoplay previews</p>
+                        <p className="text-xs text-[#6E82A0]">Play video thumbnails on hover.</p>
+                      </div>
+                      <Toggle on={autoplay} onClick={() => setAutoplay((v) => !v)} />
+                    </div>
+                    <div className="flex items-center justify-between gap-4 border border-[#2E466B] p-4">
+                      <div>
+                        <p className="text-sm text-[#E9F1FB]">Reduce motion</p>
+                        <p className="text-xs text-[#6E82A0]">Dim background animations.</p>
+                      </div>
+                      <Toggle on={reduceMotion} onClick={() => setReduceMotion((v) => !v)} />
+                    </div>
+                  </div>
+                </section>
+
+                <section className="border-t border-[rgba(124,189,242,0.14)] pt-6">
+                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Generation defaults</h2>
+                  <div className="mt-4 grid gap-5 sm:grid-cols-2">
+                    <div>
+                      <label className={label}>Default model</label>
+                      <select value={prefModelSlug} onChange={(e) => setPrefModelSlug(e.target.value)} className={inputClass}>
+                        {prefModels.map((m) => <option key={m.slug} value={m.slug}>{m.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className={label}>Default resolution</label>
+                      <select value={prefRes} onChange={(e) => setPrefRes(e.target.value)} className={inputClass}>
+                        {prefModel.resolutions.map((r) => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="border-t border-[rgba(124,189,242,0.14)] pt-6">
+                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Notifications</h2>
+                  <div className="mt-4 flex items-center justify-between gap-4 border border-[#2E466B] p-4">
+                    <div>
+                      <p className="text-sm text-[#E9F1FB]">Product email updates</p>
+                      <p className="text-xs text-[#6E82A0]">Occasional news about new models and features.</p>
+                    </div>
+                    <Toggle on={emailUpdates} onClick={() => setEmailUpdates((v) => !v)} />
+                  </div>
+                </section>
+
+                <div className="flex items-center gap-3">
+                  <button onClick={() => { setPrefSaved(true); setTimeout(() => setPrefSaved(false), 1600); }} className={btnPrimary}>
+                    Save settings
+                  </button>
+                  {prefSaved && <span className="text-sm text-[#FF8A1E]">Saved ✓</span>}
+                </div>
+              </div>
+            )}
+
+              </div>
+            </div>
           </>
         )}
       </main>

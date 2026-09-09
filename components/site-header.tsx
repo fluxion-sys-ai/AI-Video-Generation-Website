@@ -146,6 +146,18 @@ const PROFILE_TABS: { key: string; title: string; icon: React.ReactNode }[] = [
       </TabChip>
     ),
   },
+  {
+    key: "preferences",
+    title: "Settings",
+    icon: (
+      <TabChip>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
+          <circle cx="8" cy="8" r="2.2" />
+          <path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4" strokeLinecap="round" />
+        </svg>
+      </TabChip>
+    ),
+  },
 ];
 
 // Profile avatar with a hover dropdown of the profile tabs.
@@ -228,7 +240,7 @@ export function SiteHeader() {
                 <NavLink href="/generate" label="Generate" active={pathname.startsWith("/generate") || pathname.startsWith("/models")} />
                 <NavLink href="/library" label="Library" active={pathname.startsWith("/library")} />
                 <NavLink href="/profile" label="Profile" active={pathname.startsWith("/profile")} />
-                <NavLink href="/settings" label="Settings" active={pathname.startsWith("/settings")} />
+                <NavLink href="/profile?tab=preferences" label="Settings" active={pathname.startsWith("/settings")} />
               </>
             ) : (
               <>
