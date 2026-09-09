@@ -62,7 +62,7 @@ export default function PricingPage() {
         </div>
 
         <div className="relative mt-6 py-6">
-          <PlansDots className="pointer-events-none absolute left-1/2 top-0 h-full w-screen -translate-x-1/2" />
+          <PlansDots className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
 
           <div className="relative">
             {/* Plans + linked value charts (hover a plan to highlight its bars) */}
