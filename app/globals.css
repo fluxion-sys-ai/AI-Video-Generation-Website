@@ -222,12 +222,13 @@
   --c-fg-soft-2: #3e5c87;
   --c-muted: #5a6b84;
   --c-dim: #7e8fa8;
-  --c-line: #dce3ef;
-  --c-line-strong: #c4cfe0;
+  /* Borders — a touch darker so they read clearly on the grey canvas. */
+  --c-line: #c5cede;
+  --c-line-strong: #a7b4ca;
   /* On white, translucent light-blue is nearly invisible, so hairlines/hover
      use a darker slate tint here to stay legible. */
-  --c-hairline: rgba(46, 70, 107, 0.16);
-  --c-hairline-strong: rgba(46, 70, 107, 0.26);
+  --c-hairline: rgba(46, 70, 107, 0.24);
+  --c-hairline-strong: rgba(46, 70, 107, 0.36);
   --c-hover: rgba(46, 70, 107, 0.05);
   /* Cursor spotlight: much lighter/softer in light mode so it doesn't smear
      over the bright canvas. */
