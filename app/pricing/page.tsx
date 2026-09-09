@@ -51,7 +51,7 @@ export default function PricingPage() {
           Plans and credits
         </h1>
         <span className="mx-auto mt-3 block h-px w-10 bg-[#E0A24E]" />
-        <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
+        <p className="mt-4 text-[#9FB2CC]">
           Credits are spent per second of generated video. Pick a plan and start generating.
         </p>
 
@@ -112,7 +112,7 @@ export default function PricingPage() {
           <p className="mx-auto mt-2 max-w-xl text-sm text-[#9FB2CC]">
             Credits are spent per second. The dollar column assumes 1 credit ≈ $0.01.
           </p>
-          <div className="mx-auto mt-8 max-w-3xl text-left">
+          <div className="mx-auto mt-8 max-w-5xl text-left">
             <ModelPricingTable />
           </div>
         </div>

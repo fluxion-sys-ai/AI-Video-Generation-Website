@@ -27,8 +27,8 @@ export default function Home() {
       <SiteHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden lg:h-[86vh]">
-        <div className="grid h-full items-center gap-10 px-8 py-24 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
+      <section className="relative overflow-hidden lg:h-[68vh]">
+        <div className="grid h-full items-center gap-10 px-8 py-20 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
           <div className="max-w-xl lg:pl-12">
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
               Text-to-video, image-to-video
@@ -62,8 +62,11 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Stats */}
+      <Stats />
+
       {/* Models showcase */}
-      <section id="models" className="scroll-mt-24 pb-20 pt-6">
+      <section id="models" className="scroll-mt-24 pb-20 pt-14">
         <Reveal className="px-8">
           <div className="flex items-end justify-between gap-4">
             <div>
@@ -82,9 +85,6 @@ export default function Home() {
           <ModelMarquee />
         </div>
       </section>
-
-      {/* Stats */}
-      <Stats />
 
       {/* Walkthrough */}
       <section className="px-8 py-20">
@@ -112,7 +112,7 @@ export default function Home() {
 
       {/* Per-model pricing */}
       <section className="px-8 pb-24">
-        <Reveal className="mx-auto max-w-4xl">
+        <Reveal className="mx-auto max-w-5xl">
           <div className="text-center">
             <Kicker label="Pricing" color="#FFB020" />
             <h2 className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">

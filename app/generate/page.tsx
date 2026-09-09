@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
 
@@ -63,11 +64,16 @@ function GenerateInner() {
   const [refineInput, setRefineInput] = useState("");
 
   // Reset model-dependent options when the selected model changes.
+  // Keep the prompt, but drop any generated video / refine session.
   useEffect(() => {
     setAspect(model.aspectRatios[0]);
     setResolution(model.popularResolutions[0] || model.resolutions[0]);
     setDuration(model.durations[0]);
     if (!model.supports.audio) setAudio(false);
+    setStatus("idle");
+    setResultUrl(null);
+    setRefine(false);
+    setChat([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
@@ -141,17 +147,7 @@ function GenerateInner() {
   return (
     <div className="grid gap-8 px-8 py-8 lg:h-[calc(100vh-5rem)] lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,40%)]">
       {/* Sidebar (borderless) */}
-      <aside className="min-h-0 space-y-8 lg:overflow-y-auto">
-        <div>
-          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
-            Pricing
-          </span>
-          <p className="mt-2 text-sm text-[#9FB2CC]">{model.creditsPerSecond} credits / second</p>
-          <p className="text-sm text-[#9FB2CC]">
-            Estimate: <span className="text-[#E9F1FB]">{credits} credits</span> for {duration}s
-          </p>
-        </div>
-
+      <aside className="flex min-h-0 flex-col gap-8 lg:overflow-y-auto">
         <div>
           <div className="mb-3 flex gap-5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em]">
             <button
@@ -195,6 +191,17 @@ function GenerateInner() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Pricing — pinned to the bottom of the sidebar */}
+        <div className="mt-auto">
+          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
+            Pricing
+          </span>
+          <p className="mt-2 text-sm text-[#9FB2CC]">{model.creditsPerSecond} credits / second</p>
+          <p className="text-sm text-[#9FB2CC]">
+            Estimate: <span className="text-[#E9F1FB]">{credits} credits</span> for {duration}s
+          </p>
         </div>
       </aside>
 
@@ -394,6 +401,7 @@ export default function GeneratePage() {
       <Suspense fallback={null}>
         <GenerateInner />
       </Suspense>
+      <SiteFooter />
     </div>
   );
 }

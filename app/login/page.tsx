@@ -1,14 +1,18 @@
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { AuthForm } from "@/components/auth-form";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <Suspense fallback={null}>
-        <AuthForm mode="login" />
-      </Suspense>
+      <div className="flex-1">
+        <Suspense fallback={null}>
+          <AuthForm mode="login" />
+        </Suspense>
+      </div>
+      <SiteFooter />
     </div>
   );
 }

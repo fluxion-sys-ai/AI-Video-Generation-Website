@@ -4,104 +4,93 @@ import { Fragment, useEffect, useRef, useState } from "react";
 
 const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
 
-type Slot = { videos: string[]; startMs: number; holdMs: number };
-
-// Each slot cycles through its videos, always swiping UP, on its own timing.
-const SLOTS: Slot[] = [
-  { videos: ["a", "b", "c"].map((v) => `${BASE}/reels/slot1/${v}.mp4`), startMs: 0, holdMs: 3800 },
-  { videos: ["a", "b", "c"].map((v) => `${BASE}/reels/slot2/${v}.mp4`), startMs: 1500, holdMs: 4700 },
-  { videos: ["a", "b", "c"].map((v) => `${BASE}/reels/slot3/${v}.mp4`), startMs: 3000, holdMs: 5600 },
+const SLOTS = [
+  ["a", "b", "c"].map((v) => `${BASE}/reels/slot1/${v}.mp4`),
+  ["a", "b", "c"].map((v) => `${BASE}/reels/slot2/${v}.mp4`),
+  ["a", "b", "c"].map((v) => `${BASE}/reels/slot3/${v}.mp4`),
 ];
 
-function ReelSlot({ videos, startMs, holdMs }: Slot) {
-  const n = videos.length;
-  const [pos, setPos] = useState(0); // 0..n; position n is a duplicate of the first for a seamless wrap
-  const [anim, setAnim] = useState(true);
-  const posRef = useRef(0);
+// One shared scheduler advances a single slot per tick (round-robin), so no
+// two slots ever swipe at the same time. Each slot swipes every SLOTS*GAP ms.
+const GAP = 1700;
+
+export function HeroReels() {
+  const posRef = useRef<number[]>(SLOTS.map(() => 0));
+  const animRef = useRef<boolean[]>(SLOTS.map(() => true));
+  const [, force] = useState(0);
+  const render = () => force((x) => x + 1);
 
   useEffect(() => {
-    if (n < 2) return;
-    let hold: ReturnType<typeof setTimeout>;
+    let turn = 0;
     let mounted = true;
-
-    // random jitter each cycle so slots keep drifting apart and never sync
-    const nextDelay = () => holdMs + Math.random() * 1400;
-
-    const step = () => {
-      const cur = posRef.current;
+    const id = setInterval(() => {
+      const i = turn % SLOTS.length;
+      turn++;
+      const n = SLOTS[i].length; // number of real videos
+      const cur = posRef.current[i];
       if (cur < n) {
-        posRef.current = cur + 1;
-        setAnim(true);
-        setPos(posRef.current);
-        hold = setTimeout(step, nextDelay());
+        posRef.current[i] = cur + 1;
+        animRef.current[i] = true;
+        render();
       } else {
-        // at the duplicate first frame -> snap back to real first (no anim), then swipe up
-        setAnim(false);
-        posRef.current = 0;
-        setPos(0);
+        // showing the duplicate first frame -> snap back (no anim), then swipe up
+        posRef.current[i] = 0;
+        animRef.current[i] = false;
+        render();
         requestAnimationFrame(() =>
           requestAnimationFrame(() => {
             if (!mounted) return;
-            setAnim(true);
-            posRef.current = 1;
-            setPos(1);
-            hold = setTimeout(step, nextDelay());
+            posRef.current[i] = 1;
+            animRef.current[i] = true;
+            render();
           })
         );
       }
-    };
-
-    const start = setTimeout(step, startMs + holdMs);
+    }, GAP);
     return () => {
       mounted = false;
-      clearTimeout(start);
-      clearTimeout(hold);
+      clearInterval(id);
     };
-  }, [n, startMs, holdMs]);
+  }, []);
 
-  const track = [...videos, videos[0]]; // append first for the seamless wrap
-  const unit = 100 / (n + 1); // each frame is this % of the track height
-
-  return (
-    <div className="relative aspect-[9/16] w-[20vw] overflow-hidden bg-black">
-      <div
-        className="absolute inset-0"
-        style={{
-          height: `${(n + 1) * 100}%`,
-          transform: `translateY(-${pos * unit}%)`,
-          transition: anim ? "transform 0.6s cubic-bezier(0.7, 0, 0.3, 1)" : "none",
-        }}
-      >
-        {track.map((src, i) => (
-          <video
-            key={i}
-            src={src}
-            style={{ height: `${unit}%` }}
-            className="w-full object-cover"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Three vertical reels side by side, forming one seamless rect.
-export function HeroReels() {
   return (
     <div className="flex overflow-hidden rounded-[14px] border border-[rgba(255,193,94,0.35)] shadow-[0_20px_55px_rgba(0,0,0,0.55),0_0_70px_-8px_rgba(255,193,94,0.55)]">
-      {SLOTS.map((slot, i) => (
-        <Fragment key={i}>
-          {i > 0 && (
-            <div className="relative z-10 w-px self-stretch bg-[rgba(255,193,94,0.7)] shadow-[0_0_16px_4px_rgba(255,193,94,0.55)]" />
-          )}
-          <ReelSlot {...slot} />
-        </Fragment>
-      ))}
+      {SLOTS.map((videos, i) => {
+        const n = videos.length;
+        const unit = 100 / (n + 1);
+        const track = [...videos, videos[0]];
+        return (
+          <Fragment key={i}>
+            {i > 0 && (
+              <div className="relative z-10 w-px self-stretch bg-[rgba(255,193,94,0.7)] shadow-[0_0_16px_4px_rgba(255,193,94,0.55)]" />
+            )}
+            <div className="relative aspect-[9/16] w-[20vw] overflow-hidden bg-black">
+              <div
+                className="absolute inset-0"
+                style={{
+                  height: `${(n + 1) * 100}%`,
+                  transform: `translateY(-${posRef.current[i] * unit}%)`,
+                  transition: animRef.current[i] ? "transform 0.6s cubic-bezier(0.7, 0, 0.3, 1)" : "none",
+                }}
+              >
+                {track.map((src, j) => (
+                  <video
+                    key={j}
+                    src={src}
+                    style={{ height: `${unit}%` }}
+                    className="w-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                  />
+                ))}
+              </div>
+            </div>
+          </Fragment>
+        );
+      })}
     </div>
   );
 }
