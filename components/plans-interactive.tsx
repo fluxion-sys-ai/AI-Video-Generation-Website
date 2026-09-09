@@ -34,14 +34,14 @@ function Bar({
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className="cursor-default">
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span className={active ? "text-[#FFB020]" : "text-[#C7D4E6]"}>{label}</span>
-        <span className={`font-[family-name:var(--font-jetbrains)] ${active ? "text-[#FFD98A]" : "text-[#FFB020]"}`}>
+        <span className={active ? "text-[#FF8A1E]" : "text-[#C7D4E6]"}>{label}</span>
+        <span className={`font-[family-name:var(--font-jetbrains)] ${active ? "text-[#FF8A1E]" : "text-[#9FB2CC]"}`}>
           {display}
         </span>
       </div>
       <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-[#101E36]">
         <div
-          className={`h-full rounded-full transition-all ${active ? "bg-[#FFB020] shadow-[0_0_14px_2px_rgba(255,176,32,0.65)]" : "bg-[#FF8A1E]"}`}
+          className={`h-full rounded-full transition-all ${active ? "bg-[#FF8A1E] shadow-[0_0_14px_2px_rgba(255,138,30,0.75)]" : "bg-[#3E6FB5]"}`}
           style={{ width: `${Math.max(4, pct)}%` }}
         />
       </div>
