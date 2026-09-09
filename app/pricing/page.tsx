@@ -24,26 +24,44 @@ export default function PricingPage() {
       <PlansDots className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl flex-1 px-8 py-10">
-        <div className="text-center">
-          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
-            Pricing
-          </span>
-          <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-4xl font-medium uppercase tracking-[0.01em]">
-            Pay as you go
-          </h1>
-          <span className="mx-auto mt-3 block h-px w-10 bg-[#E0A24E]" />
-          <p className="mt-4 text-[#9FB2CC]">
-            No subscriptions. You only pay per second of video you generate, priced per model.
-          </p>
-        </div>
+        {/* Top: pay-as-you-go info (left) + estimator (right) */}
+        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+          <div>
+            <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
+              Pricing
+            </span>
+            <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-4xl font-medium uppercase tracking-[0.01em]">
+              Pay as you go
+            </h1>
+            <span className="mt-3 block h-px w-10 bg-[#E0A24E]" />
+            <p className="mt-4 text-[#9FB2CC]">
+              No subscriptions. You only pay per second of video you generate, priced per model.
+            </p>
+            <div className="mt-5 flex items-baseline gap-1">
+              <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold text-[#FF8A1E]">{PAYG.price}</span>
+              <span className="text-sm text-[#6E82A0]">{PAYG.note}</span>
+            </div>
+            <ul className="mt-4 space-y-1.5 text-sm text-[#A9BBD4]">
+              {PAYG.features.map((f) => (
+                <li key={f} className="flex items-center gap-2">
+                  <span className="text-[#E0A24E]">•</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={PAYG.href}
+              className="mt-6 inline-block rounded-[10px] bg-[#FF8A1E] px-6 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]"
+            >
+              {PAYG.cta}
+            </Link>
+          </div>
 
-        {/* Estimator */}
-        <div className="mx-auto mt-8 max-w-3xl">
           <CostEstimator />
         </div>
 
-        {/* Per-model table (the core rate card) */}
-        <div className="mt-10">
+        {/* Per-model rate table */}
+        <div className="mt-12">
           <h2 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">
             Per-model rates
           </h2>
@@ -53,31 +71,6 @@ export default function PricingPage() {
           <div className="mt-4">
             <ModelPricingTable />
           </div>
-        </div>
-
-        {/* Pay as you go — the only option */}
-        <div className="mx-auto mt-12 max-w-md rounded-[14px] border border-[#FF8A1E] bg-[rgba(255,138,30,0.06)] p-6">
-          <h3 className="font-[family-name:var(--font-jetbrains)] text-xl font-medium uppercase tracking-[0.02em]">
-            {PAYG.name}
-          </h3>
-          <div className="mt-3 flex items-baseline gap-1">
-            <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold">{PAYG.price}</span>
-            <span className="text-sm text-[#6E82A0]">{PAYG.note}</span>
-          </div>
-          <ul className="mt-4 space-y-1.5 text-sm text-[#A9BBD4]">
-            {PAYG.features.map((f) => (
-              <li key={f} className="flex items-center gap-2">
-                <span className="text-[#E0A24E]">•</span>
-                {f}
-              </li>
-            ))}
-          </ul>
-          <Link
-            href={PAYG.href}
-            className="mt-6 block rounded-[10px] bg-[#FF8A1E] px-4 py-2.5 text-center font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]"
-          >
-            {PAYG.cta}
-          </Link>
         </div>
       </main>
       <SiteFooter />
