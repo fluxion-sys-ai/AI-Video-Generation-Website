@@ -70,7 +70,7 @@ export function HeroReels() {
 
   return (
     <div
-      className="relative flex overflow-hidden rounded-[14px] border border-[rgba(255,193,94,0.35)] shadow-[0_20px_55px_rgba(0,0,0,0.55),0_0_70px_-8px_rgba(255,193,94,0.55)]"
+      className="reel-glow relative flex overflow-hidden rounded-[14px] border border-[rgba(255,193,94,0.35)]"
       style={{ transform: "translateZ(0)", isolation: "isolate", contain: "paint" }}
     >
       {/* Loading skeleton — just a soft shimmer over the reels' footprint (no

@@ -200,6 +200,8 @@
   --glow-b1: #7cbdf2;
   /* Moving line/dot field stroke (components/plans-dots.tsx): sky blue in dark. */
   --dot-line: #7fa8d8;
+  /* Hero-reels frame shadow: deep drop shadow + warm gold glow (dark). */
+  --reel-shadow: 0 20px 55px rgba(0, 0, 0, 0.55), 0 0 70px -8px rgba(255, 193, 94, 0.55);
 }
 
 /* Light theme — matches the Fluxion site's light look. Only surfaces, text,
@@ -238,6 +240,8 @@
   --glow-b1: #ff8a1e;
   /* Moving line/dot field: warm gold line on white (was a muddy inverted blue). */
   --dot-line: #eaa23c;
+  /* Reels shadow in light mode: no heavy black — a soft warm drop + gold glow. */
+  --reel-shadow: 0 16px 40px -14px rgba(180, 120, 30, 0.35), 0 0 55px -8px rgba(255, 176, 32, 0.5);
 }
 
 /* Expose the tokens as Tailwind color utilities. `inline` makes them resolve at
@@ -303,6 +307,11 @@
 /* Cursor spotlight fill — token-driven so light mode softens it. */
 .spotlight-glow {
   background: var(--spotlight);
+}
+
+/* Hero-reels frame shadow (theme-aware; components/hero-reels.tsx). */
+.reel-glow {
+  box-shadow: var(--reel-shadow);
 }
 
 /* Playground <select> dropdowns: replace the native caret (which sits hard
