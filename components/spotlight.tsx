@@ -25,7 +25,7 @@ export function Spotlight() {
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-30">
       <div
         ref={dotRef}
-        className="absolute -left-[150px] -top-[150px] h-[300px] w-[300px] rounded-full opacity-0 transition-opacity duration-300"
+        className="absolute -left-[75px] -top-[75px] h-[150px] w-[150px] rounded-full opacity-0 transition-opacity duration-300"
         style={{
           background: "radial-gradient(circle, rgba(255,138,30,0.15), rgba(124,189,242,0.06) 42%, transparent 68%)",
         }}
