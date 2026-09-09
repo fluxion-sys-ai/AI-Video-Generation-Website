@@ -29,7 +29,7 @@ export function Brand({
   const inner = (
     <>
       <LogoMark className={mark} />
-      <span className="flex items-baseline gap-2 font-[family-name:var(--font-jetbrains)] text-[18px] font-medium tracking-[-0.01em]">
+      <span className="flex items-baseline gap-2 font-[family-name:var(--font-sora)] text-[19px] font-medium tracking-[-0.02em]">
         fluxion
         <span className="relative -top-[2px] rounded-[4px] border border-[rgba(148,170,200,0.3)] px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[11px] tracking-[0.08em] text-[#A9BBD4]">
           {boxText}
