@@ -65,15 +65,27 @@ function NavMenu({ label, href, children }: { label: string; href?: string; chil
   );
 }
 
-function MenuItem({ href, title, sub }: { href: string; title: string; sub?: string }) {
+function MenuItem({ href, title, sub, icon }: { href: string; title: string; sub?: string; icon?: React.ReactNode }) {
   return (
     <Link
       href={href}
-      className="group block rounded-[7px] px-3 py-2 transition-colors hover:bg-[rgba(124,189,242,0.08)]"
+      className="group flex items-center gap-3 rounded-[7px] px-3 py-2 transition-colors hover:bg-[rgba(124,189,242,0.08)]"
     >
-      <div className="text-sm uppercase tracking-[0.04em] text-[#E9F1FB] transition-colors group-hover:text-[#F5C46B]">{title}</div>
-      {sub && <div className="text-xs normal-case tracking-normal text-[#6E82A0]">{sub}</div>}
+      {icon && <span className="shrink-0">{icon}</span>}
+      <span>
+        <span className="block text-sm uppercase tracking-[0.04em] text-[#E9F1FB] transition-colors group-hover:text-[#F5C46B]">{title}</span>
+        {sub && <span className="block text-xs normal-case tracking-normal text-[#6E82A0]">{sub}</span>}
+      </span>
     </Link>
+  );
+}
+
+// small square icon chip with the model initial
+function ModelIcon({ letter }: { letter: string }) {
+  return (
+    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-[rgba(255,138,30,0.12)] font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-[#FF8A1E]">
+      {letter}
+    </span>
   );
 }
 
@@ -95,9 +107,27 @@ export function SiteHeader() {
           <div className="hidden items-center gap-7 md:flex">
             <NavMenu label="Models" href="/models">
               {models.map((m) => (
-                <MenuItem key={m.slug} href={`/generate?model=${m.slug}`} title={m.name} sub={m.tagline} />
+                <MenuItem
+                  key={m.slug}
+                  href={`/generate?model=${m.slug}`}
+                  title={m.name}
+                  sub={m.tagline}
+                  icon={<ModelIcon letter={m.name.charAt(0)} />}
+                />
               ))}
-              <MenuItem href="/models" title="All models" sub="Browse the full catalog" />
+              <MenuItem
+                href="/models"
+                title="All models"
+                sub="Browse the full catalog"
+                icon={
+                  <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(124,189,242,0.35)] bg-[rgba(124,189,242,0.1)] text-[#7CBDF2]">
+                    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" fill="currentColor">
+                      <rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" />
+                      <rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" />
+                    </svg>
+                  </span>
+                }
+              />
             </NavMenu>
             <Link
               href="/pricing"
