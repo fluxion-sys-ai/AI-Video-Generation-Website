@@ -89,6 +89,105 @@ function ModelIcon({ letter }: { letter: string }) {
   );
 }
 
+// blue icon chip for the profile tab menu
+function TabChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(124,189,242,0.35)] bg-[rgba(124,189,242,0.1)] text-[#7CBDF2]">
+      {children}
+    </span>
+  );
+}
+
+const PROFILE_TABS: { key: string; title: string; icon: React.ReactNode }[] = [
+  {
+    key: "account",
+    title: "Account",
+    icon: (
+      <TabChip>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+          <circle cx="8" cy="5" r="2.5" />
+          <path d="M3 14c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" strokeLinecap="round" />
+        </svg>
+      </TabChip>
+    ),
+  },
+  {
+    key: "billing",
+    title: "Billing",
+    icon: (
+      <TabChip>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+          <circle cx="8" cy="8" r="5.5" />
+          <path d="M8 5v6M6.6 9.4c.3.6.9.9 1.4.9.9 0 1.4-.5 1.4-1.1 0-1.5-2.8-.9-2.8-2.3 0-.6.6-1.1 1.4-1.1.6 0 1.1.3 1.4.8" strokeLinecap="round" />
+        </svg>
+      </TabChip>
+    ),
+  },
+  {
+    key: "payment",
+    title: "Payment",
+    icon: (
+      <TabChip>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+          <rect x="2" y="4" width="12" height="8" rx="1.5" />
+          <path d="M2 7h12" />
+        </svg>
+      </TabChip>
+    ),
+  },
+  {
+    key: "usage",
+    title: "Usage",
+    icon: (
+      <TabChip>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M3 13V8M7 13V3.5M11 13V10" strokeLinecap="round" />
+        </svg>
+      </TabChip>
+    ),
+  },
+];
+
+// Profile avatar with a hover dropdown of the profile tabs.
+function ProfileMenu({ user }: { user: User }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <Link href="/profile" aria-expanded={open} className="group flex items-center gap-2" title="Your profile">
+        <span className="hidden max-w-[160px] truncate normal-case text-[#E9F1FB] transition-colors group-hover:text-[#FF8A1E] sm:block">
+          {user.name}
+        </span>
+        <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#FF8A1E] font-medium text-[#0A1322]">
+          {user.avatar ? (
+            <img src={user.avatar} alt="" className="h-full w-full object-cover" />
+          ) : (
+            user.name.charAt(0).toUpperCase()
+          )}
+        </span>
+      </Link>
+      {open && (
+        <div className="absolute right-0 top-full min-w-52 pt-3">
+          <div className="overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0E1730] p-1 shadow-xl shadow-black/40">
+            {PROFILE_TABS.map((t) => (
+              <MenuItem key={t.key} href={`/profile?tab=${t.key}`} title={t.title} icon={t.icon} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
@@ -147,14 +246,7 @@ export function SiteHeader() {
         </div>
         <div className="flex items-center gap-4 text-sm uppercase tracking-[0.06em]">
           {ready && user ? (
-            <Link href="/profile" className="group flex items-center gap-2" title="Your profile">
-              <span className="hidden max-w-[160px] truncate normal-case text-[#E9F1FB] transition-colors group-hover:text-[#FF8A1E] sm:block">
-                {user.name}
-              </span>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF8A1E] font-medium text-[#0A1322]">
-                {user.name.charAt(0).toUpperCase()}
-              </span>
-            </Link>
+            <ProfileMenu user={user} />
           ) : (
             <>
               <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#F5C46B] sm:block">

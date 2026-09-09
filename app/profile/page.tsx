@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
@@ -45,10 +45,20 @@ function mockHistory() {
   });
 }
 
-export default function ProfilePage() {
+type Tab = "account" | "billing" | "payment" | "usage";
+const TABS: Tab[] = ["account", "billing", "payment", "usage"];
+
+function ProfileInner() {
   const router = useRouter();
+  const search = useSearchParams();
   const [ready, setReady] = useState(false);
-  const [tab, setTab] = useState<"account" | "billing" | "payment" | "usage">("account");
+  const [tab, setTab] = useState<Tab>("account");
+
+  // Open the tab named in ?tab= (e.g. from the header avatar menu).
+  useEffect(() => {
+    const t = search.get("tab") as Tab | null;
+    if (t && TABS.includes(t)) setTab(t);
+  }, [search]);
 
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -567,5 +577,13 @@ export default function ProfilePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={null}>
+      <ProfileInner />
+    </Suspense>
   );
 }
