@@ -52,16 +52,16 @@ export function PlansDots({ className = "", variant = "a" }: { className?: strin
         </radialGradient>
       </defs>
 
-      <g stroke="#7FA8D8" strokeWidth="1.5" opacity="0.14">
+      <g stroke="#7FA8D8" strokeWidth="1.5" opacity="0.2">
         {lines.map((l) => (
           <path key={l.id} id={l.id} d={l.d} />
         ))}
       </g>
 
-      <g fill="url(#pdFill)" opacity="0.5">
+      <g fill="url(#pdFill)" opacity="0.7">
         {lines.map((l) => (
           <g key={`d-${l.id}`}>
-            <circle r="7" />
+            <circle r="8" />
             <animateMotion
               dur={`${l.dur}s`}
               begin={`${l.begin}s`}

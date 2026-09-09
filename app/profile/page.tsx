@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
+import { PlansDots } from "@/components/plans-dots";
 import { UsageChart } from "@/components/usage-chart";
 import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
 import { getModels } from "@/lib/models";
@@ -126,9 +127,10 @@ export default function ProfilePage() {
   return (
     <div className="relative flex min-h-screen flex-col">
       <GlowBlobs variant="d" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <PlansDots variant="b" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
 
-      <main className="relative z-10 w-full max-w-5xl flex-1 px-8 py-10">
+      <main className="relative z-10 w-full flex-1 px-8 py-10">
         {ready && (
           <>
             <div className="flex items-center gap-4">
@@ -170,7 +172,7 @@ export default function ProfilePage() {
 
             {/* ACCOUNT */}
             {tab === "account" && (
-              <div className="mt-8 space-y-8">
+              <div className="mt-8 max-w-3xl space-y-8">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
                     <label className={label}>Name</label>
@@ -211,17 +213,6 @@ export default function ProfilePage() {
                   </div>
                   <div className="mt-5">
                     <button onClick={() => setAddOpen(true)} className={btnPrimary}>Add credits</button>
-                  </div>
-                </div>
-
-                {/* daily spend graph - large anchor */}
-                <div className="col-span-4 row-span-2 flex flex-col border-l border-t border-[#2E466B] p-6 sm:col-span-2">
-                  <div className="flex items-baseline justify-between">
-                    <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Daily spend</p>
-                    <p className="text-xs text-[#6E82A0]">Last 20 days</p>
-                  </div>
-                  <div className="mt-4 flex flex-1 items-end">
-                    <UsageChart className="w-full" height={150} />
                   </div>
                 </div>
 
@@ -310,7 +301,7 @@ export default function ProfilePage() {
                       <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Daily usage</p>
                       <p className="text-xs text-[#6E82A0]">Last 20 days</p>
                     </div>
-                    <UsageChart className="mt-4" height={110} />
+                    <UsageChart className="mt-4" plotHeight={150} />
                   </div>
                   {[
                     ["Current invoice due", "$0.00", "", "col-span-2"],

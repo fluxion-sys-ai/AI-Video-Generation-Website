@@ -1,47 +1,82 @@
-// Compact daily-usage bar chart (mock data — standin values). Square edges,
-// orange bars, scales to its container width.
+// Daily usage bar chart (mock standin values). Responsive full-width HTML/CSS
+// so axis labels stay crisp. X axis = day, Y axis = dollars.
+
 const DEFAULT = [2, 1, 0, 3, 5, 2, 4, 3, 6, 4, 2, 7, 5, 8, 6, 3, 5, 9, 7, 4];
+
+// Build M/D labels for the N days ending on END (deterministic, no Date.now).
+const END = new Date(2026, 8, 9); // 2026-09-09
+function dayLabels(n: number): string[] {
+  const out: string[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(END);
+    d.setDate(END.getDate() - i);
+    out.push(`${d.getMonth() + 1}/${d.getDate()}`);
+  }
+  return out;
+}
+
+function niceTop(max: number): number {
+  if (max <= 5) return 5;
+  return Math.ceil(max / 5) * 5;
+}
 
 export function UsageChart({
   className = "",
   data = DEFAULT,
-  height = 96,
+  plotHeight = 150,
 }: {
   className?: string;
   data?: number[];
-  height?: number;
+  plotHeight?: number;
 }) {
-  const W = 600;
-  const H = 200;
-  const pad = 6;
-  const n = data.length;
-  const max = Math.max(...data, 1);
-  const slot = (W - pad * 2) / n;
-  const barW = slot * 0.62;
+  const labels = dayLabels(data.length);
+  const top = niceTop(Math.max(...data, 1));
+  const ticks = [top, (top * 3) / 4, top / 2, top / 4, 0];
 
   return (
-    <svg
-      className={className}
-      viewBox={`0 0 ${W} ${H}`}
-      preserveAspectRatio="none"
-      style={{ height, width: "100%" }}
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <linearGradient id="ucBar" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#FFB020" />
-          <stop offset="1" stopColor="#FF8A1E" stopOpacity="0.55" />
-        </linearGradient>
-      </defs>
-      {/* baseline */}
-      <line x1={pad} y1={H - 1} x2={W - pad} y2={H - 1} stroke="rgba(124,189,242,0.18)" strokeWidth="1" />
-      {data.map((v, i) => {
-        const h = (v / max) * (H - 16);
-        const x = pad + i * slot + (slot - barW) / 2;
-        const y = H - h;
-        return <rect key={i} x={x} y={y} width={barW} height={Math.max(h, 1)} fill="url(#ucBar)" />;
-      })}
-    </svg>
+    <div className={`flex gap-2 ${className}`}>
+      {/* Y axis */}
+      <div
+        className="flex flex-col justify-between text-right font-[family-name:var(--font-jetbrains)] text-[10px] text-[#6E82A0]"
+        style={{ height: plotHeight }}
+      >
+        {ticks.map((t) => (
+          <span key={t}>${Number.isInteger(t) ? t : t.toFixed(1)}</span>
+        ))}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        {/* plot area with horizontal gridlines */}
+        <div
+          className="relative flex items-end gap-[3px] border-b border-l border-[#2E466B]"
+          style={{ height: plotHeight }}
+        >
+          {ticks.slice(0, -1).map((t) => (
+            <span
+              key={t}
+              className="pointer-events-none absolute left-0 right-0 border-t border-[rgba(124,189,242,0.1)]"
+              style={{ bottom: `${(t / top) * 100}%` }}
+            />
+          ))}
+          {data.map((v, i) => (
+            <div
+              key={i}
+              title={`${labels[i]} · $${v}`}
+              className="relative flex-1 rounded-t-[2px]"
+              style={{
+                height: `${Math.max((v / top) * 100, 1.5)}%`,
+                background: "linear-gradient(180deg, #FFB020 0%, rgba(255,138,30,0.45) 100%)",
+              }}
+            />
+          ))}
+        </div>
+        {/* X axis */}
+        <div className="mt-1.5 flex gap-[3px] font-[family-name:var(--font-jetbrains)] text-[9px] text-[#6E82A0]">
+          {labels.map((l, i) => (
+            <span key={i} className="flex-1 text-center">{l}</span>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
