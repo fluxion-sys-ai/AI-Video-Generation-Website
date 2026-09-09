@@ -88,33 +88,44 @@ export default function LibraryPage() {
   const videos = prompts.map((p, i) => ({ id: i, prompt: p, model: models[i % models.length], when: ["2h ago", "Yesterday", "3 days ago", "Last week", "Last week", "2 weeks ago"][i] }));
 
   // ---- folder helpers -------------------------------------------------------
-  function persistFolders(next: Folder[]) {
-    setFolders(next);
-    try {
-      localStorage.setItem(FOLDERS_KEY, JSON.stringify(next));
-    } catch {
-      /* storage may be unavailable */
-    }
-  }
+  // All mutations use functional updates so concurrent/async ops (e.g. dropping
+  // or uploading several images) compose correctly instead of clobbering each
+  // other via a stale `folders` closure (that caused off-by-one counts).
+  // Persistence is handled by the effect below, keyed on `folders`.
   function createFolder(name: string) {
     const n = name.trim();
     if (!n) return;
-    persistFolders([...folders, { id: `f${Date.now()}`, name: n, imageIds: [] }]);
+    setFolders((prev) => [...prev, { id: `f${Date.now()}`, name: n, imageIds: [] }]);
     setNewFolderName("");
     setCreatingFolder(false);
   }
   function addToFolder(folderId: string, imageId: string) {
-    persistFolders(
-      folders.map((f) => (f.id === folderId ? (f.imageIds.includes(imageId) ? f : { ...f, imageIds: [...f.imageIds, imageId] }) : f)),
+    setFolders((prev) =>
+      prev.map((f) => (f.id === folderId ? (f.imageIds.includes(imageId) ? f : { ...f, imageIds: [...f.imageIds, imageId] }) : f)),
     );
   }
   function removeFromFolder(folderId: string, imageId: string) {
-    persistFolders(folders.map((f) => (f.id === folderId ? { ...f, imageIds: f.imageIds.filter((x) => x !== imageId) } : f)));
+    setFolders((prev) => prev.map((f) => (f.id === folderId ? { ...f, imageIds: f.imageIds.filter((x) => x !== imageId) } : f)));
   }
   function deleteFolder(folderId: string) {
-    persistFolders(folders.filter((f) => f.id !== folderId));
+    setFolders((prev) => prev.filter((f) => f.id !== folderId));
     if (activeFolder === folderId) setActiveFolder(null);
   }
+
+  // Persist folders whenever they change (skips the initial hydrate render so it
+  // never overwrites stored folders with the empty initial state).
+  const foldersHydrated = useRef(false);
+  useEffect(() => {
+    if (!foldersHydrated.current) {
+      foldersHydrated.current = true;
+      return;
+    }
+    try {
+      localStorage.setItem(FOLDERS_KEY, JSON.stringify(folders));
+    } catch {
+      /* storage may be unavailable */
+    }
+  }, [folders]);
 
   // ---- image helpers --------------------------------------------------------
   const activeFolderObj = folders.find((f) => f.id === activeFolder) || null;
@@ -153,10 +164,12 @@ export default function LibraryPage() {
   }
   function deleteImages(ids: string[]) {
     const set = new Set(ids);
-    const next = libImages.filter((i) => !set.has(i.id));
-    setLibImages(next);
-    saveLibraryImages(next);
-    persistFolders(folders.map((f) => ({ ...f, imageIds: f.imageIds.filter((x) => !set.has(x)) })));
+    setLibImages((prev) => {
+      const next = prev.filter((i) => !set.has(i.id));
+      saveLibraryImages(next);
+      return next;
+    });
+    setFolders((prev) => prev.map((f) => ({ ...f, imageIds: f.imageIds.filter((x) => !set.has(x)) })));
     setSelected(new Set());
     setDeleteIds(null);
   }
