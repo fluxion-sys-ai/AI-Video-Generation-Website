@@ -339,9 +339,9 @@ function ProfileInner() {
               </div>
             )}
 
-            {/* PAYMENT - saved methods + add card */}
+            {/* PAYMENT - saved methods (left) + billing address (right) */}
             {tab === "payment" && (
-              <div className="mt-8 max-w-3xl space-y-8">
+              <div className="mt-8 grid max-w-5xl gap-10 lg:grid-cols-2 lg:items-start">
                 <div>
                   <div className="flex items-center justify-between gap-4">
                     <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
@@ -391,7 +391,7 @@ function ProfileInner() {
                   )}
                 </div>
 
-                <div className="border-t border-[rgba(124,189,242,0.14)] pt-6">
+                <div>
                   <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
                     Billing address
                   </h2>
