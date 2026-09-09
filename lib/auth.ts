@@ -5,23 +5,29 @@ const AUTH_KEY = "fluxion.signedIn";
 const USER_KEY = "fluxion.user";
 const DRAFT_KEY = "fluxion.genDraft";
 
-export type User = { name: string; email: string };
+export type User = { name: string; username: string; email: string };
 
 export function isSignedIn(): boolean {
   if (typeof window === "undefined") return false;
   return localStorage.getItem(AUTH_KEY) === "1";
 }
 
+function localPart(email: string): string {
+  return email.split("@")[0] || "creator";
+}
 function nameFromEmail(email: string): string {
-  const local = (email.split("@")[0] || "creator").replace(/[._-]+/g, " ").trim();
+  const local = localPart(email).replace(/[._-]+/g, " ").trim();
   return local ? local.replace(/\b\w/g, (c) => c.toUpperCase()) : "Creator";
+}
+function usernameFromEmail(email: string): string {
+  return localPart(email).replace(/[^a-z0-9]/gi, "").toLowerCase() || "creator";
 }
 
 export function signIn(email?: string) {
   localStorage.setItem(AUTH_KEY, "1");
   if (!localStorage.getItem(USER_KEY)) {
     const e = email || "you@fluxion.ai";
-    setUser({ name: nameFromEmail(e), email: e });
+    setUser({ name: nameFromEmail(e), username: usernameFromEmail(e), email: e });
   }
 }
 
@@ -35,7 +41,12 @@ export function getUser(): User | null {
   const raw = localStorage.getItem(USER_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as User;
+    const u = JSON.parse(raw) as Partial<User>;
+    return {
+      name: u.name || "Creator",
+      username: u.username || usernameFromEmail(u.email || "creator"),
+      email: u.email || "you@fluxion.ai",
+    };
   } catch {
     return null;
   }

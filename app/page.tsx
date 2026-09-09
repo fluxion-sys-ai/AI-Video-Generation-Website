@@ -139,9 +139,9 @@ export default function Home() {
       <section className="px-8 pb-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="text-center">
-            <SectionHeading index="03" label="Pricing" title="Per-model pricing" color="#FFB020" center />
+            <SectionHeading index="03" label="Pricing" title="Pay as you go" color="#FFB020" center />
             <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
-              Pay by the second in credits. Predictable, and priced per model.
+              No subscriptions — pay per second of video, priced per model.
             </p>
           </div>
           <div className="mt-8">
@@ -152,7 +152,7 @@ export default function Home() {
               href="/pricing"
               className="rounded-[10px] border border-[rgba(124,189,242,0.24)] px-6 py-3 font-medium text-[#E9F1FB] transition-colors hover:bg-[#101E36]"
             >
-              See all plans
+              See full pricing
             </Link>
           </div>
         </Reveal>
