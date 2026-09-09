@@ -7,7 +7,7 @@ import { ApiDocs } from "@/components/api-docs";
 import { SiteFooter } from "@/components/site-footer";
 import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
-import { addRecent, takePendingImages } from "@/lib/prefs";
+import { addRecent, takePendingImages, addLibraryImages } from "@/lib/prefs";
 
 type Status = "idle" | "generating" | "complete" | "failed";
 
@@ -35,7 +35,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
 // form controls use the body theme font (Geist), not the browser default.
 // Solid, higher-contrast borders + inner surface so inputs read clearly.
 const selectClass =
-  "w-full rounded-[8px] border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue focus:ring-1 focus:ring-blue";
+  "w-full rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue focus:ring-1 focus:ring-blue";
 
 // content-width dropdown for short values (aspect ratio, resolution, duration).
 // Square corners + custom caret via `pg-select` (see app/globals.css).
@@ -74,7 +74,17 @@ function GenerateInner() {
   function addImages(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
-    setImages((prev) => [...prev, ...files.map((f) => ({ url: URL.createObjectURL(f), name: f.name }))]);
+    // Read as data URLs so the upload also persists into the library (tagged
+    // with this model) and shows up under /library.
+    files.forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const src = String(reader.result);
+        setImages((prev) => [...prev, { url: src, name: f.name }]);
+        addLibraryImages([{ id: `u${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, src, name: f.name, model: slug }]);
+      };
+      reader.readAsDataURL(f);
+    });
     e.target.value = ""; // let the same file be picked again later
   }
   function removeImage(idx: number) {
@@ -368,7 +378,7 @@ function GenerateInner() {
                   {images.map((img, i) => (
                     // Thumbnails keep the image's true aspect ratio (object-contain),
                     // sized by height. Click to expand into the lightbox.
-                    <div key={i} className="group relative h-36 overflow-hidden rounded-[8px] border border-line-strong bg-black">
+                    <div key={i} className="group relative h-36 overflow-hidden rounded-none border border-line-strong bg-black">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={img.url}
@@ -388,7 +398,7 @@ function GenerateInner() {
                     </div>
                   ))}
                   {/* add-more tile */}
-                  <label className="flex h-36 w-36 cursor-pointer items-center justify-center rounded-[8px] border border-dashed border-line-strong text-dim transition-colors hover:border-blue hover:text-blue" title="Add more images">
+                  <label className="flex h-36 w-36 cursor-pointer items-center justify-center rounded-none border border-dashed border-line-strong text-dim transition-colors hover:border-blue hover:text-blue" title="Add more images">
                     <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3 V13 M3 8 H13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
                     <input type="file" accept="image/*" multiple className="hidden" onChange={addImages} />
                   </label>

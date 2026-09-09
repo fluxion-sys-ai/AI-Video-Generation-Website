@@ -1,14 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
 import { getModels, type Model } from "@/lib/models";
-import { getFavorites, getRecents, setPendingImages } from "@/lib/prefs";
+import {
+  getFavorites,
+  getRecents,
+  setPendingImages,
+  getLibraryImages,
+  saveLibraryImages,
+  addLibraryImages,
+  type LibImage,
+} from "@/lib/prefs";
 
 export default function LibraryPage() {
   const router = useRouter();
@@ -22,6 +30,16 @@ export default function LibraryPage() {
   const [modelFilter, setModelFilter] = useState<"all" | "recents" | "favorites">("all");
   const [modelQuery, setModelQuery] = useState("");
 
+  // Persisted library images (samples + everything the user has uploaded,
+  // including uploads made inside a model's playground).
+  const [libImages, setLibImages] = useState<LibImage[]>([]);
+  const uploadRef = useRef<HTMLInputElement>(null);
+
+  // Delete confirmation (holds the ids queued for deletion).
+  const [deleteIds, setDeleteIds] = useState<string[] | null>(null);
+  // Right-click context menu on an image.
+  const [ctx, setCtx] = useState<{ x: number; y: number; id: string } | null>(null);
+
   // Folders for organizing images (drag an image onto a folder). Persisted.
   type Folder = { id: string; name: string; imageIds: string[] };
   const FOLDERS_KEY = "fluxion.libraryFolders";
@@ -31,15 +49,45 @@ export default function LibraryPage() {
   const [newFolderName, setNewFolderName] = useState("");
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
 
+  const models = getModels();
+
   useEffect(() => {
+    if (!isSignedIn()) {
+      router.replace("/login?next=/library");
+      return;
+    }
+    // Load folders.
     try {
       const raw = localStorage.getItem(FOLDERS_KEY);
       if (raw) setFolders(JSON.parse(raw));
     } catch {
-      /* ignore malformed storage */
+      /* ignore */
     }
-  }, []);
-  // Persist explicitly on each mutation (avoids a load/save race on mount).
+    // Load images; seed with sample references on first visit.
+    let imgs = getLibraryImages();
+    if (imgs.length === 0) {
+      imgs = models.flatMap((m) => [
+        { id: `${m.slug}-a`, src: m.poster, name: `${m.slug}-ref-01.jpg`, model: m.slug },
+        { id: `${m.slug}-b`, src: m.poster, name: `${m.slug}-ref-02.jpg`, model: m.slug },
+      ]);
+      saveLibraryImages(imgs);
+    }
+    setLibImages(imgs);
+    setReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
+
+  const prompts = [
+    "Aerial pull-back over a coastal town at golden hour",
+    "Close-up of rain on a neon-lit window, slow motion",
+    "A paper boat drifting down a rushing gutter",
+    "Timelapse of clouds over a mountain ridge",
+    "Macro shot of ink blooming in water",
+    "Drone flyover of a foggy pine forest",
+  ];
+  const videos = prompts.map((p, i) => ({ id: i, prompt: p, model: models[i % models.length], when: ["2h ago", "Yesterday", "3 days ago", "Last week", "Last week", "2 weeks ago"][i] }));
+
+  // ---- folder helpers -------------------------------------------------------
   function persistFolders(next: Folder[]) {
     setFolders(next);
     try {
@@ -57,9 +105,7 @@ export default function LibraryPage() {
   }
   function addToFolder(folderId: string, imageId: string) {
     persistFolders(
-      folders.map((f) =>
-        f.id === folderId ? (f.imageIds.includes(imageId) ? f : { ...f, imageIds: [...f.imageIds, imageId] }) : f,
-      ),
+      folders.map((f) => (f.id === folderId ? (f.imageIds.includes(imageId) ? f : { ...f, imageIds: [...f.imageIds, imageId] }) : f)),
     );
   }
   function removeFromFolder(folderId: string, imageId: string) {
@@ -70,31 +116,11 @@ export default function LibraryPage() {
     if (activeFolder === folderId) setActiveFolder(null);
   }
 
-  useEffect(() => {
-    if (!isSignedIn()) {
-      router.replace("/login?next=/library");
-      return;
-    }
-    setReady(true);
-  }, [router]);
+  // ---- image helpers --------------------------------------------------------
+  const activeFolderObj = folders.find((f) => f.id === activeFolder) || null;
+  const shownImages = activeFolderObj ? libImages.filter((img) => activeFolderObj.imageIds.includes(img.id)) : libImages;
 
-  const models = getModels();
-  const prompts = [
-    "Aerial pull-back over a coastal town at golden hour",
-    "Close-up of rain on a neon-lit window, slow motion",
-    "A paper boat drifting down a rushing gutter",
-    "Timelapse of clouds over a mountain ridge",
-    "Macro shot of ink blooming in water",
-    "Drone flyover of a foggy pine forest",
-  ];
-  const videos = prompts.map((p, i) => ({ id: i, prompt: p, model: models[i % models.length], when: ["2h ago", "Yesterday", "3 days ago", "Last week", "Last week", "2 weeks ago"][i] }));
-  const images = models.flatMap((m) => [
-    { id: `${m.slug}-a`, src: m.poster, name: `${m.slug}-ref-01.jpg` },
-    { id: `${m.slug}-b`, src: m.poster, name: `${m.slug}-ref-02.jpg` },
-  ]);
-
-  // ---- selection helpers ----------------------------------------------------
-  const allSelected = selected.size > 0 && selected.size === images.length;
+  const allSelected = selected.size > 0 && shownImages.every((i) => selected.has(i.id));
   function toggleOne(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -103,20 +129,44 @@ export default function LibraryPage() {
     });
   }
   function toggleAll() {
-    setSelected(allSelected ? new Set() : new Set(images.map((i) => i.id)));
+    setSelected(allSelected ? new Set() : new Set(shownImages.map((i) => i.id)));
   }
   function exitSelect() {
     setSelectMode(false);
     setSelected(new Set());
   }
-  // Queue the selected images for the chosen model, then open its playground.
+  // Add uploaded files (data URLs). If viewing a folder, file them into it.
+  function onUploadFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    files.forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const item: LibImage = { id: `u${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, src: String(reader.result), name: f.name };
+        addLibraryImages([item]);
+        setLibImages((prev) => [item, ...prev]);
+        if (activeFolder) addToFolder(activeFolder, item.id);
+      };
+      reader.readAsDataURL(f);
+    });
+    e.target.value = "";
+  }
+  function deleteImages(ids: string[]) {
+    const set = new Set(ids);
+    const next = libImages.filter((i) => !set.has(i.id));
+    setLibImages(next);
+    saveLibraryImages(next);
+    persistFolders(folders.map((f) => ({ ...f, imageIds: f.imageIds.filter((x) => !set.has(x)) })));
+    setSelected(new Set());
+    setDeleteIds(null);
+  }
+  // Queue selected images for the chosen model, then open its playground.
   function uploadTo(model: Model) {
-    const chosen = images.filter((img) => selected.has(img.id)).map((img) => ({ url: img.src, name: img.name }));
+    const chosen = libImages.filter((img) => selected.has(img.id)).map((img) => ({ url: img.src, name: img.name }));
     setPendingImages(chosen);
     router.push(`/generate?model=${model.slug}`);
   }
 
-  // Model list shown in the upload modal, filtered by tab + search.
   function modelsForFilter(): Model[] {
     const bySlug = (slug: string) => models.find((m) => m.slug === slug);
     if (modelFilter === "recents") return getRecents().map(bySlug).filter(Boolean) as Model[];
@@ -126,11 +176,9 @@ export default function LibraryPage() {
   const mq = modelQuery.trim().toLowerCase();
   const modelResults = modelsForFilter().filter((m) => !mq || `${m.name} ${m.tagline}`.toLowerCase().includes(mq));
 
-  // Images shown in the grid: all, or just the selected folder's.
-  const activeFolderObj = folders.find((f) => f.id === activeFolder) || null;
-  const shownImages = activeFolderObj ? images.filter((img) => activeFolderObj.imageIds.includes(img.id)) : images;
-
   if (!ready) return <div className="min-h-screen" />;
+
+  const toolbarBtn = "rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:bg-hover";
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -181,64 +229,65 @@ export default function LibraryPage() {
           </div>
         )}
 
-        {/* IMAGES — selectable, organizable into folders (drag onto a folder) */}
+        {/* IMAGES */}
         {tab === "images" && (
           <>
-            {/* toolbar: selection (left) + create folder (top-right) */}
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-3">
-                {!selectMode ? (
-                  <button
-                    onClick={() => setSelectMode(true)}
-                    className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:bg-hover"
-                  >
-                    Select
-                  </button>
-                ) : (
-                  <>
-                    <button onClick={toggleAll} className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:bg-hover">
-                      {allSelected ? "Deselect all" : "Select all"}
-                    </button>
-                    <span className="text-sm text-muted">{selected.size} selected</span>
-                    <button
-                      onClick={() => setUploadOpen(true)}
-                      disabled={selected.size === 0}
-                      className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      Upload to model
-                    </button>
-                    <button onClick={exitSelect} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
-                  </>
-                )}
-              </div>
+            {/* hidden file input for uploads */}
+            <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={onUploadFiles} />
 
-              {/* create folder (top-right) */}
-              <div className="flex items-center gap-2">
-                {creatingFolder ? (
-                  <>
-                    <input
-                      autoFocus
-                      value={newFolderName}
-                      onChange={(e) => setNewFolderName(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") createFolder(newFolderName); if (e.key === "Escape") { setCreatingFolder(false); setNewFolderName(""); } }}
-                      placeholder="Folder name"
-                      className="rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none placeholder:text-dim focus:border-blue"
-                    />
-                    <button onClick={() => createFolder(newFolderName)} className="rounded-none bg-accent px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">Add</button>
-                    <button onClick={() => { setCreatingFolder(false); setNewFolderName(""); }} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
-                  </>
-                ) : (
+            {/* toolbar — right-aligned: [Upload] [Select] [New folder] */}
+            <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+              {selectMode ? (
+                <>
+                  <span className="mr-auto text-sm text-muted">{selected.size} selected</span>
+                  <button onClick={toggleAll} className={toolbarBtn}>{allSelected ? "Deselect all" : "Select all"}</button>
                   <button
-                    onClick={() => setCreatingFolder(true)}
-                    className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:border-accent hover:text-accent"
+                    onClick={() => setUploadOpen(true)}
+                    disabled={selected.size === 0}
+                    className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    New folder +
+                    Upload to model
                   </button>
-                )}
-              </div>
+                  <button
+                    onClick={() => setDeleteIds([...selected])}
+                    disabled={selected.size === 0}
+                    aria-label="Delete selected"
+                    title="Delete selected"
+                    className="flex items-center justify-center rounded-none border border-[rgba(255,107,107,0.4)] px-3 py-2 text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5a1 1 0 0 0 1 .9h3.8a1 1 0 0 0 1-.9l.6-8.5M7 7v4M9 7v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                  <button onClick={exitSelect} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => uploadRef.current?.click()} className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">
+                    Upload {activeFolderObj ? "to folder" : "images"}
+                  </button>
+                  <button onClick={() => setSelectMode(true)} className={toolbarBtn}>Select</button>
+                  {creatingFolder ? (
+                    <>
+                      <input
+                        autoFocus
+                        value={newFolderName}
+                        onChange={(e) => setNewFolderName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") createFolder(newFolderName); if (e.key === "Escape") { setCreatingFolder(false); setNewFolderName(""); } }}
+                        placeholder="Folder name"
+                        className="rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none placeholder:text-dim focus:border-blue"
+                      />
+                      <button onClick={() => createFolder(newFolderName)} className="rounded-none bg-accent px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">Add</button>
+                      <button onClick={() => { setCreatingFolder(false); setNewFolderName(""); }} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
+                    </>
+                  ) : (
+                    <button onClick={() => setCreatingFolder(true)} className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:border-accent hover:text-accent">
+                      New folder +
+                    </button>
+                  )}
+                </>
+              )}
             </div>
 
-            {/* folders row — drop targets. Drag an image onto one to file it. */}
+            {/* folders row — drop targets */}
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setActiveFolder(null)}
@@ -246,7 +295,7 @@ export default function LibraryPage() {
                   activeFolder === null ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                 }`}
               >
-                All ({images.length})
+                All ({libImages.length})
               </button>
               {folders.map((f) => (
                 <div
@@ -273,13 +322,13 @@ export default function LibraryPage() {
               ))}
             </div>
             {folders.length === 0 && !creatingFolder && (
-              <p className="mt-2 text-xs text-dim">Tip: create a folder, then drag images onto it to organize them.</p>
+              <p className="mt-2 text-xs text-dim">Tip: create a folder, then drag images onto it (or right-click an image) to organize them.</p>
             )}
 
             {/* image grid */}
             <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
               {shownImages.length === 0 ? (
-                <p className="col-span-full text-sm text-dim">This folder is empty. Drag images here from “All”.</p>
+                <p className="col-span-full text-sm text-dim">{activeFolderObj ? "This folder is empty. Drag images here, or upload into it." : "No images yet. Upload some to get started."}</p>
               ) : (
                 shownImages.map((img) => {
                   const on = selected.has(img.id);
@@ -289,6 +338,7 @@ export default function LibraryPage() {
                       draggable={!selectMode}
                       onDragStart={(e) => { e.dataTransfer.setData("text/plain", img.id); e.dataTransfer.effectAllowed = "copy"; }}
                       onClick={() => selectMode && toggleOne(img.id)}
+                      onContextMenu={(e) => { e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY, id: img.id }); }}
                       className={`group block border p-2 text-left transition-colors ${
                         on ? "border-accent" : "border-line"
                       } ${selectMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"}`}
@@ -307,18 +357,6 @@ export default function LibraryPage() {
                             )}
                           </span>
                         )}
-                        {/* when viewing a folder, allow removing from it */}
-                        {activeFolderObj && !selectMode && (
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); removeFromFolder(activeFolderObj.id, img.id); }}
-                            aria-label="Remove from folder"
-                            title="Remove from folder"
-                            className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity hover:bg-danger group-hover:opacity-100"
-                          >
-                            <svg width="10" height="10" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-                          </button>
-                        )}
                       </div>
                       <p className="mt-2 truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-dim">{img.name}</p>
                     </div>
@@ -334,14 +372,52 @@ export default function LibraryPage() {
         <SiteFooter />
       </div>
 
-      {/* Upload-to-model modal: filter recents/favorites/all, search, then pick */}
+      {/* Right-click context menu */}
+      {ctx && (
+        <>
+          <div className="fixed inset-0 z-[65]" onClick={() => setCtx(null)} onContextMenu={(e) => { e.preventDefault(); setCtx(null); }} />
+          <div
+            className="fixed z-[66] min-w-44 rounded-[10px] border border-line bg-panel p-1 text-sm shadow-xl shadow-black/40"
+            style={{ left: Math.min(ctx.x, (typeof window !== "undefined" ? window.innerWidth : 9999) - 190), top: ctx.y }}
+          >
+            <button onClick={() => { setSelectMode(true); setSelected(new Set([ctx.id])); setCtx(null); }} className="block w-full rounded-[7px] px-3 py-2 text-left text-fg transition-colors hover:bg-hover">Select</button>
+            {activeFolderObj && (
+              <button onClick={() => { removeFromFolder(activeFolderObj.id, ctx.id); setCtx(null); }} className="block w-full rounded-[7px] px-3 py-2 text-left text-fg transition-colors hover:bg-hover">Remove from “{activeFolderObj.name}”</button>
+            )}
+            {folders.length > 0 && (
+              <>
+                <p className="px-3 pb-1 pt-2 text-[10px] uppercase tracking-[0.08em] text-dim">Add to folder</p>
+                {folders.map((f) => (
+                  <button key={f.id} onClick={() => { addToFolder(f.id, ctx.id); setCtx(null); }} className="block w-full truncate rounded-[7px] px-3 py-1.5 text-left text-fg transition-colors hover:bg-hover">{f.name}</button>
+                ))}
+              </>
+            )}
+            <button onClick={() => { const id = ctx.id; setCtx(null); setDeleteIds([id]); }} className="mt-1 block w-full rounded-[7px] border-t border-line px-3 py-2 text-left text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)]">Delete</button>
+          </div>
+        </>
+      )}
+
+      {/* Delete confirmation */}
+      {deleteIds && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6" onClick={() => setDeleteIds(null)}>
+          <div className="w-full max-w-sm rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Delete {deleteIds.length} image{deleteIds.length === 1 ? "" : "s"}?</h3>
+            <p className="mt-2 text-sm text-muted">This can&apos;t be undone. The image{deleteIds.length === 1 ? "" : "s"} will be removed from your library and any folders.</p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setDeleteIds(null)} className="rounded-[10px] border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Cancel</button>
+              <button onClick={() => deleteImages(deleteIds)} className="rounded-[10px] bg-danger px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-danger-hover">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload-to-model modal */}
       {uploadOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-6" onClick={() => setUploadOpen(false)}>
           <div className="flex max-h-[80vh] w-full max-w-md flex-col rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Upload to a model</h3>
             <p className="mt-1 text-xs text-dim">{selected.size} image{selected.size === 1 ? "" : "s"} → the model&apos;s playground.</p>
 
-            {/* filter chips */}
             <div className="mt-4 flex gap-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em]">
               {(["all", "recents", "favorites"] as const).map((f) => (
                 <button
@@ -356,7 +432,6 @@ export default function LibraryPage() {
               ))}
             </div>
 
-            {/* search */}
             <div className="relative mt-3">
               <svg width="15" height="15" viewBox="0 0 16 16" fill="none" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-dim">
                 <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
@@ -371,7 +446,6 @@ export default function LibraryPage() {
               />
             </div>
 
-            {/* results */}
             <div className="mt-3 min-h-0 flex-1 overflow-y-auto border border-line">
               {modelResults.length === 0 ? (
                 <p className="p-4 text-sm text-dim">

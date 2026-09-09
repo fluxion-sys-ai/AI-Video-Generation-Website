@@ -39,6 +39,35 @@ export function addRecent(slug: string) {
   localStorage.setItem(REC_KEY, JSON.stringify(next));
 }
 
+// Persisted library images. Seeded with samples by the library on first load,
+// then appended to whenever the user uploads — including uploads made inside a
+// model's playground (those carry `model`). Stored as data URLs so they survive
+// navigation/reload (frontend-only mock).
+export type LibImage = { id: string; src: string; name: string; model?: string };
+const LIB_IMAGES_KEY = "fluxion.libraryImages";
+
+export function getLibraryImages(): LibImage[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const v = JSON.parse(localStorage.getItem(LIB_IMAGES_KEY) || "[]");
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+export function saveLibraryImages(list: LibImage[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LIB_IMAGES_KEY, JSON.stringify(list));
+  } catch {
+    /* quota / unavailable — non-critical for the mock */
+  }
+}
+// Prepend new uploads so the newest show first.
+export function addLibraryImages(items: LibImage[]) {
+  saveLibraryImages([...items, ...getLibraryImages()]);
+}
+
 // Hand-off of library images to a model's playground. The library writes the
 // selected images here, then routes to /generate?model=…; the playground reads
 // and clears them on load (see app/generate/page.tsx).
