@@ -527,7 +527,7 @@ export default function LibraryPage() {
               />
             </div>
 
-            <div className="mt-3 min-h-0 flex-1 overflow-y-auto border border-line">
+            <div className="mt-3 h-72 shrink-0 overflow-y-auto border border-line">
               {modelResults.length === 0 ? (
                 <p className="p-4 text-sm text-dim">
                   {modelFilter === "recents" ? "No recent models yet." : modelFilter === "favorites" ? "No favorite models yet." : `No models match “${modelQuery}”.`}
