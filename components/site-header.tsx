@@ -188,6 +188,22 @@ function ProfileMenu({ user }: { user: User }) {
   );
 }
 
+// dashboard "app mode" routes — signed-in users get the app top bar here
+const DASH_PREFIXES = ["/dashboard", "/library", "/settings", "/profile", "/generate", "/models"];
+
+function NavLink({ href, label, active }: { href: string; label: string; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      className={`text-sm uppercase tracking-[0.06em] transition-colors ${
+        active ? "text-[#FF8A1E]" : "text-[#A9BBD4] hover:text-[#F5C46B]"
+      }`}
+    >
+      {label}
+    </Link>
+  );
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
@@ -198,12 +214,23 @@ export function SiteHeader() {
     setReady(true);
   }, [pathname]);
 
+  const dashMode = ready && !!user && DASH_PREFIXES.some((p) => pathname.startsWith(p));
+
   return (
     <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#070D1A]/80 backdrop-blur">
       <nav className="flex h-20 items-center justify-between px-8 font-[family-name:var(--font-jetbrains)]">
         <div className="flex items-center gap-8">
           <Brand />
           <div className="hidden items-center gap-7 md:flex">
+            {dashMode ? (
+              <>
+                <NavLink href="/dashboard" label="Dashboard" active={pathname.startsWith("/dashboard")} />
+                <NavLink href="/models" label="Generate" active={pathname.startsWith("/models") || pathname.startsWith("/generate")} />
+                <NavLink href="/library" label="Library" active={pathname.startsWith("/library")} />
+                <NavLink href="/settings" label="Settings" active={pathname.startsWith("/settings")} />
+              </>
+            ) : (
+              <>
             <NavMenu label="Models" href="/models">
               {models.map((m) => (
                 <MenuItem
@@ -242,11 +269,23 @@ export function SiteHeader() {
             >
               i
             </Link>
+              </>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-4 text-sm uppercase tracking-[0.06em]">
           {ready && user ? (
-            <ProfileMenu user={user} />
+            <>
+              {!dashMode && (
+                <Link
+                  href="/dashboard"
+                  className="rounded-[10px] bg-[#FF8A1E] px-5 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]"
+                >
+                  Create
+                </Link>
+              )}
+              <ProfileMenu user={user} />
+            </>
           ) : (
             <>
               <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#F5C46B] sm:block">
