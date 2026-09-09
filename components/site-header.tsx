@@ -301,9 +301,8 @@ export function SiteHeader() {
               {!dashMode && (
                 <Link
                   href="/dashboard"
-                  className="hidden items-center gap-1.5 border border-[rgba(255,138,30,0.55)] px-3 py-1.5 text-xs uppercase tracking-[0.08em] text-[#FF8A1E] transition-colors hover:bg-[rgba(255,138,30,0.1)] sm:flex"
+                  className="hidden items-center border border-[rgba(255,138,30,0.55)] px-3 py-1.5 text-xs uppercase tracking-[0.08em] text-[#FF8A1E] transition-colors hover:bg-[rgba(255,138,30,0.1)] sm:flex"
                 >
-                  <span className="text-sm leading-none">+</span>
                   Create
                 </Link>
               )}
