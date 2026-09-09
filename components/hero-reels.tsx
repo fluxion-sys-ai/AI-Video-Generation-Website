@@ -20,6 +20,21 @@ export function HeroReels() {
   const [, force] = useState(0);
   const render = () => force((x) => x + 1);
 
+  // Loading gate: the <video>s show a black frame until they've decoded their
+  // first frame. We keep a skeleton overlay up until the first (visible) clip in
+  // every slot fires `loadeddata`, then fade the reels in. A timeout is a safety
+  // net so a slow/failed clip can never leave the skeleton up forever.
+  const [ready, setReady] = useState(false);
+  const loadedSlots = useRef<Set<number>>(new Set());
+  function onSlotLoaded(slot: number) {
+    loadedSlots.current.add(slot);
+    if (loadedSlots.current.size >= SLOTS.length) setReady(true);
+  }
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), 5000);
+    return () => clearTimeout(t);
+  }, []);
+
   useEffect(() => {
     const order = [1, 0, 2]; // middle scrolls first, then left, then right
     let turn = 0;
@@ -56,45 +71,70 @@ export function HeroReels() {
 
   return (
     <div
-      className="flex overflow-hidden rounded-[14px] border border-[rgba(255,193,94,0.35)] shadow-[0_20px_55px_rgba(0,0,0,0.55),0_0_70px_-8px_rgba(255,193,94,0.55)]"
+      className="relative flex overflow-hidden rounded-[14px] border border-[rgba(255,193,94,0.35)] shadow-[0_20px_55px_rgba(0,0,0,0.55),0_0_70px_-8px_rgba(255,193,94,0.55)]"
       style={{ transform: "translateZ(0)", isolation: "isolate", contain: "paint" }}
     >
-      {SLOTS.map((videos, i) => {
-        const n = videos.length;
-        const unit = 100 / (n + 1);
-        const track = [...videos, videos[0]];
-        return (
-          <Fragment key={i}>
-            {i > 0 && (
-              <div className="relative z-10 w-px self-stretch bg-[rgba(255,193,94,0.7)] shadow-[0_0_16px_4px_rgba(255,193,94,0.55)]" />
-            )}
-            <div className="relative aspect-[9/16] w-[20vw] overflow-hidden bg-black">
-              <div
-                className="absolute inset-0"
-                style={{
-                  height: `${(n + 1) * 100}%`,
-                  transform: `translateY(-${posRef.current[i] * unit}%)`,
-                  transition: animRef.current[i] ? "transform 0.6s cubic-bezier(0.7, 0, 0.3, 1)" : "none",
-                }}
-              >
-                {track.map((src, j) => (
-                  <video
-                    key={j}
-                    src={src}
-                    style={{ height: `${unit}%` }}
-                    className="w-full object-cover"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                  />
-                ))}
+      {/* Loading skeleton — a soft shimmer over the reels' footprint until the
+          clips are ready. Fades out (and stops taking pointer events) on ready. */}
+      <div
+        aria-hidden="true"
+        className={`absolute inset-0 z-30 bg-surface transition-opacity duration-500 ${
+          ready ? "pointer-events-none opacity-0" : "opacity-100"
+        }`}
+      >
+        <div className="reel-shimmer absolute inset-0" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-dim">
+          <svg width="26" height="26" viewBox="0 0 24 24" className="animate-spin" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" fill="none" opacity="0.25" />
+            <path d="M21 12a9 9 0 0 0-9-9" stroke="var(--c-gold-soft)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          </svg>
+          <span className="font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.14em]">
+            Loading reels…
+          </span>
+        </div>
+      </div>
+
+      {/* The reels themselves — hidden until `ready`, then faded in. */}
+      <div className={`flex transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}>
+        {SLOTS.map((videos, i) => {
+          const n = videos.length;
+          const unit = 100 / (n + 1);
+          const track = [...videos, videos[0]];
+          return (
+            <Fragment key={i}>
+              {i > 0 && (
+                <div className="relative z-10 w-px self-stretch bg-[rgba(255,193,94,0.7)] shadow-[0_0_16px_4px_rgba(255,193,94,0.55)]" />
+              )}
+              <div className="relative aspect-[9/16] w-[20vw] overflow-hidden bg-black">
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    height: `${(n + 1) * 100}%`,
+                    transform: `translateY(-${posRef.current[i] * unit}%)`,
+                    transition: animRef.current[i] ? "transform 0.6s cubic-bezier(0.7, 0, 0.3, 1)" : "none",
+                  }}
+                >
+                  {track.map((src, j) => (
+                    <video
+                      key={j}
+                      src={src}
+                      style={{ height: `${unit}%` }}
+                      className="w-full object-cover"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      preload="auto"
+                      // Reveal once the first (visible) clip of this slot has a frame.
+                      onLoadedData={j === 0 ? () => onSlotLoaded(i) : undefined}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          </Fragment>
-        );
-      })}
+            </Fragment>
+          );
+        })}
+      </div>
     </div>
   );
 }

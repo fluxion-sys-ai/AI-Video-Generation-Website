@@ -282,6 +282,25 @@ mark.doc-hl {
   animation: slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Hero-reels loading skeleton: a soft gold sheen sweeping across the surface
+   while the reel clips download (see components/hero-reels.tsx). */
+@keyframes reel-shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+.reel-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 193, 94, 0.12) 50%,
+    transparent 80%
+  );
+  animation: reel-shimmer 1.6s ease-in-out infinite;
+}
+
 /* horizontal auto-scroll marquee */
 @keyframes marquee {
   from { transform: translateX(0); }
