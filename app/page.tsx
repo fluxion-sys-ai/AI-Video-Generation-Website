@@ -118,7 +118,7 @@ export default function Home() {
       {/* Walkthrough */}
       <section className="px-8 py-20">
         <Reveal className="mx-auto max-w-4xl text-center">
-          <SectionHeading index="02" label="Walkthrough" title="See it in action" color="#4EC98F" center />
+          <SectionHeading index="02" label="Walkthrough" title="See it in action" color="#7CBDF2" center />
           <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
             Watch a prompt become a finished video in under a minute.
           </p>

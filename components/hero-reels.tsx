@@ -21,10 +21,11 @@ export function HeroReels() {
   const render = () => force((x) => x + 1);
 
   useEffect(() => {
+    const order = [1, 0, 2]; // middle scrolls first, then left, then right
     let turn = 0;
     let mounted = true;
     const id = setInterval(() => {
-      const i = turn % SLOTS.length;
+      const i = order[turn % order.length];
       turn++;
       const n = SLOTS[i].length; // number of real videos
       const cur = posRef.current[i];
