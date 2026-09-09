@@ -156,7 +156,6 @@ function GenerateInner() {
     regen();
   }
 
-  const credits = model.creditsPerSecond * duration;
   const [aw, ah] = aspect.split(":").map(Number);
   const portrait = ah > aw;
 
@@ -240,16 +239,6 @@ function GenerateInner() {
                   ))}
                 </div>
               )}
-            </div>
-
-            <div>
-              <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
-                Pricing
-              </span>
-              <p className="mt-2 text-sm text-[#9FB2CC]">{model.creditsPerSecond} credits / second</p>
-              <p className="text-sm text-[#9FB2CC]">
-                Estimate: <span className="text-[#E9F1FB]">{credits} credits</span> for {duration}s
-              </p>
             </div>
           </div>
         ) : (
