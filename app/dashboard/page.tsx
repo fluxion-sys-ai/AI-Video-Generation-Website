@@ -60,7 +60,7 @@ export default function DashboardPage() {
   if (!ready) return <div className="min-h-screen" />;
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-base-2">
+    <div className="relative flex min-h-screen flex-col bg-base">
       <SiteHeader />
 
       <main className="relative z-10 w-full flex-1 px-10 py-8">
