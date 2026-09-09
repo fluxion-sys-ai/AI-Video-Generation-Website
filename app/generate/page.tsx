@@ -158,11 +158,11 @@ function GenerateInner() {
   const portrait = ah > aw;
 
   return (
-    <div className="grid gap-8 px-8 py-8 lg:h-[calc(100vh-5rem)] lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,40%)]">
+    <div className="grid gap-8 px-8 py-8 lg:h-[calc(100vh-5rem)] lg:grid-cols-[300px_minmax(0,1fr)_minmax(0,40%)]">
       {/* Sidebar (borderless) */}
       <aside className="flex min-h-0 flex-col gap-8 lg:overflow-y-auto">
         <div>
-          <div className="mb-3 flex gap-5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em]">
+          <div className="mb-3 flex gap-6 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
             <button
               onClick={() => setTab("examples")}
               className={`pb-1 transition-colors ${tab === "examples" ? "border-b border-[#F5C46B] text-[#F5C46B]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"}`}
@@ -352,7 +352,11 @@ function GenerateInner() {
       </main>
 
       {/* Preview stage (right): the chosen aspect shape; the video generates here */}
-      <section className="flex min-h-0 flex-col items-center justify-center gap-3">
+      <section className="flex min-h-0 flex-col gap-3">
+        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
+          Preview
+        </span>
+        <div className="flex flex-1 flex-col items-center justify-center gap-3">
         <div
           className="relative overflow-hidden rounded-[10px] border border-[#3E5C87] bg-black"
           style={portrait ? { aspectRatio: `${aw} / ${ah}`, height: "min(72vh, 640px)" } : { aspectRatio: `${aw} / ${ah}`, width: "100%", maxWidth: 680 }}
@@ -396,6 +400,7 @@ function GenerateInner() {
             </button>
           </div>
         )}
+        </div>
       </section>
     </div>
   );

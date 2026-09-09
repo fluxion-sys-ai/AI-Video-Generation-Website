@@ -2,7 +2,6 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PlansDots } from "@/components/plans-dots";
 import { ModelPricingTable } from "@/components/model-pricing-table";
-import { PricingCharts } from "@/components/pricing-charts";
 import { PlansInteractive } from "@/components/plans-interactive";
 
 export const metadata = { title: "Pricing · Fluxion AI Video" };
@@ -68,17 +67,14 @@ export default function PricingPage() {
             {/* Plans + linked value charts (hover a plan to highlight its bars) */}
             <PlansInteractive plans={PLANS} />
 
-            {/* Per-model table + credits/sec chart side by side */}
-            <div className="mt-10 grid gap-8 lg:grid-cols-2">
-              <div>
-                <h2 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">
-                  Per-model pricing
-                </h2>
-                <div className="mt-3">
-                  <ModelPricingTable />
-                </div>
+            {/* Per-model table — full width */}
+            <div className="mt-10">
+              <h2 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">
+                Per-model pricing
+              </h2>
+              <div className="mt-3">
+                <ModelPricingTable />
               </div>
-              <PricingCharts />
             </div>
           </div>
         </div>
