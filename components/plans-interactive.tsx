@@ -61,7 +61,7 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
   return (
     <div>
       {/* Plan cards — accent on hover; Pro just gets a star */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-3">
         {plans.map((p) => {
           const active = hovered === p.id;
           return (
@@ -70,12 +70,12 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
               id={p.id}
               onMouseEnter={on(p.id)}
               onMouseLeave={off}
-              className={`scroll-mt-24 rounded-[12px] border p-4 transition-colors ${
+              className={`scroll-mt-24 rounded-[14px] border p-6 transition-colors ${
                 active ? "border-[#FF8A1E] bg-[rgba(255,138,30,0.08)]" : "border-[#2E466B] bg-[#0B1524]"
               }`}
             >
               <div className="flex items-center gap-2">
-                <h2 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">
+                <h2 className="font-[family-name:var(--font-jetbrains)] text-xl font-medium uppercase tracking-[0.02em]">
                   {p.name}
                 </h2>
                 {p.popular && (
@@ -84,12 +84,12 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
                   </span>
                 )}
               </div>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{p.price}</span>
-                <span className="text-xs text-[#6E82A0]">{p.period}</span>
+              <div className="mt-3 flex items-baseline gap-1">
+                <span className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold">{p.price}</span>
+                <span className="text-sm text-[#6E82A0]">{p.period}</span>
               </div>
-              <p className="text-xs text-[#9FB2CC]">{p.credits}</p>
-              <ul className="mt-3 space-y-1 text-xs text-[#A9BBD4]">
+              <p className="mt-1 text-sm text-[#9FB2CC]">{p.credits}</p>
+              <ul className="mt-4 space-y-1.5 text-sm text-[#A9BBD4]">
                 {p.features.map((f) => (
                   <li key={f} className="flex items-center gap-2">
                     <span className="text-[#E0A24E]">•</span>
@@ -99,7 +99,7 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
               </ul>
               <Link
                 href="/signup"
-                className={`mt-4 block rounded-[10px] px-4 py-2 text-center text-sm font-medium transition-colors ${
+                className={`mt-6 block rounded-[10px] px-4 py-2.5 text-center font-medium transition-colors ${
                   active
                     ? "bg-[#FF8A1E] text-[#0A1322] hover:bg-[#FF9F45]"
                     : "border border-[rgba(124,189,242,0.24)] text-[#E9F1FB] hover:bg-[rgba(124,189,242,0.06)]"
