@@ -74,25 +74,14 @@ export function HeroReels() {
       className="relative flex overflow-hidden rounded-[14px] border border-[rgba(255,193,94,0.35)] shadow-[0_20px_55px_rgba(0,0,0,0.55),0_0_70px_-8px_rgba(255,193,94,0.55)]"
       style={{ transform: "translateZ(0)", isolation: "isolate", contain: "paint" }}
     >
-      {/* Loading skeleton — a soft shimmer over the reels' footprint until the
-          clips are ready. Fades out (and stops taking pointer events) on ready. */}
+      {/* Loading skeleton — just a soft shimmer over the reels' footprint (no
+          icon/text) until the clips are ready. Fades out on ready. */}
       <div
         aria-hidden="true"
-        className={`absolute inset-0 z-30 bg-surface transition-opacity duration-500 ${
+        className={`reel-shimmer absolute inset-0 z-30 bg-surface transition-opacity duration-500 ${
           ready ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
-      >
-        <div className="reel-shimmer absolute inset-0" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-dim">
-          <svg width="26" height="26" viewBox="0 0 24 24" className="animate-spin" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" fill="none" opacity="0.25" />
-            <path d="M21 12a9 9 0 0 0-9-9" stroke="var(--c-gold-soft)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-          </svg>
-          <span className="font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.14em]">
-            Loading reels…
-          </span>
-        </div>
-      </div>
+      />
 
       {/* The reels themselves — hidden until `ready`, then faded in. */}
       <div className={`flex transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}>
