@@ -6,7 +6,6 @@ import { Reveal } from "@/components/reveal";
 import { HeroReels } from "@/components/hero-reels";
 import { Stats } from "@/components/stats";
 import { ModelPricingTable } from "@/components/model-pricing-table";
-import { HeroSpotlight } from "@/components/hero-spotlight";
 
 function Kicker({ label, color = "#E0A24E" }: { label: string; color?: string }) {
   return (
@@ -64,7 +63,6 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative overflow-hidden lg:h-[68vh]">
-        <HeroSpotlight />
         <div className="relative z-10 grid h-full items-center gap-10 px-8 py-20 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
           <div className="max-w-xl lg:pl-12">
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
