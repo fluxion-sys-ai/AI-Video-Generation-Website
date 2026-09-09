@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
-import { PlansDots } from "@/components/plans-dots";
 import { UsageChart } from "@/components/usage-chart";
 import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
 import { getModels } from "@/lib/models";
@@ -167,7 +166,6 @@ export default function ProfilePage() {
   return (
     <div className="relative flex min-h-screen flex-col">
       <GlowBlobs variant="d" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
-      <PlansDots variant="b" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
 
       <main className="relative z-10 w-full flex-1 px-8 py-10">
