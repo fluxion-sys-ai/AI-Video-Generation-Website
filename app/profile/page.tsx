@@ -189,7 +189,7 @@ function ProfileInner() {
       <GlowBlobs variant="d" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
 
-      <main className="relative z-10 w-full flex-1 px-8 py-10">
+      <main className="relative z-10 w-full flex-1 px-10 py-10">
         {ready && (
           <>
             <div className="flex items-center gap-4">

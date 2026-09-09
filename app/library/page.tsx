@@ -44,7 +44,7 @@ export default function LibraryPage() {
       <GlowBlobs variant="b" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
 
-      <main className="relative z-10 w-full flex-1 px-8 py-10">
+      <main className="relative z-10 w-full flex-1 px-10 py-10">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">Library</span>
         <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">Your library</h1>
         <p className="mt-2 text-sm text-[#9FB2CC]">Everything you&apos;ve generated and uploaded.</p>

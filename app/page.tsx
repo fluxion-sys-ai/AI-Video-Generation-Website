@@ -63,7 +63,7 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative overflow-hidden lg:h-[68vh]">
-        <div className="relative z-10 grid h-full items-center gap-10 px-8 py-20 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
+        <div className="relative z-10 grid h-full items-center gap-10 px-10 py-20 sm:px-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-0">
           <div className="max-w-xl lg:pl-12">
             <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,189,242,0.24)] bg-[#101E36] px-3 py-1 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#9FB2CC]">
               Text-to-video, image-to-video
@@ -102,7 +102,7 @@ export default function Home() {
 
       {/* Models showcase */}
       <section id="models" className="scroll-mt-24 pb-20 pt-14">
-        <Reveal className="px-8">
+        <Reveal className="px-10">
           <div className="flex items-end justify-between gap-4">
             <SectionHeading index="01" label="Models" title="Explore our models" />
             <Link href="/models" className="hidden shrink-0 text-sm text-[#9FB2CC] transition-colors hover:text-[#F5C46B] sm:block">
@@ -116,7 +116,7 @@ export default function Home() {
       </section>
 
       {/* Walkthrough */}
-      <section className="px-8 py-20">
+      <section className="px-10 py-20">
         <Reveal className="mx-auto max-w-4xl text-center">
           <SectionHeading index="02" label="Walkthrough" title="See it in action" color="#7CBDF2" center />
           <p className="mx-auto mt-4 max-w-xl text-[#9FB2CC]">
@@ -136,7 +136,7 @@ export default function Home() {
       </section>
 
       {/* Per-model pricing */}
-      <section className="px-8 pb-24">
+      <section className="px-10 pb-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="text-center">
             <SectionHeading index="03" label="Pricing" title="Pay as you go" color="#FFB020" center />

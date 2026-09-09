@@ -7,7 +7,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { isSignedIn, getUser } from "@/lib/auth";
-import { getModels } from "@/lib/models";
+import { getModels, getModel } from "@/lib/models";
+import { getFavorites, getRecents } from "@/lib/prefs";
 
 const STEPS = [
   { title: "Create account", desc: "You're signed in and ready.", href: "/profile?tab=account", done: true },
@@ -23,10 +24,26 @@ const LINKS = [
   { title: "Documentation", desc: "Guides and API reference.", href: "/docs", color: "#E0A24E" },
 ];
 
+function ModelChip({ slug }: { slug: string }) {
+  const m = getModel(slug);
+  if (!m) return null;
+  return (
+    <Link href={`/generate?model=${m.slug}`} className="flex items-center gap-3 border border-[#2E466B] p-2 transition-colors hover:bg-[rgba(124,189,242,0.05)]">
+      <img src={m.poster} alt="" className="h-10 w-16 shrink-0 bg-black object-cover" />
+      <div className="min-w-0">
+        <p className="truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.04em] text-[#E9F1FB]">{m.name}</p>
+        <p className="truncate text-xs text-[#6E82A0]">{m.tagline}</p>
+      </div>
+    </Link>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [name, setName] = useState("");
+  const [favs, setFavs] = useState<string[]>([]);
+  const [recents, setRecents] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isSignedIn()) {
@@ -34,6 +51,8 @@ export default function DashboardPage() {
       return;
     }
     setName(getUser()?.name || "Creator");
+    setFavs(getFavorites());
+    setRecents(getRecents());
     setReady(true);
   }, [router]);
 
@@ -46,7 +65,7 @@ export default function DashboardPage() {
       <GlowBlobs variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
 
-      <main className="relative z-10 w-full flex-1 px-8 py-8">
+      <main className="relative z-10 w-full flex-1 px-10 py-8">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">Dashboard</span>
         <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
           Welcome back, {name}
@@ -104,6 +123,30 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Recently used + favorites */}
+        <div className="mt-8 grid gap-8 lg:grid-cols-2">
+          <div>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Recently used</h2>
+            {recents.length === 0 ? (
+              <p className="mt-3 border border-[#2E466B] p-4 text-sm text-[#6E82A0]">Models you generate with show up here.</p>
+            ) : (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {recents.map((s) => <ModelChip key={s} slug={s} />)}
+              </div>
+            )}
+          </div>
+          <div>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Favorite models</h2>
+            {favs.length === 0 ? (
+              <p className="mt-3 border border-[#2E466B] p-4 text-sm text-[#6E82A0]">Heart a model in the catalog to save it here.</p>
+            ) : (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {favs.map((s) => <ModelChip key={s} slug={s} />)}
+              </div>
+            )}
           </div>
         </div>
       </main>

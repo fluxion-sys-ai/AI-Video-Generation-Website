@@ -1,11 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Model } from "@/lib/models";
+import { isFavorite, toggleFavorite } from "@/lib/prefs";
 
 export function ModelCard({ model }: { model: Model }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [fav, setFav] = useState(false);
+
+  useEffect(() => {
+    setFav(isFavorite(model.slug));
+  }, [model.slug]);
 
   function play() {
     videoRef.current?.play().catch(() => {});
@@ -30,6 +36,20 @@ export function ModelCard({ model }: { model: Model }) {
           playsInline
           preload="auto"
         />
+        <button
+          type="button"
+          aria-label={fav ? "Remove from favorites" : "Add to favorites"}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setFav(toggleFavorite(model.slug));
+          }}
+          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 backdrop-blur transition-colors hover:bg-black/70"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={fav ? "#FF8A1E" : "none"} stroke={fav ? "#FF8A1E" : "#E9F1FB"} strokeWidth="2">
+            <path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
       <div className="mt-4">
         <div className="flex items-baseline justify-between gap-3">

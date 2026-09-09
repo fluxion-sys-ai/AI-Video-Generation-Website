@@ -58,7 +58,7 @@ export default function DocsPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-10 px-8 py-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-10 px-10 py-10">
         {/* sidebar */}
         <aside className="hidden w-56 shrink-0 lg:block">
           <div className="sticky top-28 space-y-6">

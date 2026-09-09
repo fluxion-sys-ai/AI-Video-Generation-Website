@@ -8,6 +8,7 @@ import { ApiDocs } from "@/components/api-docs";
 import { SiteFooter } from "@/components/site-footer";
 import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
+import { addRecent } from "@/lib/prefs";
 
 type Status = "idle" | "generating" | "complete" | "failed";
 
@@ -77,6 +78,11 @@ function GenerateInner() {
   const [refineInput, setRefineInput] = useState("");
 
   // Reset model-dependent options when the selected model changes.
+  // Track recently-used models for the dashboard.
+  useEffect(() => {
+    addRecent(slug);
+  }, [slug]);
+
   // Keep the prompt, but drop any generated video / refine session.
   useEffect(() => {
     setAspect(model.aspectRatios[0]);

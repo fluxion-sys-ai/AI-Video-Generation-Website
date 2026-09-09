@@ -23,7 +23,7 @@ export default function PricingPage() {
       <GlowBlobs variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <PlansDots className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-8 py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-10 py-8">
         {/* Compact header */}
         <div>
           <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
