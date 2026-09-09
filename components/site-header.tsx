@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Brand } from "@/components/brand";
 import { getModels } from "@/lib/models";
+import { getUser, isSignedIn, type User } from "@/lib/auth";
 
 const models = getModels();
 
@@ -76,6 +78,15 @@ function MenuItem({ href, title, sub }: { href: string; title: string; sub?: str
 }
 
 export function SiteHeader() {
+  const pathname = usePathname();
+  const [user, setUser] = useState<User | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setUser(isSignedIn() ? getUser() : null);
+    setReady(true);
+  }, [pathname]);
+
   return (
     <header className="sticky top-0 z-50 border-b border-[rgba(124,189,242,0.14)] bg-[#070D1A]/80 backdrop-blur">
       <nav className="flex h-20 items-center justify-between px-8 font-[family-name:var(--font-jetbrains)]">
@@ -105,15 +116,28 @@ export function SiteHeader() {
           </div>
         </div>
         <div className="flex items-center gap-4 text-sm uppercase tracking-[0.06em]">
-          <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#F5C46B] sm:block">
-            Login
-          </Link>
-          <Link
-            href="/signup"
-            className="rounded-[10px] bg-[#FF8A1E] px-5 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]"
-          >
-            Sign up
-          </Link>
+          {ready && user ? (
+            <Link href="/profile" className="group flex items-center gap-2" title="Your profile">
+              <span className="hidden max-w-[160px] truncate normal-case text-[#E9F1FB] transition-colors group-hover:text-[#FF8A1E] sm:block">
+                {user.name}
+              </span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF8A1E] font-medium text-[#0A1322]">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="hidden text-[#A9BBD4] transition-colors hover:text-[#F5C46B] sm:block">
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded-[10px] bg-[#FF8A1E] px-5 py-2.5 font-medium text-[#0A1322] transition-colors hover:bg-[#FF9F45]"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </nav>
     </header>

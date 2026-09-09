@@ -14,7 +14,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    signIn(); // mock — no real auth
+    signIn(email); // mock — no real auth
     router.push(next);
   }
 
