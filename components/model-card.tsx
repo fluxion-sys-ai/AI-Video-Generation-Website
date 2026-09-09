@@ -41,9 +41,16 @@ export function ModelCard({ model }: { model: Model }) {
           </span>
         </div>
         <p className="mt-2 text-sm text-[#9FB2CC]">{model.description}</p>
-        <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.08em] text-[#5A6B84]">
-          {model.capabilities.join("  ·  ")}
-        </p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {model.capabilities.map((c) => (
+            <span
+              key={c}
+              className="rounded-full border border-[#33507C] bg-[#101E36] px-2.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-[#C7D4E6]"
+            >
+              {c}
+            </span>
+          ))}
+        </div>
       </div>
     </Link>
   );
