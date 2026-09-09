@@ -56,8 +56,8 @@ export default function PricingPage() {
         </p>
 
         {/* animated dots run left->right in the bands around the plans */}
-        <div className="relative mt-10 py-20">
-        <PlansDots className="pointer-events-none absolute inset-0 h-full w-full" />
+        <div className="relative mt-10 py-24">
+        <PlansDots className="pointer-events-none absolute left-1/2 top-0 h-full w-screen -translate-x-1/2" />
         {/* hairline-divided grid (solid bg so dots never show through the boxes) */}
         <div className="relative grid overflow-hidden rounded-[10px] border border-[rgba(124,189,242,0.14)] bg-[#0A1322] sm:grid-cols-3">
           {PLANS.map((p, i) => (
