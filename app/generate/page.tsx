@@ -63,7 +63,27 @@ function GenerateInner() {
   const [duration, setDuration] = useState(model.durations[0]);
   const [audio, setAudio] = useState(false);
   const [prompt, setPrompt] = useState("");
-  const [imageName, setImageName] = useState<string | null>(null);
+  // Uploaded reference images (multiple). Each holds an object URL for the
+  // thumbnail preview + the file name. Mock only — nothing is sent anywhere.
+  const [images, setImages] = useState<{ url: string; name: string }[]>([]);
+  // Ref mirror so the unmount cleanup can revoke every object URL.
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
+  useEffect(() => () => imagesRef.current.forEach((im) => URL.revokeObjectURL(im.url)), []);
+
+  function addImages(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setImages((prev) => [...prev, ...files.map((f) => ({ url: URL.createObjectURL(f), name: f.name }))]);
+    e.target.value = ""; // let the same file be picked again later
+  }
+  function removeImage(idx: number) {
+    setImages((prev) => {
+      const t = prev[idx];
+      if (t) URL.revokeObjectURL(t.url);
+      return prev.filter((_, i) => i !== idx);
+    });
+  }
 
   const [status, setStatus] = useState<Status>("idle");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
@@ -263,7 +283,7 @@ function GenerateInner() {
       {/* Collapsible left panel */}
       <aside className="min-h-0">
         {panelOpen ? (
-          <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto rounded-[12px] border border-line bg-panel p-4">
+          <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto border-r border-line pr-5">
             <div>
               <div className="mb-3 flex items-center justify-between gap-2">
                 <div className="flex gap-5 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
@@ -295,12 +315,15 @@ function GenerateInner() {
             </div>
           </div>
         ) : (
+          // Chic pull-tab: a slim vertical line (not a box) that reveals the
+          // Examples panel; it thickens/accents on hover.
           <button
             onClick={() => setPanelOpen(true)}
-            aria-label="Open panel"
-            className="flex h-9 w-9 items-center justify-center rounded-[8px] text-muted transition-colors hover:bg-hover hover:text-accent"
+            aria-label="Show examples"
+            title="Examples"
+            className="group flex h-full items-start justify-center pt-1"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3 L11 8 L6 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <span className="h-20 w-px rounded-full bg-line transition-all duration-200 group-hover:w-[3px] group-hover:bg-accent" />
           </button>
         )}
       </aside>
@@ -322,12 +345,36 @@ function GenerateInner() {
           </Field>
 
           {model.supports.image && (
-            <Field label="Image" hint="Optional">
-              <label className="flex w-fit cursor-pointer items-center gap-3 rounded-[8px] border border-dashed border-line-strong px-3 py-2 text-sm text-fg-soft hover:border-blue">
-                <span className="max-w-[220px] truncate">{imageName ?? "Choose an image"}</span>
-                <span className="text-blue">Browse</span>
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => setImageName(e.target.files?.[0]?.name ?? null)} />
-              </label>
+            <Field label="Images" hint="Optional">
+              {images.length === 0 ? (
+                <label className="flex w-fit cursor-pointer items-center gap-3 rounded-[8px] border border-dashed border-line-strong px-3 py-2 text-sm text-fg-soft hover:border-blue">
+                  <span>Choose images</span>
+                  <span className="text-blue">Browse</span>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={addImages} />
+                </label>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {images.map((img, i) => (
+                    <div key={i} className="group relative h-16 w-16 overflow-hidden rounded-[8px] border border-line-strong bg-black">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img.url} alt={img.name} title={img.name} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(i)}
+                        aria-label={`Remove ${img.name}`}
+                        className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity hover:bg-danger group-hover:opacity-100"
+                      >
+                        <svg width="10" height="10" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                      </button>
+                    </div>
+                  ))}
+                  {/* add-more tile */}
+                  <label className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-[8px] border border-dashed border-line-strong text-dim transition-colors hover:border-blue hover:text-blue" title="Add more images">
+                    <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3 V13 M3 8 H13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={addImages} />
+                  </label>
+                </div>
+              )}
             </Field>
           )}
 
