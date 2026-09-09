@@ -10,25 +10,25 @@ export function ModelPricingTable() {
       <table className="w-full table-fixed text-left text-base">
         <thead className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-[#9FB2CC]">
           <tr className="border-b border-[#33507C]">
-            <th className="px-6 py-5">Model</th>
-            <th className="px-6 py-5">Best for</th>
-            <th className="px-6 py-5">Max res</th>
-            <th className="px-6 py-5 text-right">Credits / sec</th>
-            <th className="px-6 py-5 text-right">≈ $ / 5s clip</th>
+            <th className="px-5 py-3.5">Model</th>
+            <th className="px-5 py-3.5">Best for</th>
+            <th className="px-5 py-3.5">Max res</th>
+            <th className="px-5 py-3.5 text-right">Credits / sec</th>
+            <th className="px-5 py-3.5 text-right">≈ $ / 5s clip</th>
           </tr>
         </thead>
         <tbody>
           {models.map((m) => (
             <tr key={m.slug} className="border-b border-[rgba(124,189,242,0.12)] last:border-0">
-              <td className="px-6 py-5 font-[family-name:var(--font-jetbrains)] uppercase tracking-[0.02em] text-[#F4F8FE]">
+              <td className="px-5 py-3.5 font-[family-name:var(--font-jetbrains)] uppercase tracking-[0.02em] text-[#F4F8FE]">
                 {m.name}
               </td>
-              <td className="px-6 py-5 text-[#9FB2CC]">{m.tagline}</td>
-              <td className="px-6 py-5 text-[#9FB2CC]">{m.resolutions[m.resolutions.length - 1]}</td>
-              <td className="px-6 py-5 text-right font-[family-name:var(--font-jetbrains)] text-lg text-[#FFB020]">
+              <td className="px-5 py-3.5 text-[#9FB2CC]">{m.tagline}</td>
+              <td className="px-5 py-3.5 text-[#9FB2CC]">{m.resolutions[m.resolutions.length - 1]}</td>
+              <td className="px-5 py-3.5 text-right font-[family-name:var(--font-jetbrains)] text-lg text-[#FFB020]">
                 {m.creditsPerSecond}
               </td>
-              <td className="px-6 py-5 text-right text-[#F4F8FE]">
+              <td className="px-5 py-3.5 text-right text-[#F4F8FE]">
                 ${(m.creditsPerSecond * 5 * 0.01).toFixed(2)}
               </td>
             </tr>

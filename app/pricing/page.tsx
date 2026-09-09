@@ -47,55 +47,47 @@ export default function PricingPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-16">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <div className="text-center">
           <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-[#E0A24E]">
             Pricing
           </span>
-          <h1 className="mt-2 font-[family-name:var(--font-jetbrains)] text-4xl font-medium uppercase tracking-[0.01em]">
+          <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
             Plans and credits
           </h1>
           <span className="mx-auto mt-3 block h-px w-10 bg-[#E0A24E]" />
-          <p className="mt-4 text-[#9FB2CC]">
-            Credits are spent per second of generated video. Pick a plan and start generating.
-          </p>
         </div>
 
-        {/* Plans + table side by side, over the animated line field */}
-        <div className="relative mt-12 py-12">
+        <div className="relative mt-6 py-6">
           <PlansDots className="pointer-events-none absolute left-1/2 top-0 h-full w-screen -translate-x-1/2" />
 
-          <div className="relative grid gap-10 lg:grid-cols-2">
-            {/* Left: plans stacked */}
-            <div className="space-y-4">
+          <div className="relative">
+            {/* Plans — 3 across */}
+            <div className="grid gap-4 sm:grid-cols-3">
               {PLANS.map((p) => (
                 <div
                   key={p.id}
                   id={p.id}
-                  className={`scroll-mt-24 rounded-[12px] border p-6 ${
-                    p.highlight
-                      ? "border-[#FF8A1E] bg-[rgba(255,138,30,0.06)]"
-                      : "border-[#2E466B] bg-[#0B1524]"
+                  className={`scroll-mt-24 rounded-[12px] border p-4 ${
+                    p.highlight ? "border-[#FF8A1E] bg-[rgba(255,138,30,0.06)]" : "border-[#2E466B] bg-[#0B1524]"
                   }`}
                 >
-                  <div className="flex items-baseline justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <h2 className="font-[family-name:var(--font-jetbrains)] text-xl font-medium uppercase tracking-[0.02em]">
-                        {p.name}
-                      </h2>
-                      {p.highlight && (
-                        <span className="rounded-full bg-[#FF8A1E] px-2 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] font-medium uppercase tracking-[0.08em] text-[#0A1322]">
-                          Popular
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold">{p.price}</span>
-                      <span className="text-sm text-[#6E82A0]">{p.period}</span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">
+                      {p.name}
+                    </h2>
+                    {p.highlight && (
+                      <span className="rounded-full bg-[#FF8A1E] px-2 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] font-medium uppercase tracking-[0.08em] text-[#0A1322]">
+                        Popular
+                      </span>
+                    )}
                   </div>
-                  <p className="mt-1 text-sm text-[#9FB2CC]">{p.credits}</p>
-                  <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-[#A9BBD4]">
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{p.price}</span>
+                    <span className="text-xs text-[#6E82A0]">{p.period}</span>
+                  </div>
+                  <p className="text-xs text-[#9FB2CC]">{p.credits}</p>
+                  <ul className="mt-3 space-y-1 text-xs text-[#A9BBD4]">
                     {p.features.map((f) => (
                       <li key={f} className="flex items-center gap-2">
                         <span className="text-[#E0A24E]">•</span>
@@ -105,7 +97,7 @@ export default function PricingPage() {
                   </ul>
                   <Link
                     href="/signup"
-                    className={`mt-5 block rounded-[10px] px-4 py-2.5 text-center font-medium transition-colors ${
+                    className={`mt-4 block rounded-[10px] px-4 py-2 text-center text-sm font-medium transition-colors ${
                       p.highlight
                         ? "bg-[#FF8A1E] text-[#0A1322] hover:bg-[#FF9F45]"
                         : "border border-[rgba(124,189,242,0.24)] text-[#E9F1FB] hover:bg-[rgba(124,189,242,0.06)]"
@@ -117,22 +109,17 @@ export default function PricingPage() {
               ))}
             </div>
 
-            {/* Right: per-model table + related charts */}
-            <div className="space-y-10">
+            {/* Per-model table + charts side by side */}
+            <div className="mt-8 grid gap-8 lg:grid-cols-2">
+              <div>
+                <h2 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">
+                  Per-model pricing
+                </h2>
+                <div className="mt-3">
+                  <ModelPricingTable />
+                </div>
+              </div>
               <PricingCharts plans={PLANS} />
-            </div>
-          </div>
-
-          {/* Per-model table — full width below, no scroll */}
-          <div className="relative mt-12">
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-xl font-medium uppercase tracking-[0.02em]">
-              Per-model pricing
-            </h2>
-            <p className="mt-2 text-sm text-[#9FB2CC]">
-              Credits per second. The dollar column assumes 1 credit ≈ $0.01.
-            </p>
-            <div className="mt-5">
-              <ModelPricingTable />
             </div>
           </div>
         </div>
