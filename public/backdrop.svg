@@ -1,16 +1,15 @@
 <svg width="1440" height="900" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
-    <!-- dark on the left, lighter + warmer toward the right -->
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="0.15">
-      <stop offset="0" stop-color="#060A13"/>
-      <stop offset="0.45" stop-color="#0D1728"/>
-      <stop offset="0.78" stop-color="#1A2A44"/>
-      <stop offset="1" stop-color="#2E3552"/>
+    <!-- deep navy, darker; no green tint -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="0.12">
+      <stop offset="0" stop-color="#04070E"/>
+      <stop offset="0.5" stop-color="#080F1E"/>
+      <stop offset="1" stop-color="#0E1B34"/>
     </linearGradient>
-    <!-- warm wash on the right (the yellower feel) -->
-    <radialGradient id="warm" cx="90%" cy="50%" r="55%">
-      <stop offset="0" stop-color="#E8B24E" stop-opacity="0.18"/>
-      <stop offset="1" stop-color="#E8B24E" stop-opacity="0"/>
+    <!-- subtle warm wash on the right (orange, low, so it doesn't go green) -->
+    <radialGradient id="warm" cx="88%" cy="46%" r="50%">
+      <stop offset="0" stop-color="#FF8A1E" stop-opacity="0.09"/>
+      <stop offset="1" stop-color="#FF8A1E" stop-opacity="0"/>
     </radialGradient>
     <!-- cheap soft glow for the dots (radial fill, no blur filter) -->
     <radialGradient id="dotFill" cx="50%" cy="50%" r="50%">
@@ -22,6 +21,15 @@
 
   <rect width="1440" height="900" fill="url(#bgGrad)"/>
   <rect width="1440" height="900" fill="url(#warm)"/>
+
+  <!-- artistic glowing orbs tucked into the corners -->
+  <g>
+    <circle cx="110" cy="130" r="95" fill="url(#dotFill)" opacity="0.13"/>
+    <circle cx="1330" cy="770" r="160" fill="url(#dotFill)" opacity="0.16"/>
+    <circle cx="1385" cy="150" r="70" fill="url(#dotFill)" opacity="0.11"/>
+    <circle cx="80" cy="800" r="120" fill="url(#dotFill)" opacity="0.10"/>
+    <circle cx="700" cy="60" r="60" fill="url(#dotFill)" opacity="0.08"/>
+  </g>
 
   <!-- converging lines over the gradient; meet off-screen right (leaving the screen) -->
   <g fill="none" stroke="#AECBF0" stroke-width="1" stroke-linecap="round" opacity="0.35">
