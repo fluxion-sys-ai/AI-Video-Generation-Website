@@ -536,6 +536,17 @@ function ProfileInner() {
                   </div>
                 </section>
 
+                <section className="border-t border-[rgba(124,189,242,0.14)] pt-6">
+                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Help &amp; resources</h2>
+                  <Link href="/docs" className="mt-4 flex items-center justify-between gap-4 border border-[#2E466B] p-4 transition-colors hover:border-[rgba(124,189,242,0.5)]">
+                    <div>
+                      <p className="text-sm text-[#E9F1FB]">Documentation</p>
+                      <p className="text-xs text-[#6E82A0]">Guides, quickstart, and API reference.</p>
+                    </div>
+                    <span className="font-[family-name:var(--font-jetbrains)] text-sm text-[#7CBDF2]">Open →</span>
+                  </Link>
+                </section>
+
                 <div className="flex items-center gap-3">
                   <button onClick={() => { setPrefSaved(true); setTimeout(() => setPrefSaved(false), 1600); }} className={btnPrimary}>
                     Save settings
