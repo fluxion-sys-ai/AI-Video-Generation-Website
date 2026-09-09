@@ -9,6 +9,7 @@ import { GlowBlobs } from "@/components/glow-blobs";
 import { UsageChart } from "@/components/usage-chart";
 import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
 import { getModels } from "@/lib/models";
+import { getTheme, applyTheme, type Theme } from "@/lib/prefs";
 
 const inputClass =
   "w-full rounded-none border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] outline-none focus:border-[#7CBDF2] focus:ring-1 focus:ring-[#7CBDF2]";
@@ -96,6 +97,15 @@ function ProfileInner() {
   const [emailUpdates, setEmailUpdates] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [prefSaved, setPrefSaved] = useState(false);
+  const [theme, setThemeState] = useState<Theme>("dark");
+
+  useEffect(() => {
+    setThemeState(getTheme());
+  }, []);
+  function chooseTheme(t: Theme) {
+    setThemeState(t);
+    applyTheme(t);
+  }
 
   useEffect(() => {
     if (!isSignedIn()) {
@@ -489,6 +499,23 @@ function ProfileInner() {
               <div className="max-w-3xl space-y-8">
                 <section>
                   <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">Appearance</h2>
+                  <div className="mt-4">
+                    <label className={label}>Theme</label>
+                    <div className="inline-flex border border-[#33507C] font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
+                      {(["dark", "light"] as Theme[]).map((t) => (
+                        <button
+                          key={t}
+                          onClick={() => chooseTheme(t)}
+                          className={`px-5 py-2 transition-colors ${
+                            theme === t ? "bg-[#FF8A1E] text-[#0A1322]" : "text-[#9FB2CC] hover:text-[#E9F1FB]"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs text-[#6E82A0]">Light theme matches the Fluxion site.</p>
+                  </div>
                   <div className="mt-4 space-y-3">
                     <div className="flex items-center justify-between gap-4 border border-[#2E466B] p-4">
                       <div>

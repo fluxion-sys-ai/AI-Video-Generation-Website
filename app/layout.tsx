@@ -33,6 +33,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${jetbrainsMono.variable} ${sora.variable} h-full scroll-smooth antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-[#070D1A] text-[#E9F1FB] font-[family-name:var(--font-geist-sans)]">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(localStorage.getItem('fluxion.theme')==='light')document.documentElement.classList.add('light')}catch(e){}",
+          }}
+        />
         <Spotlight />
         {children}
       </body>

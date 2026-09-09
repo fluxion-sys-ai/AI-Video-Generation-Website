@@ -57,7 +57,7 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Cohesive fixed background - home only */}
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
-        <img src={`${BASE}/backdrop.svg`} alt="" className="h-full w-full object-cover" decoding="async" />
+        <img src={`${BASE}/backdrop.svg`} alt="" className="no-reinvert h-full w-full object-cover" decoding="async" />
       </div>
       <SiteHeader />
 

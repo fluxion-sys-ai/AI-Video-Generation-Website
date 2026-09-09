@@ -38,3 +38,18 @@ export function addRecent(slug: string) {
   const next = [slug, ...read(REC_KEY).filter((s) => s !== slug)].slice(0, 8);
   localStorage.setItem(REC_KEY, JSON.stringify(next));
 }
+
+// Theme (dark default, light matches the Fluxion site).
+const THEME_KEY = "fluxion.theme";
+export type Theme = "dark" | "light";
+
+export function getTheme(): Theme {
+  if (typeof window === "undefined") return "dark";
+  return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
+}
+
+export function applyTheme(t: Theme) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(THEME_KEY, t);
+  document.documentElement.classList.toggle("light", t === "light");
+}

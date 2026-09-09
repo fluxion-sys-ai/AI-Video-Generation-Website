@@ -134,6 +134,18 @@ button {
   font-family: var(--font-jetbrains), ui-monospace, monospace;
 }
 
+/* Light theme (matches the Fluxion site's light look). The UI is authored in
+   dark hex values, so we flip the whole page and keep hues stable with a
+   hue-rotate, then re-invert real media (photos/videos/uploads) so they stay
+   true color. The decorative hero art (.no-reinvert) flips with the page. */
+html.light {
+  filter: invert(1) hue-rotate(180deg);
+  background-color: #ffffff;
+}
+html.light :is(img, video):not(.no-reinvert) {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 /* horizontal auto-scroll marquee */
 @keyframes marquee {
   from { transform: translateX(0); }
