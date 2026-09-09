@@ -8,9 +8,9 @@ const RES_MULT: Record<string, number> = { "480p": 1, "720p": 1.5, "1080p": 2.5 
 const PER_CREDIT = 0.01;
 
 const sel =
-  "rounded-[8px] border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2]";
+  "rounded-none border border-[#33507C] bg-[#101E36] px-3 py-2 text-sm text-[#E9F1FB] font-[family-name:var(--font-geist-sans)] outline-none focus:border-[#7CBDF2]";
 
-export function CostEstimator() {
+export function CostEstimator({ bare = false }: { bare?: boolean }) {
   const models = getModels();
   const [slug, setSlug] = useState(models[0].slug);
   const model = models.find((m) => m.slug === slug) || models[0];
@@ -28,11 +28,11 @@ export function CostEstimator() {
   const dollars = (credits * PER_CREDIT).toFixed(2);
 
   return (
-    <div className="rounded-[12px] border border-[#2E466B] bg-[#0B1524]/70 p-6 backdrop-blur-sm">
+    <div className={bare ? "" : "border border-[#2E466B] bg-[#0B1524]/70 p-6 backdrop-blur-sm"}>
       <h3 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#C7D4E6]">
         Estimate a clip
       </h3>
-      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div>
           <label className="mb-1.5 block text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Model</label>
           <select value={slug} onChange={(e) => setSlug(e.target.value)} className={`${sel} w-full`}>
@@ -61,7 +61,7 @@ export function CostEstimator() {
           </select>
         </div>
       </div>
-      <div className="mt-5 flex items-baseline gap-3 border-t border-[rgba(124,189,242,0.14)] pt-4">
+      <div className="mt-4 flex items-baseline gap-3 border-t border-[rgba(124,189,242,0.14)] pt-3">
         <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold text-[#FF8A1E]">≈ ${dollars}</span>
         <span className="text-sm text-[#9FB2CC]">{credits} credits · {duration}s · {resolution}</span>
       </div>
