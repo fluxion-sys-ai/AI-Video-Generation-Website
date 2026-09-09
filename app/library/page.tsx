@@ -338,6 +338,15 @@ export default function LibraryPage() {
                       New folder +
                     </button>
                   )}
+                  {/* while viewing a folder: delete it (top-right) */}
+                  {activeFolderObj && (
+                    <button
+                      onClick={() => setDeleteFolderId(activeFolderObj.id)}
+                      className="rounded-none border border-[rgba(255,107,107,0.4)] px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)]"
+                    >
+                      Delete folder
+                    </button>
+                  )}
                 </>
               )}
             </div>
@@ -380,17 +389,6 @@ export default function LibraryPage() {
               <p className="mt-2 text-xs text-dim">Tip: double-click a folder to delete it.</p>
             )}
 
-            {/* delete-folder action while viewing a folder */}
-            {activeFolderObj && (
-              <div className="mt-4">
-                <button
-                  onClick={() => setDeleteFolderId(activeFolderObj.id)}
-                  className="rounded-none border border-[rgba(255,107,107,0.4)] px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)]"
-                >
-                  Delete “{activeFolderObj.name}” folder
-                </button>
-              </div>
-            )}
 
             {/* image grid */}
             <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
