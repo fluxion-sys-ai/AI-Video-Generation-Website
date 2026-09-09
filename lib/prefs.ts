@@ -39,6 +39,31 @@ export function addRecent(slug: string) {
   localStorage.setItem(REC_KEY, JSON.stringify(next));
 }
 
+// Hand-off of library images to a model's playground. The library writes the
+// selected images here, then routes to /generate?model=…; the playground reads
+// and clears them on load (see app/generate/page.tsx).
+const PENDING_IMAGES_KEY = "fluxion.pendingImages";
+export type PendingImage = { url: string; name: string };
+
+export function setPendingImages(list: PendingImage[]) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(PENDING_IMAGES_KEY, JSON.stringify(list));
+}
+
+// Read the queued images and remove them (one-shot).
+export function takePendingImages(): PendingImage[] {
+  if (typeof window === "undefined") return [];
+  const raw = localStorage.getItem(PENDING_IMAGES_KEY);
+  if (!raw) return [];
+  localStorage.removeItem(PENDING_IMAGES_KEY);
+  try {
+    const v = JSON.parse(raw);
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+
 // Theme setting.
 //   - "dark"   → always the dark (default brand) look.
 //   - "light"  → always the light look (matches the Fluxion marketing site).

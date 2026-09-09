@@ -7,7 +7,7 @@ import { ApiDocs } from "@/components/api-docs";
 import { SiteFooter } from "@/components/site-footer";
 import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
-import { addRecent } from "@/lib/prefs";
+import { addRecent, takePendingImages } from "@/lib/prefs";
 
 type Status = "idle" | "generating" | "complete" | "failed";
 
@@ -116,6 +116,13 @@ function GenerateInner() {
     setSession(false);
     setChat([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+
+  // Pick up images handed off from the library ("upload to this model"), if any.
+  // Runs per model so it works whether the page mounts fresh or just re-routes.
+  useEffect(() => {
+    const pending = takePendingImages();
+    if (pending.length) setImages(pending);
   }, [slug]);
 
   // Restore a saved draft after a sign-in detour, then clear it.
@@ -316,15 +323,18 @@ function GenerateInner() {
             </div>
           </div>
         ) : (
-          // Chic pull-tab: a slim vertical line (not a box) that reveals the
-          // Examples panel; it thickens/accents on hover.
+          // Chic pull-tab to reopen the Examples panel: a caret arrow above a
+          // slim vertical line; both accent on hover.
           <button
             onClick={() => setPanelOpen(true)}
             aria-label="Show examples"
             title="Examples"
-            className="group flex h-full items-start justify-center pt-1"
+            className="group flex h-full flex-col items-center gap-2 pt-1 text-muted transition-colors hover:text-accent"
           >
-            <span className="h-20 w-px rounded-full bg-line transition-all duration-200 group-hover:w-[3px] group-hover:bg-accent" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M6 3 L11 8 L6 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="h-16 w-px rounded-full bg-line transition-colors group-hover:bg-accent" />
           </button>
         )}
       </aside>

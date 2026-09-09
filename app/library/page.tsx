@@ -7,12 +7,20 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
-import { getModels } from "@/lib/models";
+import { getModels, type Model } from "@/lib/models";
+import { getFavorites, getRecents, setPendingImages } from "@/lib/prefs";
 
 export default function LibraryPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<"videos" | "images">("videos");
+
+  // Image selection + "upload to a model" flow.
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [modelFilter, setModelFilter] = useState<"all" | "recents" | "favorites">("all");
+  const [modelQuery, setModelQuery] = useState("");
 
   useEffect(() => {
     if (!isSignedIn()) {
@@ -37,6 +45,39 @@ export default function LibraryPage() {
     { id: `${m.slug}-b`, src: m.poster, name: `${m.slug}-ref-02.jpg` },
   ]);
 
+  // ---- selection helpers ----------------------------------------------------
+  const allSelected = selected.size > 0 && selected.size === images.length;
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+  function toggleAll() {
+    setSelected(allSelected ? new Set() : new Set(images.map((i) => i.id)));
+  }
+  function exitSelect() {
+    setSelectMode(false);
+    setSelected(new Set());
+  }
+  // Queue the selected images for the chosen model, then open its playground.
+  function uploadTo(model: Model) {
+    const chosen = images.filter((img) => selected.has(img.id)).map((img) => ({ url: img.src, name: img.name }));
+    setPendingImages(chosen);
+    router.push(`/generate?model=${model.slug}`);
+  }
+
+  // Model list shown in the upload modal, filtered by tab + search.
+  function modelsForFilter(): Model[] {
+    const bySlug = (slug: string) => models.find((m) => m.slug === slug);
+    if (modelFilter === "recents") return getRecents().map(bySlug).filter(Boolean) as Model[];
+    if (modelFilter === "favorites") return getFavorites().map(bySlug).filter(Boolean) as Model[];
+    return models;
+  }
+  const mq = modelQuery.trim().toLowerCase();
+  const modelResults = modelsForFilter().filter((m) => !mq || `${m.name} ${m.tagline}`.toLowerCase().includes(mq));
+
   if (!ready) return <div className="min-h-screen" />;
 
   return (
@@ -53,7 +94,7 @@ export default function LibraryPage() {
           {(["videos", "images"] as const).map((t) => (
             <button
               key={t}
-              onClick={() => setTab(t)}
+              onClick={() => { setTab(t); exitSelect(); }}
               className={`-mb-px border-b-2 pb-3 transition-colors ${
                 tab === t ? "border-accent text-accent" : "border-transparent text-muted hover:text-fg"
               }`}
@@ -63,12 +104,23 @@ export default function LibraryPage() {
           ))}
         </div>
 
+        {/* VIDEOS — thumbnails that play on hover */}
         {tab === "videos" && (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {videos.map((v) => (
               <Link key={v.id} href={`/generate?model=${v.model.slug}`} className="group border border-line p-3 transition-colors hover:border-[rgba(124,189,242,0.5)]">
                 <div className="aspect-video w-full overflow-hidden bg-black">
-                  <video src={v.model.demoVideo} poster={v.model.poster} muted loop playsInline className="h-full w-full object-cover" onMouseEnter={(e) => e.currentTarget.play()} onMouseLeave={(e) => e.currentTarget.pause()} />
+                  <video
+                    src={v.model.demoVideo}
+                    poster={v.model.poster}
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    className="h-full w-full object-cover"
+                    onMouseEnter={(e) => e.currentTarget.play()}
+                    onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
+                  />
                 </div>
                 <p className="mt-3 truncate text-sm text-fg">{v.prompt}</p>
                 <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">{v.model.name} · {v.when}</p>
@@ -77,23 +129,143 @@ export default function LibraryPage() {
           </div>
         )}
 
+        {/* IMAGES — selectable; selected images can be uploaded to a model */}
         {tab === "images" && (
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
-            {images.map((img) => (
-              <div key={img.id} className="border border-line p-2">
-                <div className="aspect-square w-full overflow-hidden bg-black">
-                  <img src={img.src} alt="" className="h-full w-full object-cover" />
-                </div>
-                <p className="mt-2 truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-dim">{img.name}</p>
-              </div>
-            ))}
-          </div>
+          <>
+            {/* selection toolbar */}
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              {!selectMode ? (
+                <button
+                  onClick={() => setSelectMode(true)}
+                  className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:bg-hover"
+                >
+                  Select
+                </button>
+              ) : (
+                <>
+                  <button onClick={toggleAll} className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:bg-hover">
+                    {allSelected ? "Deselect all" : "Select all"}
+                  </button>
+                  <span className="text-sm text-muted">{selected.size} selected</span>
+                  <button
+                    onClick={() => setUploadOpen(true)}
+                    disabled={selected.size === 0}
+                    className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Upload to model
+                  </button>
+                  <button onClick={exitSelect} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
+                </>
+              )}
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+              {images.map((img) => {
+                const on = selected.has(img.id);
+                return (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => selectMode && toggleOne(img.id)}
+                    className={`group block border p-2 text-left transition-colors ${
+                      on ? "border-accent" : "border-line"
+                    } ${selectMode ? "cursor-pointer" : "cursor-default"}`}
+                  >
+                    <div className="relative aspect-square w-full overflow-hidden bg-black">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img.src} alt="" className={`h-full w-full object-cover transition-opacity ${on ? "opacity-80" : ""}`} />
+                      {selectMode && (
+                        <span
+                          className={`absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border text-ink transition-colors ${
+                            on ? "border-accent bg-accent" : "border-white/70 bg-black/40"
+                          }`}
+                        >
+                          {on && (
+                            <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.5 L5 9 L9.5 3.5" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-2 truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-dim">{img.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </>
         )}
       </main>
 
       <div className="relative z-10">
         <SiteFooter />
       </div>
+
+      {/* Upload-to-model modal: filter recents/favorites/all, search, then pick */}
+      {uploadOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-6" onClick={() => setUploadOpen(false)}>
+          <div className="flex max-h-[80vh] w-full max-w-md flex-col rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Upload to a model</h3>
+            <p className="mt-1 text-xs text-dim">{selected.size} image{selected.size === 1 ? "" : "s"} → the model&apos;s playground.</p>
+
+            {/* filter chips */}
+            <div className="mt-4 flex gap-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em]">
+              {(["all", "recents", "favorites"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setModelFilter(f)}
+                  className={`rounded-none border px-3 py-1.5 transition-colors ${
+                    modelFilter === f ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+
+            {/* search */}
+            <div className="relative mt-3">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-dim">
+                <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+                <path d="M11 11 L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+              <input
+                autoFocus
+                value={modelQuery}
+                onChange={(e) => setModelQuery(e.target.value)}
+                placeholder="Search models"
+                className="w-full rounded-none border border-line-strong bg-raised py-2 pl-8 pr-2 text-sm text-fg outline-none placeholder:text-dim focus:border-blue"
+              />
+            </div>
+
+            {/* results */}
+            <div className="mt-3 min-h-0 flex-1 overflow-y-auto border border-line">
+              {modelResults.length === 0 ? (
+                <p className="p-4 text-sm text-dim">
+                  {modelFilter === "recents" ? "No recent models yet." : modelFilter === "favorites" ? "No favorite models yet." : `No models match “${modelQuery}”.`}
+                </p>
+              ) : (
+                modelResults.map((m, i) => (
+                  <button
+                    key={m.slug}
+                    onClick={() => uploadTo(m)}
+                    className={`flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-hover ${i > 0 ? "border-t border-line" : ""}`}
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-accent-soft font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent">
+                      {m.name.charAt(0)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-fg">{m.name}</span>
+                      <span className="block truncate text-xs text-dim">{m.tagline}</span>
+                    </span>
+                    <span className="shrink-0 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-blue">Upload →</span>
+                  </button>
+                ))
+              )}
+            </div>
+
+            <button onClick={() => setUploadOpen(false)} className="mt-4 self-end text-sm text-muted transition-colors hover:text-fg">Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
