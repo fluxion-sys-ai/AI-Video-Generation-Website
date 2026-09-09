@@ -229,7 +229,9 @@ export default function LibraryPage() {
                     muted
                     loop
                     playsInline
-                    preload="metadata"
+                    // Load every clip's first frame up front so all thumbnails
+                    // show without hovering; hover then plays the video.
+                    preload="auto"
                     className="h-full w-full object-cover"
                     onMouseEnter={(e) => e.currentTarget.play()}
                     onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}

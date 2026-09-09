@@ -205,8 +205,10 @@
 /* Light theme — matches the Fluxion site's light look. Only surfaces, text,
    and lines flip; brand accents stay the same. */
 .light {
-  --c-base: #ffffff;
-  --c-base-2: #eef2f8;
+  /* Page canvas is a soft blue-grey (the "nicer" dashboard tone), applied app-
+     wide; cards/inputs stay lighter so they lift off the page. */
+  --c-base: #eef2f8;
+  --c-base-2: #e7edf6;
   --c-surface: #ffffff;
   --c-panel: #f4f7fc;
   --c-raised: #eaf0f8;

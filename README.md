@@ -8,10 +8,13 @@ AI inference**: all accounts, credits, payments, and "generation" are mocked in
 the browser (`localStorage` + a swappable data layer). It replays sample clips
 instead of generating anything.
 
-Styled to match [Fluxion](https://fluxion-sys.ai): dark UI, **JetBrains Mono**
-for headings/UI (all buttons use it too), **Geist** for body, **Sora** for the
-logo wordmark. Sky-blue (`#7CBDF2`) accent with a warm gold/orange
-(`#E0A24E` / `#FF8A1E`) highlight.
+Styled to match [Fluxion](https://fluxion-sys.ai): **JetBrains Mono** for
+headings/UI (all buttons use it too), **Geist** for body, **Sora** for the logo
+wordmark. Sky-blue (`#7CBDF2`) accent with a warm gold/orange (`#E0A24E` /
+`#FF8A1E`) highlight. Two themes: a near-black **dark** UI (default) and a soft
+blue-grey **light** UI (`#eef2f8` canvas); decorative glows are warm
+orange/yellow in light mode. All of it is token-driven — see
+[Design tokens & theming](#design-tokens--theming).
 
 ---
 
@@ -50,7 +53,7 @@ The same header switches between two "modes":
 | `/signup` | **Guided onboarding slideshow** | Multi-step wizard: account → name (email autofilled) → who-are-you → payment + billing (optional) → add credits (optional) → dashboard |
 | `/info` | Info + contact | Placeholder contact links |
 | `/dashboard` | **App** dashboard | Getting-started checklist, quick actions, snapshot, recents + favorites |
-| `/library` | **App** library | Your generated videos + uploaded images (tabs) |
+| `/library` | **App** library | Videos (hover-play) + images. Images: multi-select, delete (with confirm), upload, drag-into / right-click-into **folders**, and "upload to a model" → opens that model's playground with the images loaded |
 | `/profile` | **App** account hub | Left sidebar: Account · Billing · Payment · Usage · Settings. Payment methods sort the **default card first**; Usage shows a **searchable, scrollable** generation history |
 | `/settings` | Redirect | Sends you to `/profile?tab=preferences` |
 
@@ -97,6 +100,9 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | `fluxion.persona` | who-are-you answer from onboarding (student, developer, …) | `components/onboarding.tsx` |
 | `fluxion.hasCard` | mock "a card was added during signup" flag | `components/onboarding.tsx` |
 | `fluxion.credits` | starting credit amount chosen during signup | `components/onboarding.tsx` |
+| `fluxion.pendingImages` | images handed off from the library to a model's playground | `lib/prefs.ts` |
+| `fluxion.libraryImages` | persisted library images (samples + uploads, incl. those uploaded to a model) | `lib/prefs.ts` |
+| `fluxion.libraryFolders` | user-created image folders `{ id, name, imageIds[] }` | `app/library/page.tsx` |
 
 ---
 
@@ -130,6 +136,10 @@ anymore. This is the one place to restyle the whole app.
   under `.light`. They're exposed to Tailwind via `@theme inline`, so you style
   with **semantic utilities** instead of raw hex:
   - Surfaces: `bg-base`, `bg-base-2`, `bg-surface`, `bg-panel`, `bg-raised`, `bg-track`
+    - Dark: near-black canvas (`--c-base: #070d1a`).
+    - Light: a soft **blue-grey** canvas (`--c-base: #eef2f8`) — the whole light
+      theme uses this "nicer" dashboard tone; cards/inputs (`bg-surface` = white)
+      lift off it.
   - Text: `text-fg`, `text-fg-strong`, `text-fg-soft`, `text-fg-soft-2`, `text-muted`, `text-dim`, `text-ink` (on-accent)
   - Lines: `border-line`, `border-line-strong`
   - Chrome hairlines/hover washes (translucent, used by headers, dropdowns,
@@ -138,6 +148,11 @@ anymore. This is the one place to restyle the whole app.
   - Brand: `text-/bg-accent`, `bg-accent-hover`, `text-gold`, `text-gold-soft`, `text-gold-bright`, `text-gold-2`, `text-blue`, `text-danger`
   - Cursor spotlight gradient: the `--spotlight` token (softened in `.light`),
     consumed by `.spotlight-glow` in `components/spotlight.tsx`
+  - Decorative background art (theme-colored, **not** inverted): glow-orb stops
+    `--glow-o0/--glow-o1` (warm) and `--glow-b0/--glow-b1` in
+    `components/glow-blobs.tsx`, and the moving line stroke `--dot-line` in
+    `components/plans-dots.tsx`. Dark = brand orange + sky blue; light = sunny
+    **orange/yellow** with a warm gold line.
 - **Fonts** come from `next/font` in `app/layout.tsx` and are referenced as
   `var(--font-jetbrains)` (headings/UI/buttons), `var(--font-geist-sans)` (body),
   `var(--font-sora)` (logo). All `<button>`s default to JetBrains Mono.
@@ -157,11 +172,13 @@ It's persisted as `fluxion.theme` and applied before paint by a tiny script in
 `app/layout.tsx` (no flash). All the theme logic lives in `lib/prefs.ts`
 (`getTheme` / `resolveTheme` / `applyTheme` / `watchSystemTheme`).
 
-The only pixels not driven by tokens are the decorative dark background art
-(hero SVG + the glow-orb / moving line-dot fields). These are authored dark, so
-in light mode they'd wash out — every decorative layer carries the
-`.decor-invert` class, which inverts just those layers so the lines and moving
-dots stay visible on the light canvas (`app/globals.css`).
+**Decorative background art** is theme-colored via the tokens above (no invert
+filter). The glow orbs and moving line/dot field read their colors from CSS
+vars, so they switch to warm orange/yellow on the light canvas. The homepage
+keeps its authored dark `backdrop.svg` **only in dark mode** (`.decor-dark`) and
+swaps to the theme-colored `GlowBlobs` + `PlansDots` **in light mode**
+(`.decor-light`). Those two helper classes (in `app/globals.css`) show/hide a
+layer per theme.
 
 To retheme: edit the variables in `app/globals.css`. To add a color: add a
 `--c-name` (both `:root` and `.light`), map it under `@theme inline`, then use
@@ -216,6 +233,7 @@ components/              Reusable UI
   onboarding.tsx         Sign-up "slideshow" wizard (account → name → persona → payment → credits)
   auth-form.tsx          Mock login form (used by /login)
   spotlight.tsx          Cursor-following glow + OS-theme sync
+  avatar-editor.tsx      Profile-photo editor (crop/zoom/rotate + filters → PNG)
 lib/
   models.ts              Model data (edit me)
   auth.ts                Mock auth + form draft
