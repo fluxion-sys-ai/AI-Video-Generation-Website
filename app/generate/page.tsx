@@ -84,6 +84,8 @@ function GenerateInner() {
       return prev.filter((_, i) => i !== idx);
     });
   }
+  // Expanded image viewer (click a thumbnail to open, × to close).
+  const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
 
   const [status, setStatus] = useState<Status>("idle");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
@@ -363,11 +365,19 @@ function GenerateInner() {
                   <input type="file" accept="image/*" multiple className="hidden" onChange={addImages} />
                 </label>
               ) : (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-end gap-2">
                   {images.map((img, i) => (
-                    <div key={i} className="group relative h-16 w-16 overflow-hidden rounded-[8px] border border-line-strong bg-black">
+                    // Thumbnails keep the image's true aspect ratio (object-contain),
+                    // sized by height. Click to expand into the lightbox.
+                    <div key={i} className="group relative h-24 overflow-hidden rounded-[8px] border border-line-strong bg-black">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt={img.name} title={img.name} className="h-full w-full object-cover" />
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        title={img.name}
+                        onClick={() => setLightbox(img)}
+                        className="h-24 w-auto max-w-[200px] cursor-zoom-in object-contain"
+                      />
                       <button
                         type="button"
                         onClick={() => removeImage(i)}
@@ -379,7 +389,7 @@ function GenerateInner() {
                     </div>
                   ))}
                   {/* add-more tile */}
-                  <label className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-[8px] border border-dashed border-line-strong text-dim transition-colors hover:border-blue hover:text-blue" title="Add more images">
+                  <label className="flex h-24 w-24 cursor-pointer items-center justify-center rounded-[8px] border border-dashed border-line-strong text-dim transition-colors hover:border-blue hover:text-blue" title="Add more images">
                     <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3 V13 M3 8 H13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
                     <input type="file" accept="image/*" multiple className="hidden" onChange={addImages} />
                   </label>
@@ -548,6 +558,27 @@ function GenerateInner() {
       </div>
       )}
       </div>
+
+      {/* Expanded image viewer */}
+      {lightbox && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-8" onClick={() => setLightbox(null)}>
+          <button
+            type="button"
+            onClick={() => setLightbox(null)}
+            aria-label="Close"
+            className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-hairline-strong bg-black/50 text-white transition-colors hover:bg-danger"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3 L13 13 M13 3 L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightbox.url}
+            alt={lightbox.name}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -22,6 +22,54 @@ export default function LibraryPage() {
   const [modelFilter, setModelFilter] = useState<"all" | "recents" | "favorites">("all");
   const [modelQuery, setModelQuery] = useState("");
 
+  // Folders for organizing images (drag an image onto a folder). Persisted.
+  type Folder = { id: string; name: string; imageIds: string[] };
+  const FOLDERS_KEY = "fluxion.libraryFolders";
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [activeFolder, setActiveFolder] = useState<string | null>(null);
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(FOLDERS_KEY);
+      if (raw) setFolders(JSON.parse(raw));
+    } catch {
+      /* ignore malformed storage */
+    }
+  }, []);
+  // Persist explicitly on each mutation (avoids a load/save race on mount).
+  function persistFolders(next: Folder[]) {
+    setFolders(next);
+    try {
+      localStorage.setItem(FOLDERS_KEY, JSON.stringify(next));
+    } catch {
+      /* storage may be unavailable */
+    }
+  }
+  function createFolder(name: string) {
+    const n = name.trim();
+    if (!n) return;
+    persistFolders([...folders, { id: `f${Date.now()}`, name: n, imageIds: [] }]);
+    setNewFolderName("");
+    setCreatingFolder(false);
+  }
+  function addToFolder(folderId: string, imageId: string) {
+    persistFolders(
+      folders.map((f) =>
+        f.id === folderId ? (f.imageIds.includes(imageId) ? f : { ...f, imageIds: [...f.imageIds, imageId] }) : f,
+      ),
+    );
+  }
+  function removeFromFolder(folderId: string, imageId: string) {
+    persistFolders(folders.map((f) => (f.id === folderId ? { ...f, imageIds: f.imageIds.filter((x) => x !== imageId) } : f)));
+  }
+  function deleteFolder(folderId: string) {
+    persistFolders(folders.filter((f) => f.id !== folderId));
+    if (activeFolder === folderId) setActiveFolder(null);
+  }
+
   useEffect(() => {
     if (!isSignedIn()) {
       router.replace("/login?next=/library");
@@ -78,6 +126,10 @@ export default function LibraryPage() {
   const mq = modelQuery.trim().toLowerCase();
   const modelResults = modelsForFilter().filter((m) => !mq || `${m.name} ${m.tagline}`.toLowerCase().includes(mq));
 
+  // Images shown in the grid: all, or just the selected folder's.
+  const activeFolderObj = folders.find((f) => f.id === activeFolder) || null;
+  const shownImages = activeFolderObj ? images.filter((img) => activeFolderObj.imageIds.includes(img.id)) : images;
+
   if (!ready) return <div className="min-h-screen" />;
 
   return (
@@ -129,67 +181,150 @@ export default function LibraryPage() {
           </div>
         )}
 
-        {/* IMAGES — selectable; selected images can be uploaded to a model */}
+        {/* IMAGES — selectable, organizable into folders (drag onto a folder) */}
         {tab === "images" && (
           <>
-            {/* selection toolbar */}
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              {!selectMode ? (
-                <button
-                  onClick={() => setSelectMode(true)}
-                  className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:bg-hover"
-                >
-                  Select
-                </button>
-              ) : (
-                <>
-                  <button onClick={toggleAll} className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:bg-hover">
-                    {allSelected ? "Deselect all" : "Select all"}
-                  </button>
-                  <span className="text-sm text-muted">{selected.size} selected</span>
+            {/* toolbar: selection (left) + create folder (top-right) */}
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                {!selectMode ? (
                   <button
-                    onClick={() => setUploadOpen(true)}
-                    disabled={selected.size === 0}
-                    className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
+                    onClick={() => setSelectMode(true)}
+                    className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:bg-hover"
                   >
-                    Upload to model
+                    Select
                   </button>
-                  <button onClick={exitSelect} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
-                </>
-              )}
+                ) : (
+                  <>
+                    <button onClick={toggleAll} className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:bg-hover">
+                      {allSelected ? "Deselect all" : "Select all"}
+                    </button>
+                    <span className="text-sm text-muted">{selected.size} selected</span>
+                    <button
+                      onClick={() => setUploadOpen(true)}
+                      disabled={selected.size === 0}
+                      className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Upload to model
+                    </button>
+                    <button onClick={exitSelect} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
+                  </>
+                )}
+              </div>
+
+              {/* create folder (top-right) */}
+              <div className="flex items-center gap-2">
+                {creatingFolder ? (
+                  <>
+                    <input
+                      autoFocus
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") createFolder(newFolderName); if (e.key === "Escape") { setCreatingFolder(false); setNewFolderName(""); } }}
+                      placeholder="Folder name"
+                      className="rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none placeholder:text-dim focus:border-blue"
+                    />
+                    <button onClick={() => createFolder(newFolderName)} className="rounded-none bg-accent px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">Add</button>
+                    <button onClick={() => { setCreatingFolder(false); setNewFolderName(""); }} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setCreatingFolder(true)}
+                    className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:border-accent hover:text-accent"
+                  >
+                    New folder +
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
-              {images.map((img) => {
-                const on = selected.has(img.id);
-                return (
-                  <button
-                    key={img.id}
-                    type="button"
-                    onClick={() => selectMode && toggleOne(img.id)}
-                    className={`group block border p-2 text-left transition-colors ${
-                      on ? "border-accent" : "border-line"
-                    } ${selectMode ? "cursor-pointer" : "cursor-default"}`}
-                  >
-                    <div className="relative aspect-square w-full overflow-hidden bg-black">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.src} alt="" className={`h-full w-full object-cover transition-opacity ${on ? "opacity-80" : ""}`} />
-                      {selectMode && (
-                        <span
-                          className={`absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border text-ink transition-colors ${
-                            on ? "border-accent bg-accent" : "border-white/70 bg-black/40"
-                          }`}
-                        >
-                          {on && (
-                            <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.5 L5 9 L9.5 3.5" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                          )}
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-2 truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-dim">{img.name}</p>
+            {/* folders row — drop targets. Drag an image onto one to file it. */}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setActiveFolder(null)}
+                className={`rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
+                  activeFolder === null ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                }`}
+              >
+                All ({images.length})
+              </button>
+              {folders.map((f) => (
+                <div
+                  key={f.id}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverFolder(f.id); }}
+                  onDragLeave={() => setDragOverFolder((d) => (d === f.id ? null : d))}
+                  onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) addToFolder(f.id, id); setDragOverFolder(null); }}
+                  className={`flex items-center gap-2 rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
+                    dragOverFolder === f.id
+                      ? "border-accent bg-accent-soft text-accent"
+                      : activeFolder === f.id
+                        ? "border-accent text-accent"
+                        : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                  }`}
+                >
+                  <button onClick={() => setActiveFolder(f.id)} className="flex items-center gap-1.5" title="View folder">
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V12 A1 1 0 0 1 13.5 13 H2.5 A1 1 0 0 1 1.5 12 Z" stroke="currentColor" strokeWidth="1.2" /></svg>
+                    {f.name} ({f.imageIds.length})
                   </button>
-                );
-              })}
+                  <button onClick={() => deleteFolder(f.id)} aria-label={`Delete ${f.name}`} className="text-dim hover:text-danger" title="Delete folder">
+                    <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+            {folders.length === 0 && !creatingFolder && (
+              <p className="mt-2 text-xs text-dim">Tip: create a folder, then drag images onto it to organize them.</p>
+            )}
+
+            {/* image grid */}
+            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+              {shownImages.length === 0 ? (
+                <p className="col-span-full text-sm text-dim">This folder is empty. Drag images here from “All”.</p>
+              ) : (
+                shownImages.map((img) => {
+                  const on = selected.has(img.id);
+                  return (
+                    <div
+                      key={img.id}
+                      draggable={!selectMode}
+                      onDragStart={(e) => { e.dataTransfer.setData("text/plain", img.id); e.dataTransfer.effectAllowed = "copy"; }}
+                      onClick={() => selectMode && toggleOne(img.id)}
+                      className={`group block border p-2 text-left transition-colors ${
+                        on ? "border-accent" : "border-line"
+                      } ${selectMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"}`}
+                    >
+                      <div className="relative aspect-square w-full overflow-hidden bg-black">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={img.src} alt="" className={`h-full w-full object-cover transition-opacity ${on ? "opacity-80" : ""}`} draggable={false} />
+                        {selectMode && (
+                          <span
+                            className={`absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border text-ink transition-colors ${
+                              on ? "border-accent bg-accent" : "border-white/70 bg-black/40"
+                            }`}
+                          >
+                            {on && (
+                              <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.5 L5 9 L9.5 3.5" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            )}
+                          </span>
+                        )}
+                        {/* when viewing a folder, allow removing from it */}
+                        {activeFolderObj && !selectMode && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); removeFromFolder(activeFolderObj.id, img.id); }}
+                            aria-label="Remove from folder"
+                            title="Remove from folder"
+                            className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity hover:bg-danger group-hover:opacity-100"
+                          >
+                            <svg width="10" height="10" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                          </button>
+                        )}
+                      </div>
+                      <p className="mt-2 truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-dim">{img.name}</p>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </>
         )}
