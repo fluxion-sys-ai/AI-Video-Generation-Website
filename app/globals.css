@@ -127,6 +127,11 @@
   html {
     @apply font-sans;
   }
+  /* Every button uses the JetBrains Mono "typewriter" font by default. Buttons
+     that set their own font utility still win over this base rule. */
+  button {
+    font-family: var(--font-jetbrains);
+  }
 }
 
 /* ============================================================================

@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { UsageChart } from "@/components/usage-chart";
+import { AvatarEditor } from "@/components/avatar-editor";
 import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
 import { getModels } from "@/lib/models";
 import { getTheme, applyTheme, type Theme } from "@/lib/prefs";
@@ -79,6 +80,7 @@ function ProfileInner() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<string | undefined>(undefined);
+  const [editorSrc, setEditorSrc] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertSaved, setAlertSaved] = useState(false);
@@ -151,17 +153,19 @@ function ProfileInner() {
     setTimeout(() => setSaved(false), 1600);
   }
 
+  // Open the picked image in the editor (crop/zoom/rotate/filter) before saving.
   function pickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
-      const url = String(reader.result);
-      setAvatar(url);
-      persist({ avatar: url });
-    };
+    reader.onload = () => setEditorSrc(String(reader.result));
     reader.readAsDataURL(file);
     e.target.value = "";
+  }
+  function saveEditedAvatar(url: string) {
+    setAvatar(url);
+    persist({ avatar: url });
+    setEditorSrc(null);
   }
   function out() {
     signOut();
@@ -738,6 +742,11 @@ function ProfileInner() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Avatar editor (crop / zoom / rotate / filter) */}
+      {editorSrc && (
+        <AvatarEditor src={editorSrc} onCancel={() => setEditorSrc(null)} onSave={saveEditedAvatar} />
       )}
     </div>
   );

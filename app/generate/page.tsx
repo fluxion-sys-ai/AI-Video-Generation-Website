@@ -198,9 +198,9 @@ function GenerateInner() {
 
   return (
     <div className="px-6 py-6">
-      {/* Top row: model picker + model name, aligned together at the top */}
-      <div className="mb-4 flex flex-wrap items-center gap-4">
-        <div className="relative w-full max-w-xs">
+      {/* Model picker — kept narrow so the layout stays aligned whether or not
+          the Examples panel is open. */}
+      <div className="relative mb-4 w-full max-w-[210px]">
           <button
             onClick={() => setPickerOpen((o) => !o)}
             aria-expanded={pickerOpen}
@@ -260,8 +260,6 @@ function GenerateInner() {
               </div>
             </div>
           )}
-        </div>
-        <h1 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
       </div>
 
       <div className="grid gap-6 lg:h-[calc(100vh-7rem)] lg:grid-cols-[150px_1fr]">
@@ -343,7 +341,8 @@ function GenerateInner() {
 
       {/* Main form (borderless, compact) */}
       <main className="min-h-0 lg:overflow-y-auto">
-        <p className="max-w-2xl text-sm text-muted">{model.description}</p>
+        <h1 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
+        <p className="mt-1 max-w-2xl text-sm text-muted">{model.description}</p>
 
         <div className="mt-5 space-y-4">
           <Field label="Prompt" hint={`${prompt.length} chars`}>
@@ -455,53 +454,7 @@ function GenerateInner() {
           </button>
         </div>
 
-        {/* Refine session: appears after the first generation; each edit re-generates */}
-        {session && (
-          <div className="mt-6 space-y-3 rounded-[10px] border border-line bg-raised p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-gold">
-                Refine session
-              </span>
-              <div className="flex items-center gap-3 text-xs">
-                <button onClick={undoRefine} disabled={chat.length === 0} className="text-muted hover:text-fg disabled:opacity-40">
-                  Undo
-                </button>
-                <button onClick={restartRefine} className="text-muted hover:text-fg">
-                  Restart
-                </button>
-              </div>
-            </div>
-
-            <div className="max-h-40 space-y-2 overflow-y-auto">
-              {chat.length === 0 ? (
-                <p className="text-xs text-dim">Add an instruction to tweak the video, e.g. &quot;make it slower&quot; or &quot;add rain&quot;. Each edit re-generates.</p>
-              ) : (
-                chat.map((m, i) => (
-                  <div key={i} className="ml-auto max-w-[85%] rounded-[8px] bg-[rgba(124,189,242,0.12)] px-3 py-1.5 text-sm text-fg">
-                    {m}
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <input
-                value={refineInput}
-                onChange={(e) => setRefineInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") sendRefine(); }}
-                placeholder="Add an edit and press Enter…"
-                className={`${selectClass} flex-1`}
-              />
-              <button
-                onClick={sendRefine}
-                disabled={status === "generating" || !refineInput.trim()}
-                className="rounded-[10px] bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent-hover disabled:opacity-40"
-              >
-                Send
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Refine session UI lives in a floating chatbot bar (see below). */}
       </main>
 
       {/* Preview stage (right): the chosen aspect shape; the video generates here */}
@@ -558,6 +511,48 @@ function GenerateInner() {
       </div>
       )}
       </div>
+
+      {/* Floating refine chatbot — fixed to the bottom-center like a chat app. */}
+      {session && (
+        <div className="fixed bottom-5 left-1/2 z-[60] w-[min(92vw,640px)] -translate-x-1/2 rounded-[14px] border border-line bg-panel/95 p-3 shadow-xl shadow-black/40 backdrop-blur">
+          <div className="mb-2 flex items-center justify-between px-1">
+            <span className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-gold">
+              Refine session
+            </span>
+            <div className="flex items-center gap-3 font-[family-name:var(--font-jetbrains)] text-xs">
+              <button onClick={undoRefine} disabled={chat.length === 0} className="text-muted hover:text-fg disabled:opacity-40">Undo</button>
+              <button onClick={restartRefine} className="text-muted hover:text-fg">Restart</button>
+            </div>
+          </div>
+
+          {chat.length > 0 && (
+            <div className="mb-2 max-h-32 space-y-2 overflow-y-auto px-1">
+              {chat.map((m, i) => (
+                <div key={i} className="ml-auto max-w-[85%] rounded-[8px] bg-[rgba(124,189,242,0.12)] px-3 py-1.5 text-sm text-fg">
+                  {m}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <input
+              value={refineInput}
+              onChange={(e) => setRefineInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") sendRefine(); }}
+              placeholder="Add an edit and press Enter…  (e.g. “make it slower”, “add rain”)"
+              className="flex-1 rounded-[10px] border border-line-strong bg-raised px-3 py-2.5 text-sm text-fg outline-none focus:border-blue"
+            />
+            <button
+              onClick={sendRefine}
+              disabled={status === "generating" || !refineInput.trim()}
+              className="rounded-[10px] bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-ink transition-colors hover:bg-accent-hover disabled:opacity-40"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Expanded image viewer */}
       {lightbox && (
