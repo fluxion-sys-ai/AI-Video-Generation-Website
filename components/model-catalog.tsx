@@ -25,7 +25,8 @@ export function ModelCatalog({ models }: { models: Model[] }) {
   function toggleTag(t: string) {
     setTags((prev) => {
       const next = new Set(prev);
-      next.has(t) ? next.delete(t) : next.add(t);
+      if (next.has(t)) next.delete(t);
+      else next.add(t);
       return next;
     });
   }

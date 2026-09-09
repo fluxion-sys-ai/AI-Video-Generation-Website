@@ -45,8 +45,8 @@ The same header switches between two "modes":
 | Path | Page | Notes |
 | --- | --- | --- |
 | `/` | Landing | Hero reels, stats, model marquee, walkthrough, pricing teaser |
-| `/models` | Model catalog | Cards with hover-preview + **search bar** + **heart to favorite** |
-| `/generate?model=<slug>` | Generation playground | Form + live preview + refine chat; **API** tab with code snippets |
+| `/models` | Model catalog | Cards with hover-preview, **search**, **tag filter**, **sort** (popular / price / A–Z), **heart to favorite** |
+| `/generate?model=<slug>` | Generation playground | Form + live preview + **multi-image upload** (thumbnails, lightbox, hover-to-delete) + **floating refine chatbot**; **API** tab with code snippets |
 | `/pricing` | Pricing | Pay-as-you-go rate + **cost estimator** + per-model rate table |
 | `/docs` | Documentation | fal.ai-style docs: section sidebar + quickstart/auth/API/etc. |
 | `/login` | Mock auth | Email/Google (mock) — sets a `localStorage` flag |
@@ -54,7 +54,7 @@ The same header switches between two "modes":
 | `/info` | Info + contact | Placeholder contact links |
 | `/dashboard` | **App** dashboard | Getting-started checklist, quick actions, snapshot, recents + favorites |
 | `/library` | **App** library | Videos (hover-play) + images. Images: multi-select, delete (with confirm), upload, drag-into / right-click-into **folders**, and "upload to a model" → opens that model's playground with the images loaded |
-| `/profile` | **App** account hub | Left sidebar: Account · Billing · Payment · Usage · Settings. Payment methods sort the **default card first**; Usage shows a **searchable, scrollable** generation history |
+| `/profile` | **App** account hub | Left sidebar: Account · Billing · Payment · Usage · Settings. **Avatar editor** (crop/zoom/rotate/filter) on photo change; theme toggle with **system/dark/light** icons; payment methods sort the **default card first**; Usage shows a **searchable, scrollable** generation history |
 | `/settings` | Redirect | Sends you to `/profile?tab=preferences` |
 
 Deep links: the profile hub reads `?tab=` (e.g. `/profile?tab=billing`), used by
@@ -153,6 +153,8 @@ anymore. This is the one place to restyle the whole app.
     `components/glow-blobs.tsx`, and the moving line stroke `--dot-line` in
     `components/plans-dots.tsx`. Dark = brand orange + sky blue; light = sunny
     **orange/yellow** with a warm gold line.
+  - Hero-reels frame shadow: `--reel-shadow` (deep + gold glow in dark; soft warm,
+    no black halo, in light), consumed by `.reel-glow` in `components/hero-reels.tsx`
 - **Fonts** come from `next/font` in `app/layout.tsx` and are referenced as
   `var(--font-jetbrains)` (headings/UI/buttons), `var(--font-geist-sans)` (body),
   `var(--font-sora)` (logo). All `<button>`s default to JetBrains Mono.
@@ -220,7 +222,7 @@ components/              Reusable UI
   hero-reels.tsx         3-slot vertical reels carousel
   model-marquee.tsx      Auto-scrolling model row (landing)
   model-card.tsx         Model thumbnail card + favorite heart
-  model-catalog.tsx      Catalog grid + search bar
+  model-catalog.tsx      Catalog grid + search + tag filter + sort
   model-pricing-table.tsx  Per-model rate table
   cost-estimator.tsx     Pricing clip cost estimator
   usage-chart.tsx        Daily usage/spend bar chart (axes)
