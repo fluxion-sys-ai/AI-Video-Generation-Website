@@ -1,19 +1,7 @@
 import { getModels } from "@/lib/models";
 
-type Plan = { name: string; creditsNum: number };
-
 // Single-series magnitude bars — one accent hue, value labels in ink tokens.
-function BarRow({
-  label,
-  value,
-  max,
-  display,
-}: {
-  label: string;
-  value: number;
-  max: number;
-  display: string;
-}) {
+function BarRow({ label, value, max, display }: { label: string; value: number; max: number; display: string }) {
   const pct = Math.max(4, (value / max) * 100);
   return (
     <div>
@@ -28,33 +16,19 @@ function BarRow({
   );
 }
 
-export function PricingCharts({ plans }: { plans: Plan[] }) {
+export function PricingCharts() {
   const models = getModels();
   const maxCps = Math.max(...models.map((m) => m.creditsPerSecond));
-  const maxPlan = Math.max(...plans.map((p) => p.creditsNum));
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
-          Credits / second by model
-        </h3>
-        <div className="mt-4 space-y-3">
-          {models.map((m) => (
-            <BarRow key={m.slug} label={m.name} value={m.creditsPerSecond} max={maxCps} display={`${m.creditsPerSecond}`} />
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
-          Monthly credits by plan
-        </h3>
-        <div className="mt-4 space-y-3">
-          {plans.map((p) => (
-            <BarRow key={p.name} label={p.name} value={p.creditsNum} max={maxPlan} display={p.creditsNum.toLocaleString()} />
-          ))}
-        </div>
+    <div>
+      <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
+        Credits / second by model
+      </h3>
+      <div className="mt-4 space-y-3">
+        {models.map((m) => (
+          <BarRow key={m.slug} label={m.name} value={m.creditsPerSecond} max={maxCps} display={`${m.creditsPerSecond}`} />
+        ))}
       </div>
     </div>
   );
