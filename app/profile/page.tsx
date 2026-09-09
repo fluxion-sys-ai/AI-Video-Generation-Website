@@ -49,7 +49,7 @@ function mockHistory() {
 export default function ProfilePage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [tab, setTab] = useState<"account" | "billing" | "usage">("account");
+  const [tab, setTab] = useState<"account" | "billing" | "payment" | "usage">("account");
 
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -68,6 +68,17 @@ export default function ProfilePage() {
   const [alertThreshold, setAlertThreshold] = useState(10);
   const [addOpen, setAddOpen] = useState(false);
   const [addAmount, setAddAmount] = useState(25);
+
+  // payment methods (mock)
+  type Card = { id: number; brand: string; last4: string; exp: string; primary: boolean };
+  const [cards, setCards] = useState<Card[]>([
+    { id: 1, brand: "Visa", last4: "4242", exp: "08/28", primary: true },
+  ]);
+  const [cardOpen, setCardOpen] = useState(false);
+  const [cardName, setCardName] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExp, setCardExp] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
 
   useEffect(() => {
     if (!isSignedIn()) {
@@ -122,6 +133,35 @@ export default function ProfilePage() {
     }
   }
 
+  function brandFromNumber(num: string): string {
+    const d = num.replace(/\D/g, "");
+    if (d.startsWith("4")) return "Visa";
+    if (/^5[1-5]/.test(d)) return "Mastercard";
+    if (/^3[47]/.test(d)) return "Amex";
+    if (d.startsWith("6")) return "Discover";
+    return "Card";
+  }
+  function addCard() {
+    const digits = cardNumber.replace(/\D/g, "");
+    if (digits.length < 4 || !cardExp.trim()) return;
+    setCards((cs) => [
+      ...cs,
+      { id: Date.now(), brand: brandFromNumber(cardNumber), last4: digits.slice(-4), exp: cardExp.trim(), primary: cs.length === 0 },
+    ]);
+    setCardName(""); setCardNumber(""); setCardExp(""); setCardCvc("");
+    setCardOpen(false);
+  }
+  function removeCard(id: number) {
+    setCards((cs) => {
+      const next = cs.filter((c) => c.id !== id);
+      if (next.length && !next.some((c) => c.primary)) next[0].primary = true;
+      return next;
+    });
+  }
+  function makePrimary(id: number) {
+    setCards((cs) => cs.map((c) => ({ ...c, primary: c.id === id })));
+  }
+
   const history = mockHistory();
 
   return (
@@ -157,7 +197,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="mt-8 flex gap-6 border-b border-[rgba(124,189,242,0.14)] font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
-              {(["account", "billing", "usage"] as const).map((t) => (
+              {(["account", "billing", "payment", "usage"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setTab(t)}
@@ -216,11 +256,10 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* total added */}
+                {/* expiring */}
                 <div className="col-span-2 border-l border-t border-[#2E466B] p-5">
-                  <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Total credits added</p>
+                  <p className="text-xs uppercase tracking-[0.06em] text-[#9FB2CC]">Credits expiring in the next 30 days</p>
                   <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">$0.00</p>
-                  <p className="mt-1 text-xs text-[#6E82A0]">Credits never expire</p>
                 </div>
 
                 {/* usage this month */}
@@ -288,6 +327,81 @@ export default function ProfilePage() {
                 {/* footer strip */}
                 <div className="col-span-4 border-l border-t border-[#2E466B] px-5 py-3 text-xs text-[#6E82A0]">
                   Billing period: Sep 1 to Sep 30, 2026
+                </div>
+              </div>
+            )}
+
+            {/* PAYMENT - saved methods + add card */}
+            {tab === "payment" && (
+              <div className="mt-8 max-w-3xl space-y-8">
+                <div>
+                  <div className="flex items-center justify-between gap-4">
+                    <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
+                      Payment methods
+                    </h2>
+                    <button onClick={() => setCardOpen(true)} className={btnPrimary}>Add method</button>
+                  </div>
+
+                  {cards.length === 0 ? (
+                    <p className="mt-4 border border-[#2E466B] p-5 text-sm text-[#6E82A0]">
+                      No payment methods yet. Add one to buy credits.
+                    </p>
+                  ) : (
+                    <div className="mt-4 flex flex-col border border-[#2E466B]">
+                      {cards.map((c, i) => (
+                        <div
+                          key={c.id}
+                          className={`flex items-center gap-4 p-4 ${i > 0 ? "border-t border-[#2E466B]" : ""}`}
+                        >
+                          <span className="flex h-8 w-12 shrink-0 items-center justify-center border border-[#33507C] font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.04em] text-[#E9F1FB]">
+                            {c.brand}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-[family-name:var(--font-jetbrains)] text-sm text-[#E9F1FB]">
+                              •••• •••• •••• {c.last4}
+                            </p>
+                            <p className="text-xs text-[#6E82A0]">Expires {c.exp}</p>
+                          </div>
+                          {c.primary ? (
+                            <span className="font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-[#FF8A1E]">
+                              Default
+                            </span>
+                          ) : (
+                            <button onClick={() => makePrimary(c.id)} className="text-xs text-[#7CBDF2] hover:text-[#F5C46B]">
+                              Make default
+                            </button>
+                          )}
+                          <button
+                            onClick={() => removeCard(c.id)}
+                            className="text-xs text-[#FF6B6B] hover:text-[#ff8f8f]"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-[rgba(124,189,242,0.14)] pt-6">
+                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-[#9FB2CC]">
+                    Billing address
+                  </h2>
+                  <div className="mt-4 grid gap-5 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <label className={label}>Address line</label>
+                      <input className={inputClass} placeholder="123 Market St" />
+                    </div>
+                    <div>
+                      <label className={label}>City</label>
+                      <input className={inputClass} placeholder="San Francisco" />
+                    </div>
+                    <div>
+                      <label className={label}>Postal code</label>
+                      <input className={inputClass} placeholder="94103" />
+                    </div>
+                  </div>
+                  <button className={`${btnPrimary} mt-5`}>Save address</button>
                 </div>
               </div>
             )}
@@ -388,6 +502,40 @@ export default function ProfilePage() {
             <button onClick={() => setAddOpen(false)} className={`${btnPrimary} mt-5 w-full`}>
               Buy ${addAmount || 0} in credits
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add payment method modal */}
+      {cardOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-6" onClick={() => setCardOpen(false)}>
+          <div className="w-full max-w-sm rounded-[14px] border border-[#2E466B] bg-[#0B1524] p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Add payment method</h3>
+            <p className="mt-1 text-xs text-[#6E82A0]">Card details are not stored. Mock entry only.</p>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className={label}>Cardholder name</label>
+                <input value={cardName} onChange={(e) => setCardName(e.target.value)} className={inputClass} placeholder="Jane Creator" />
+              </div>
+              <div>
+                <label className={label}>Card number</label>
+                <input value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} className={inputClass} placeholder="4242 4242 4242 4242" inputMode="numeric" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={label}>Expiry</label>
+                  <input value={cardExp} onChange={(e) => setCardExp(e.target.value)} className={inputClass} placeholder="MM/YY" />
+                </div>
+                <div>
+                  <label className={label}>CVC</label>
+                  <input value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} className={inputClass} placeholder="123" inputMode="numeric" />
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button onClick={addCard} className={`${btnPrimary} flex-1`}>Add card</button>
+              <button onClick={() => setCardOpen(false)} className={btnGhost}>Cancel</button>
+            </div>
           </div>
         </div>
       )}
