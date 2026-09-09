@@ -72,7 +72,7 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | **Model taglines & descriptions** | invented | `lib/models.ts` → `tagline`, `description` |
 | **Capabilities / durations / resolutions / aspect ratios** | invented | `lib/models.ts` |
 | **Price (`creditsPerSecond`)** | invented numbers | `lib/models.ts` → `creditsPerSecond` |
-| **Model poster images** | Google "gtv-videos-bucket" **sample images** (external URLs) | `lib/models.ts` → `poster` |
+| **Model poster images** | self-hosted first-frame JPGs in `public/models/<slug>.jpg` (extracted from the clips) | `lib/models.ts` → `poster` |
 | **Pay-as-you-go rate** (`from $0.03 / second`, feature bullets) | invented | `app/pricing/page.tsx` → `PAYG` |
 | **Cost estimator math** | `1 credit ≈ $0.01`, resolution multipliers `480p/720p/1080p = 1 / 1.5 / 2.5` | `components/cost-estimator.tsx` (`PER_CREDIT`, `RES_MULT`) |
 | **Per-model table `≈ $ / 5s clip`** | same made-up `$0.01/credit` rate | `components/model-pricing-table.tsx` |
@@ -116,7 +116,7 @@ names below; they show up automatically (rebuild/redeploy to publish).
 | **Hero reels** (3 slots, auto-swipe) | `public/reels/slot1/`, `slot2/`, `slot3/` | `a.mp4`, `b.mp4`, `c.mp4` per slot |
 | **Model card thumbnails** | `public/models/` | `aurora.mp4`, `pulse.mp4`, `volt.mp4`, `nova.mp4` (name = model slug) |
 | **"See it in action" walkthrough** | `public/demos/` | `walkthrough.mp4` |
-| **Model poster images** (shown before hover) | external sample URLs today | swap in `lib/models.ts` → `poster` |
+| **Model poster images** (thumbnail) | `public/models/<slug>.jpg` (first frame of the clip) | replace the file, or in `lib/models.ts` → `poster` |
 | **Hero background art** | animated SVG | `public/backdrop.svg` |
 
 Notes:

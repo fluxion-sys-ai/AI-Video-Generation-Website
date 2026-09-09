@@ -14,10 +14,12 @@ export type Model = {
   poster: string;
 };
 
-const V = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample";
-// local thumbnail videos live in public/models/<slug>.mp4 (drop your clips there)
+// local media live in public/models/<slug>.mp4 (clip) + <slug>.jpg (poster).
+// The poster is a first frame extracted from the clip (see scripts note in the
+// README) — self-hosted so nothing depends on external image URLs.
 const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
 const thumb = (slug: string) => `${BASE}/models/${slug}.mp4`;
+const poster = (slug: string) => `${BASE}/models/${slug}.jpg`;
 
 export const MODELS: Model[] = [
   {
@@ -34,7 +36,7 @@ export const MODELS: Model[] = [
     supports: { image: true, audio: true, seed: true },
     creditsPerSecond: 8,
     demoVideo: thumb("aurora"),
-    poster: `${V}/images/BigBuckBunny.jpg`,
+    poster: poster("aurora"),
   },
   {
     slug: "pulse",
@@ -49,7 +51,7 @@ export const MODELS: Model[] = [
     supports: { image: false, audio: false, seed: true },
     creditsPerSecond: 3,
     demoVideo: thumb("pulse"),
-    poster: `${V}/images/ForBiggerBlazes.jpg`,
+    poster: poster("pulse"),
   },
   {
     slug: "volt",
@@ -64,7 +66,7 @@ export const MODELS: Model[] = [
     supports: { image: true, audio: false, seed: true },
     creditsPerSecond: 6,
     demoVideo: thumb("volt"),
-    poster: `${V}/images/ForBiggerJoyrides.jpg`,
+    poster: poster("volt"),
   },
   {
     slug: "nova",
@@ -79,7 +81,7 @@ export const MODELS: Model[] = [
     supports: { image: true, audio: true, seed: true },
     creditsPerSecond: 12,
     demoVideo: thumb("nova"),
-    poster: `${V}/images/Sintel.jpg`,
+    poster: poster("nova"),
   },
 ];
 

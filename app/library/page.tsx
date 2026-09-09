@@ -100,6 +100,18 @@ export default function LibraryPage() {
         { id: `${m.slug}-b`, src: m.poster, name: `${m.slug}-ref-02.jpg`, model: m.slug },
       ]);
       saveLibraryImages(imgs);
+    } else {
+      // Migrate old entries that referenced the now-dead external sample bucket
+      // to the self-hosted model poster.
+      let changed = false;
+      imgs = imgs.map((im) => {
+        if (im.src.includes("gtv-videos-bucket") && im.model) {
+          const local = models.find((m) => m.slug === im.model)?.poster;
+          if (local) { changed = true; return { ...im, src: local }; }
+        }
+        return im;
+      });
+      if (changed) saveLibraryImages(imgs);
     }
     // Load folders and prune any stale/duplicate image ids (self-heals bad data
     // left in storage before the count fix) against the images that exist.
