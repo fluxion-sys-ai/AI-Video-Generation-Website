@@ -172,11 +172,12 @@ function GenerateInner() {
                 className="aspect-video w-full rounded-[10px] bg-black object-cover"
                 src={model.demoVideo}
                 poster={model.poster}
+                autoPlay
                 muted
                 loop
                 controls
                 playsInline
-                preload="metadata"
+                preload="auto"
               />
               <p className="mt-2 text-xs text-[#6E82A0]">Sample output from {model.name}.</p>
             </div>

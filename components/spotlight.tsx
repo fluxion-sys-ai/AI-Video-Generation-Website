@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 
-// Site-wide soft glow that follows the cursor on every page.
+// Site-wide soft glow that follows the cursor (off on the video-gen pages).
 export function Spotlight() {
+  const pathname = usePathname();
   const dotRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -16,6 +18,8 @@ export function Spotlight() {
     window.addEventListener("mousemove", move);
     return () => window.removeEventListener("mousemove", move);
   }, []);
+
+  if (pathname?.startsWith("/generate")) return null;
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-30">
