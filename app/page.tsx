@@ -69,11 +69,11 @@ export default function Home() {
             <p className="mb-6 font-[family-name:var(--font-sora)] text-6xl font-medium leading-none tracking-[-0.03em] text-fg-strong sm:text-7xl lg:text-8xl">
               fluxion
             </p>
-            <h1 className="mt-6 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold uppercase leading-[0.98] tracking-[-0.01em] sm:text-6xl">
-              AI video<br />generation
+            <h1 className="mt-6 font-[family-name:var(--font-jetbrains)] text-4xl font-semibold leading-[1.05] tracking-[-0.01em] text-fg-strong sm:text-5xl">
+              Turn a sentence<br />into a scene.
             </h1>
             <p className="mt-6 max-w-md text-lg text-muted">
-              Pick a model, describe the shot, and generate. Download or export the result.
+              Describe the shot, pick a model, and watch your idea become video in seconds.
             </p>
             <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
               <Link

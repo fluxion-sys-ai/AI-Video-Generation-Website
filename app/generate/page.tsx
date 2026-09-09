@@ -381,7 +381,7 @@ function GenerateInner() {
           <button
             onClick={onGenerate}
             disabled={status === "generating"}
-            className="w-full rounded-[10px] bg-accent px-6 py-2.5 font-medium text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            className="w-full rounded-none bg-accent px-6 py-2.5 font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {status === "generating" ? "Generating…" : "Generate"}
           </button>
@@ -438,7 +438,7 @@ function GenerateInner() {
 
       {/* Preview stage (right): the chosen aspect shape; the video generates here */}
       <section className="flex min-h-0 flex-col gap-3">
-        <div className="flex flex-1 flex-col items-center justify-center gap-2">
+        <div className="flex flex-1 flex-col items-center justify-start gap-2">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">
           Preview
         </span>
@@ -463,7 +463,7 @@ function GenerateInner() {
                 <p className="text-sm text-fg">Generation failed. Try again.</p>
               ) : (
                 <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-muted">
-                  {aspect} preview
+                  {aspect}
                 </span>
               )}
             </div>
