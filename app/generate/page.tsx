@@ -224,7 +224,9 @@ function GenerateInner() {
                       }}
                       className={`flex w-full items-center gap-3 p-2 text-left transition-colors hover:bg-[rgba(124,189,242,0.06)] ${m.slug === slug ? "bg-[rgba(255,138,30,0.08)]" : ""}`}
                     >
-                      <img src={m.poster} alt="" className="h-9 w-14 shrink-0 bg-black object-cover" />
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-[rgba(255,138,30,0.12)] font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-[#FF8A1E]">
+                        {m.name.charAt(0)}
+                      </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-[#E9F1FB]">{m.name}</span>
                         <span className="block truncate text-xs text-[#6E82A0]">{m.tagline}</span>
