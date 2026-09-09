@@ -9,7 +9,7 @@ export default function InfoPage() {
   return (
     <div className="relative flex min-h-screen flex-col">
       <GlowBlobs variant="c" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
-      <PlansDots variant="c" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <PlansDots variant="c" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
       <main className="relative z-10 mx-auto w-full max-w-3xl flex-1 px-6 py-16 text-center">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">

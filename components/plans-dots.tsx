@@ -52,7 +52,7 @@ export function PlansDots({ className = "", variant = "a" }: { className?: strin
         </radialGradient>
       </defs>
 
-      <g stroke="#7FA8D8" strokeWidth="1.5" opacity="0.2">
+      <g style={{ stroke: "var(--dot-line)" }} strokeWidth="1.5" opacity="0.2">
         {lines.map((l) => (
           <path key={l.id} id={l.id} d={l.d} />
         ))}

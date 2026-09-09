@@ -198,6 +198,8 @@
   --glow-o1: #ff8a1e;
   --glow-b0: #7cbdf2;
   --glow-b1: #7cbdf2;
+  /* Moving line/dot field stroke (components/plans-dots.tsx): sky blue in dark. */
+  --dot-line: #7fa8d8;
 }
 
 /* Light theme — matches the Fluxion site's light look. Only surfaces, text,
@@ -226,12 +228,14 @@
   /* Cursor spotlight: much lighter/softer in light mode so it doesn't smear
      over the bright canvas. */
   --spotlight: radial-gradient(circle, rgba(255, 138, 30, 0.08), rgba(124, 189, 242, 0.05) 42%, transparent 70%);
-  /* Glow orbs in light mode: bright, joyful candy colors instead of the muddy
-     inverted orange. Warm = sunny yellow → pink; cool = cyan → violet. */
-  --glow-o0: #ffd84d;
-  --glow-o1: #ff6fb5;
-  --glow-b0: #7ce7ff;
-  --glow-b1: #a66bff;
+  /* Glow orbs in light mode: bright, sunny orange + yellow (no pink/blue), so
+     they read as a warm joyful glow on white instead of a muddy inverted blob. */
+  --glow-o0: #ffd54a;
+  --glow-o1: #ff9a2e;
+  --glow-b0: #ffca6b;
+  --glow-b1: #ff8a1e;
+  /* Moving line/dot field: warm gold line on white (was a muddy inverted blue). */
+  --dot-line: #eaa23c;
 }
 
 /* Expose the tokens as Tailwind color utilities. `inline` makes them resolve at
@@ -276,9 +280,22 @@
 }
 
 /* Glow orbs are theme-colored (not inverted); pump saturation a touch in light
-   mode so the candy colors read bright and fun on white. */
+   mode so the warm colors read bright on white. */
 .light .glow-blobs {
-  filter: saturate(1.35);
+  filter: saturate(1.2);
+}
+
+/* Show one decor set per theme. The homepage keeps its authored dark backdrop
+   art in dark mode (.decor-dark) and swaps to the theme-colored glow orbs in
+   light mode (.decor-light), so nothing relies on the muddy invert filter. */
+.decor-light {
+  display: none;
+}
+.light .decor-light {
+  display: block;
+}
+.light .decor-dark {
+  display: none;
 }
 
 /* Cursor spotlight fill — token-driven so light mode softens it. */

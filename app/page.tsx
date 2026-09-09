@@ -6,6 +6,8 @@ import { Reveal } from "@/components/reveal";
 import { HeroReels } from "@/components/hero-reels";
 import { Stats } from "@/components/stats";
 import { ModelPricingTable } from "@/components/model-pricing-table";
+import { GlowBlobs } from "@/components/glow-blobs";
+import { PlansDots } from "@/components/plans-dots";
 
 function Kicker({ label, color = "#E0A24E" }: { label: string; color?: string }) {
   return (
@@ -57,7 +59,13 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Cohesive fixed background - home only */}
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
-        <img src={`${BASE}/backdrop.svg`} alt="" className="decor-invert h-full w-full object-cover" decoding="async" />
+        {/* Dark mode: the authored backdrop art. */}
+        <img src={`${BASE}/backdrop.svg`} alt="" className="decor-dark h-full w-full object-cover" decoding="async" />
+        {/* Light mode: theme-colored warm glow + moving dots (no invert). */}
+        <div className="decor-light absolute inset-0">
+          <GlowBlobs variant="a" className="absolute inset-0 h-full w-full" />
+          <PlansDots variant="a" className="absolute inset-0 h-full w-full" />
+        </div>
       </div>
       <SiteHeader />
 

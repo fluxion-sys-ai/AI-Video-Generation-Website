@@ -10,7 +10,7 @@ export default function SignupPage() {
   return (
     <div className="relative flex min-h-screen flex-col">
       <GlowBlobs variant="b" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
-      <PlansDots variant="a" className="decor-invert pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+      <PlansDots variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
       <div className="relative z-10 flex flex-1 flex-col">
         <Onboarding />
