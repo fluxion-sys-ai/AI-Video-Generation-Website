@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { GlowBlobs } from "@/components/glow-blobs";
 import { isSignedIn, getUser } from "@/lib/auth";
 import { getModels, getModel } from "@/lib/models";
 import { getFavorites, getRecents } from "@/lib/prefs";
@@ -61,8 +60,7 @@ export default function DashboardPage() {
   if (!ready) return <div className="min-h-screen" />;
 
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <GlowBlobs variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
+    <div className="relative flex min-h-screen flex-col bg-[#0A1322]">
       <SiteHeader />
 
       <main className="relative z-10 w-full flex-1 px-10 py-8">
