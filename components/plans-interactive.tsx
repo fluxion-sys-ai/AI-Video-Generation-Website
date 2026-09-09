@@ -150,7 +150,6 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
               />
             ))}
           </div>
-          <p className="mt-3 text-xs text-[#6E82A0]">More credits per dollar = better value. Studio stretches each dollar furthest.</p>
         </div>
       </div>
     </div>

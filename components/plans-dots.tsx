@@ -51,7 +51,7 @@ export function PlansDots({ className = "", variant = "a" }: { className?: strin
     <svg
       className={className}
       viewBox="0 0 1440 640"
-      preserveAspectRatio="none"
+      preserveAspectRatio="xMidYMid slice"
       fill="none"
       aria-hidden="true"
       xmlns="http://www.w3.org/2000/svg"
@@ -59,9 +59,9 @@ export function PlansDots({ className = "", variant = "a" }: { className?: strin
     >
       <defs>
         <radialGradient id="pdFill" cx="50%" cy="50%" r="50%">
-          <stop offset="0" stopColor="#FFD98A" />
-          <stop offset="0.4" stopColor="#FF8A1E" />
-          <stop offset="1" stopColor="#FF8A1E" stopOpacity="0" />
+          <stop offset="0" stopColor="#FFE0A0" />
+          <stop offset="0.4" stopColor="#FFC15E" />
+          <stop offset="1" stopColor="#FFC15E" stopOpacity="0" />
         </radialGradient>
       </defs>
 
