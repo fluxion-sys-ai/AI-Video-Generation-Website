@@ -196,8 +196,8 @@ function GenerateInner() {
           )}
         </div>
 
-        {/* Pricing — pinned to the bottom of the sidebar */}
-        <div className="mt-auto">
+        {/* Pricing — right under the tabs section */}
+        <div>
           <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-[#E0A24E]">
             Pricing
           </span>
