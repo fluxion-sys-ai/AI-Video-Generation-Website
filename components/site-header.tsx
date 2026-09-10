@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Brand } from "@/components/brand";
 import { getModels } from "@/lib/models";
 import { getUser, isSignedIn, type User } from "@/lib/auth";
+import { getFavorites } from "@/lib/prefs";
 import { Settings } from "lucide-react";
 
 const models = getModels();
@@ -226,9 +227,11 @@ export function SiteHeader() {
   const [user, setUser] = useState<User | null>(null);
   const [mode, setMode] = useState<"public" | "dashboard">("public");
   const [ready, setReady] = useState(false);
+  const [favSlugs, setFavSlugs] = useState<string[]>([]);
 
   useEffect(() => {
     setUser(isSignedIn() ? getUser() : null);
+    setFavSlugs(getFavorites());
     let m = (localStorage.getItem(MODE_KEY) as "public" | "dashboard") || "public";
     if (ALWAYS_PUBLIC.includes(pathname)) m = "public";
     else if (ALWAYS_DASH.some((p) => pathname.startsWith(p))) m = "dashboard";
@@ -255,9 +258,22 @@ export function SiteHeader() {
                   <MenuItem href="/dashboard#models" title="My models" sub="Recents & favorites" icon={<TabChip><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" /><rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" /></svg></TabChip>} />
                 </NavMenu>
                 <NavMenu label="Generate" href="/generate">
-                  {models.map((m) => (
-                    <MenuItem key={m.slug} href={`/generate?model=${m.slug}`} title={m.name} sub={m.tagline} icon={<ModelIcon letter={m.name.charAt(0)} />} />
-                  ))}
+                  {(() => {
+                    // If the user has favorited models, surface just those (with a
+                    // "Your favorites" header); otherwise list them all.
+                    const favModels = favSlugs.map((s) => models.find((m) => m.slug === s)).filter(Boolean) as typeof models;
+                    const list = favModels.length > 0 ? favModels : models;
+                    return (
+                      <>
+                        {favModels.length > 0 && (
+                          <p className="px-3 pb-1 pt-2 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.1em] text-dim">Your favorites</p>
+                        )}
+                        {list.map((m) => (
+                          <MenuItem key={m.slug} href={`/generate?model=${m.slug}`} title={m.name} sub={m.tagline} icon={<ModelIcon letter={m.name.charAt(0)} />} />
+                        ))}
+                      </>
+                    );
+                  })()}
                   <MenuItem href="/models" title="All models" sub="Browse the full catalog" icon={<TabChip><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" /><rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" /></svg></TabChip>} />
                 </NavMenu>
                 <NavMenu label="Library" href="/library">
