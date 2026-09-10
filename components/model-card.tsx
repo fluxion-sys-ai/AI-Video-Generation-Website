@@ -6,7 +6,7 @@ import type { Model } from "@/lib/models";
 import { isFavorite, toggleFavorite, isAutoplay } from "@/lib/prefs";
 import { Heart } from "lucide-react";
 
-export function ModelCard({ model }: { model: Model }) {
+export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<string> }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [fav, setFav] = useState(false);
 
@@ -62,14 +62,19 @@ export function ModelCard({ model }: { model: Model }) {
         </div>
         <p className="mt-2 text-sm text-muted">{model.description}</p>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {model.capabilities.map((c) => (
-            <span
-              key={c}
-              className="rounded-full border border-line-strong bg-raised px-2.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-fg-soft"
-            >
-              {c}
-            </span>
-          ))}
+          {model.capabilities.map((c) => {
+            const on = highlight?.has(c);
+            return (
+              <span
+                key={c}
+                className={`rounded-full border px-2.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] transition-colors ${
+                  on ? "border-accent bg-accent-soft text-accent" : "border-line-strong bg-raised text-fg-soft"
+                }`}
+              >
+                {c}
+              </span>
+            );
+          })}
         </div>
       </div>
     </Link>

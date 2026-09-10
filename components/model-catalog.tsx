@@ -103,7 +103,7 @@ export function ModelCatalog({ models }: { models: Model[] }) {
         ) : (
           <div className="relative grid grid-cols-2 gap-8 lg:grid-cols-4">
             {list.map((m) => (
-              <ModelCard key={m.slug} model={m} />
+              <ModelCard key={m.slug} model={m} highlight={tags} />
             ))}
           </div>
         )}
