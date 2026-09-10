@@ -92,6 +92,12 @@ export default function LibraryPage() {
   // Expanded image viewer (click an image to open; × / Esc / backdrop to close).
   const [imgLightbox, setImgLightbox] = useState<LibImage | null>(null);
 
+  // Image search + sort.
+  type SortKey = "custom" | "name" | "recent" | "size" | "uses";
+  const [imgQuery, setImgQuery] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("custom");
+  const [dragOverImg, setDragOverImg] = useState<string | null>(null);
+
   const models = getModels();
 
   // Esc closes any open menu / modal.
@@ -113,9 +119,10 @@ export default function LibraryPage() {
     // Load images; seed with sample references on first visit.
     let imgs = getLibraryImages();
     if (imgs.length === 0) {
-      imgs = models.flatMap((m) => [
-        { id: `${m.slug}-a`, src: m.poster, name: `${m.slug}-ref-01.jpg`, model: m.slug },
-        { id: `${m.slug}-b`, src: m.poster, name: `${m.slug}-ref-02.jpg`, model: m.slug },
+      const base = Date.UTC(2026, 8, 1);
+      imgs = models.flatMap((m, mi) => [
+        { id: `${m.slug}-a`, src: m.poster, name: `${m.slug}-ref-01.jpg`, model: m.slug, size: 210000 + mi * 9000, uses: 0, addedAt: base + mi * 2 * 86400000 },
+        { id: `${m.slug}-b`, src: m.poster, name: `${m.slug}-ref-02.jpg`, model: m.slug, size: 180000 + mi * 7000, uses: 0, addedAt: base + (mi * 2 + 1) * 86400000 },
       ]);
       saveLibraryImages(imgs);
     } else {
@@ -211,7 +218,28 @@ export default function LibraryPage() {
   const folderCount = (f: Folder) => new Set(f.imageIds.filter((id) => libIdSet.has(id))).size;
 
   const activeFolderObj = folders.find((f) => f.id === activeFolder) || null;
-  const shownImages = activeFolderObj ? libImages.filter((img) => activeFolderObj.imageIds.includes(img.id)) : libImages;
+
+  // What's displayed: search matches by name across ALL images (so results can
+  // surface from any folder); otherwise the active folder (or everything). Then
+  // apply the chosen sort.
+  const iq = imgQuery.trim().toLowerCase();
+  const searching = iq.length > 0;
+  function sortImages(list: LibImage[]): LibImage[] {
+    const arr = [...list];
+    switch (sortKey) {
+      case "name": return arr.sort((a, b) => a.name.localeCompare(b.name));
+      case "recent": return arr.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+      case "size": return arr.sort((a, b) => (b.size || 0) - (a.size || 0));
+      case "uses": return arr.sort((a, b) => (b.uses || 0) - (a.uses || 0));
+      default: return arr; // custom = stored order
+    }
+  }
+  const baseImages = searching
+    ? libImages.filter((im) => im.name.toLowerCase().includes(iq))
+    : activeFolderObj
+      ? libImages.filter((im) => activeFolderObj.imageIds.includes(im.id))
+      : libImages;
+  const shownImages = sortImages(baseImages);
 
   const allSelected = selected.size > 0 && shownImages.every((i) => selected.has(i.id));
   function toggleOne(id: string) {
@@ -236,7 +264,7 @@ export default function LibraryPage() {
     files.forEach((f) => {
       const reader = new FileReader();
       reader.onload = () => {
-        const item: LibImage = { id: `u${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, src: String(reader.result), name: f.name };
+        const item: LibImage = { id: `u${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, src: String(reader.result), name: f.name, size: f.size, uses: 0, addedAt: Date.now() };
         addLibraryImages([item]);
         setLibImages((prev) => [item, ...prev]);
         if (activeFolder) addToFolder(activeFolder, item.id);
@@ -260,8 +288,30 @@ export default function LibraryPage() {
   function uploadTo(model: Model) {
     const chosen = libImages.filter((img) => selected.has(img.id)).map((img) => ({ url: img.src, name: img.name }));
     setPendingImages(chosen);
+    // Bump "use frequency" for the images sent.
+    saveLibraryImages(libImages.map((im) => (selected.has(im.id) ? { ...im, uses: (im.uses || 0) + 1 } : im)));
     router.push(`/generate?model=${model.slug}`);
   }
+
+  // Drag one image onto another to reorder (custom order). Persists + switches
+  // the sort to "custom" so the new order is what's shown.
+  function reorderImage(draggedId: string, targetId: string) {
+    if (draggedId === targetId) return;
+    setLibImages((prev) => {
+      const from = prev.findIndex((i) => i.id === draggedId);
+      const to = prev.findIndex((i) => i.id === targetId);
+      if (from < 0 || to < 0) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      saveLibraryImages(next);
+      return next;
+    });
+    setSortKey("custom");
+  }
+
+  // The folder an image lives in (first match), shown as a badge in search results.
+  const folderNameFor = (id: string) => folders.find((f) => f.imageIds.includes(id))?.name || null;
 
   function modelsForFilter(): Model[] {
     const bySlug = (slug: string) => models.find((m) => m.slug === slug);
@@ -315,8 +365,23 @@ export default function LibraryPage() {
             {/* hidden file input for uploads */}
             <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={onUploadFiles} />
 
+            {/* search — matches by name across all images (results show their folder) */}
+            <div className="relative mt-6 max-w-md">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-dim">
+                <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+                <path d="M11 11 L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+              <input
+                type="search"
+                value={imgQuery}
+                onChange={(e) => setImgQuery(e.target.value)}
+                placeholder="Search images by name"
+                className="w-full rounded-none border border-line-strong bg-raised py-2.5 pl-9 pr-3 text-sm text-fg outline-none placeholder:text-dim focus:border-blue"
+              />
+            </div>
+
             {/* toolbar row: folder tabs (left) on the same line as the actions (right) */}
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
               {/* left: All + folder tabs (drop targets) */}
               <div className="flex flex-wrap items-center gap-2">
                 <button
@@ -417,15 +482,36 @@ export default function LibraryPage() {
                 )}
               </div>
             </div>
+
+            {/* sort dropdown (right, below the actions) */}
+            <div className="mt-3 flex items-center justify-end gap-2">
+              <label htmlFor="img-sort" className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-dim">Sort</label>
+              <select
+                id="img-sort"
+                value={sortKey}
+                onChange={(e) => setSortKey(e.target.value as SortKey)}
+                className="pg-select rounded-none border border-accent bg-accent-soft px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-accent outline-none"
+              >
+                <option value="custom">Custom order</option>
+                <option value="name">Name A–Z</option>
+                <option value="recent">Recently uploaded</option>
+                <option value="size">Size</option>
+                <option value="uses">Most used</option>
+              </select>
+            </div>
+
             {folders.length === 0 && !creatingFolder && (
-              <p className="mt-2 text-xs text-dim">Tip: create a folder, then drag images onto it (or right-click an image) to organize them.</p>
+              <p className="mt-2 text-xs text-dim">Tip: create a folder, then drag images onto it (or right-click an image) to organize them. Drag an image onto another to reorder (custom).</p>
+            )}
+            {searching && (
+              <p className="mt-2 text-xs text-dim">{shownImages.length} result{shownImages.length === 1 ? "" : "s"} for “{imgQuery}”.</p>
             )}
 
 
             {/* image grid */}
             <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
               {shownImages.length === 0 ? (
-                <p className="col-span-full text-sm text-dim">{activeFolderObj ? "This folder is empty. Drag images here, or upload into it." : "No images yet. Upload some to get started."}</p>
+                <p className="col-span-full text-sm text-dim">{searching ? `No images match “${imgQuery}”.` : activeFolderObj ? "This folder is empty. Drag images here, or upload into it." : "No images yet. Upload some to get started."}</p>
               ) : (
                 shownImages.map((img) => {
                   const on = selected.has(img.id);
@@ -434,15 +520,25 @@ export default function LibraryPage() {
                       key={img.id}
                       draggable={!selectMode}
                       onDragStart={(e) => { e.dataTransfer.setData("text/plain", img.id); e.dataTransfer.effectAllowed = "copy"; }}
+                      onDragOver={(e) => { if (!selectMode) { e.preventDefault(); setDragOverImg(img.id); } }}
+                      onDragLeave={() => setDragOverImg((d) => (d === img.id ? null : d))}
+                      onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) reorderImage(id, img.id); setDragOverImg(null); }}
                       onClick={() => { if (selectMode) toggleOne(img.id); else setImgLightbox(img); }}
                       onContextMenu={(e) => { e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY, id: img.id }); }}
                       className={`group block border p-2 text-left transition-colors ${
-                        on ? "border-accent" : "border-line"
+                        dragOverImg === img.id ? "border-accent ring-2 ring-accent" : on ? "border-accent" : "border-line"
                       } ${selectMode ? "cursor-pointer" : "cursor-zoom-in"}`}
                     >
                       <div className="relative aspect-square w-full overflow-hidden bg-black">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={img.src} alt="" className={`h-full w-full object-cover transition-opacity ${on ? "opacity-80" : ""}`} draggable={false} />
+                        {/* search results: show which folder the image lives in */}
+                        {searching && folderNameFor(img.id) && (
+                          <span className="absolute left-1.5 top-1.5 flex max-w-[90%] items-center gap-1 truncate rounded-[6px] bg-black/70 px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.04em] text-white">
+                            <svg width="9" height="9" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V12 A1 1 0 0 1 13.5 13 H2.5 A1 1 0 0 1 1.5 12 Z" stroke="currentColor" strokeWidth="1.4" /></svg>
+                            {folderNameFor(img.id)}
+                          </span>
+                        )}
                         {selectMode && (
                           <span
                             className={`absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border text-ink transition-colors ${

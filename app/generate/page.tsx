@@ -89,7 +89,7 @@ function GenerateInner() {
       reader.onload = () => {
         const src = String(reader.result);
         setImages((prev) => [...prev, { url: src, name: f.name }]);
-        addLibraryImages([{ id: `u${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, src, name: f.name, model: slug }]);
+        addLibraryImages([{ id: `u${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, src, name: f.name, model: slug, size: f.size, uses: 0, addedAt: Date.now() }]);
       };
       reader.readAsDataURL(f);
     });

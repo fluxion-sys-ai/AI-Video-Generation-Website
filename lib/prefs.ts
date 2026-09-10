@@ -43,7 +43,15 @@ export function addRecent(slug: string) {
 // then appended to whenever the user uploads — including uploads made inside a
 // model's playground (those carry `model`). Stored as data URLs so they survive
 // navigation/reload (frontend-only mock).
-export type LibImage = { id: string; src: string; name: string; model?: string };
+export type LibImage = {
+  id: string;
+  src: string;
+  name: string;
+  model?: string;
+  size?: number; // bytes (uploads only)
+  uses?: number; // times sent to a model's playground
+  addedAt?: number; // upload timestamp (ms)
+};
 const LIB_IMAGES_KEY = "fluxion.libraryImages";
 
 export function getLibraryImages(): LibImage[] {
