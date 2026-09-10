@@ -288,6 +288,12 @@ export function SiteHeader() {
               Pricing
             </Link>
             <Link
+              href="/docs"
+              className="text-sm uppercase tracking-[0.06em] text-fg-soft-2 transition-colors hover:text-gold-soft"
+            >
+              Docs
+            </Link>
+            <Link
               href="/info"
               aria-label="Info"
               title="Info and contact"

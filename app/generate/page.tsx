@@ -408,7 +408,9 @@ function GenerateInner() {
             />
           </Field>
 
-          {model.supports.image && (
+          {/* Always available: attach/browse reference images (and show any
+              handed over from the library), regardless of the model. */}
+          {(
             <Field label="Images" hint="Optional">
               {images.length === 0 ? (
                 <label className="flex w-fit cursor-pointer items-center gap-3 rounded-[8px] border border-dashed border-line-strong px-3 py-2 text-sm text-fg-soft hover:border-blue">
