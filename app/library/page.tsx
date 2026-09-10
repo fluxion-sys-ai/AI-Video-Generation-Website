@@ -89,6 +89,8 @@ export default function LibraryPage() {
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
   const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
   const [addFolderOpen, setAddFolderOpen] = useState(false);
+  // Expanded image viewer (click an image to open; × / Esc / backdrop to close).
+  const [imgLightbox, setImgLightbox] = useState<LibImage | null>(null);
 
   const models = getModels();
 
@@ -100,6 +102,7 @@ export default function LibraryPage() {
     setDeleteFolderId(null);
     setAddFolderOpen(false);
     setUploadOpen(false);
+    setImgLightbox(null);
   });
 
   useEffect(() => {
@@ -431,11 +434,11 @@ export default function LibraryPage() {
                       key={img.id}
                       draggable={!selectMode}
                       onDragStart={(e) => { e.dataTransfer.setData("text/plain", img.id); e.dataTransfer.effectAllowed = "copy"; }}
-                      onClick={() => selectMode && toggleOne(img.id)}
+                      onClick={() => { if (selectMode) toggleOne(img.id); else setImgLightbox(img); }}
                       onContextMenu={(e) => { e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY, id: img.id }); }}
                       className={`group block border p-2 text-left transition-colors ${
                         on ? "border-accent" : "border-line"
-                      } ${selectMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"}`}
+                      } ${selectMode ? "cursor-pointer" : "cursor-zoom-in"}`}
                     >
                       <div className="relative aspect-square w-full overflow-hidden bg-black">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -514,6 +517,22 @@ export default function LibraryPage() {
             <button onClick={() => { const id = folderCtx.id; setFolderCtx(null); setDeleteFolderId(id); }} className="mt-1 block w-full rounded-[7px] border-t border-line px-3 py-2 text-left text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)]">Delete folder</button>
           </div>
         </>
+      )}
+
+      {/* Expanded image viewer */}
+      {imgLightbox && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-8" onClick={() => setImgLightbox(null)}>
+          <button
+            type="button"
+            onClick={() => setImgLightbox(null)}
+            aria-label="Close"
+            className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-hairline-strong bg-black/50 text-white transition-colors hover:bg-danger"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3 L13 13 M13 3 L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imgLightbox.src} alt={imgLightbox.name} onClick={(e) => e.stopPropagation()} className="max-h-full max-w-full object-contain" />
+        </div>
       )}
 
       {/* Delete confirmation */}
