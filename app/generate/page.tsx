@@ -599,6 +599,12 @@ function GenerateInner() {
               <button onClick={downloadResult} className="rounded-[10px] bg-accent px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-accent-hover">
                 Download MP4
               </button>
+              <button disabled title="Coming soon" className="cursor-not-allowed rounded-[10px] border border-hairline-strong px-4 py-2 text-sm opacity-40">
+                WebM
+              </button>
+              <button disabled title="Coming soon" className="cursor-not-allowed rounded-[10px] border border-hairline-strong px-4 py-2 text-sm opacity-40">
+                GIF
+              </button>
               <button onClick={regen} className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
                 Regenerate
               </button>
