@@ -573,25 +573,22 @@ function ProfileInner() {
             {tab === "preferences" && (
               <div className="max-w-3xl space-y-5">
                 <section>
-                  <div className="flex flex-wrap items-end justify-between gap-3">
-                    <div>
-                      <label className={label}>Theme</label>
-                      <div className="inline-flex border border-line-strong font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
-                        {(["system", "dark", "light"] as Theme[]).map((t) => (
-                          <button
-                            key={t}
-                            onClick={() => chooseTheme(t)}
-                            className={`flex items-center gap-2 px-4 py-2 transition-colors ${
-                              theme === t ? "bg-accent text-ink" : "text-muted hover:text-fg"
-                            }`}
-                          >
-                            <ThemeIcon theme={t} />
-                            {t}
-                          </button>
-                        ))}
-                      </div>
+                  <div>
+                    <label className={label}>Theme</label>
+                    <div className="inline-flex border border-line-strong font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
+                      {(["system", "dark", "light"] as Theme[]).map((t) => (
+                        <button
+                          key={t}
+                          onClick={() => chooseTheme(t)}
+                          className={`flex items-center gap-2 px-4 py-2 transition-colors ${
+                            theme === t ? "bg-accent text-ink" : "text-muted hover:text-fg"
+                          }`}
+                        >
+                          <ThemeIcon theme={t} />
+                          {t}
+                        </button>
+                      ))}
                     </div>
-                    <p className="text-xs text-dim">System follows your device. Light matches the Fluxion site.</p>
                   </div>
                 </section>
 
