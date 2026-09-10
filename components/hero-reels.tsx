@@ -14,25 +14,15 @@ const SLOTS = [
 // two slots ever swipe at the same time. Each slot swipes every SLOTS*GAP ms.
 const GAP = 1700;
 
+// The poster (first frame) for a clip lives next to it as a .jpg, so each reel
+// tile shows an image immediately — no black box while the video downloads.
+const posterFor = (src: string) => src.replace(/\.mp4$/, ".jpg");
+
 export function HeroReels() {
   const posRef = useRef<number[]>(SLOTS.map(() => 0));
   const animRef = useRef<boolean[]>(SLOTS.map(() => true));
   const [, force] = useState(0);
   const render = () => force((x) => x + 1);
-
-  // Loading gate: the <video>s show a black frame until they've decoded their
-  // first frame. Reveal as soon as ANY clip is ready (they load in parallel, so
-  // this shows the reels ASAP) rather than waiting for all slots. The shimmer is
-  // real — it tracks the actual `loadeddata` event, not a fixed timer — and a
-  // short safety timeout guarantees it never sticks if a clip stalls.
-  const [ready, setReady] = useState(false);
-  function onSlotLoaded() {
-    setReady(true);
-  }
-  useEffect(() => {
-    const t = setTimeout(() => setReady(true), 2500);
-    return () => clearTimeout(t);
-  }, []);
 
   useEffect(() => {
     const order = [1, 0, 2]; // middle scrolls first, then left, then right
@@ -73,17 +63,7 @@ export function HeroReels() {
       className="reel-glow relative flex overflow-hidden rounded-[14px] border border-[rgba(255,193,94,0.35)]"
       style={{ transform: "translateZ(0)", isolation: "isolate", contain: "paint" }}
     >
-      {/* Loading skeleton — just a soft shimmer over the reels' footprint (no
-          icon/text) until the clips are ready. Fades out on ready. */}
-      <div
-        aria-hidden="true"
-        className={`reel-shimmer absolute inset-0 z-30 bg-surface transition-opacity duration-500 ${
-          ready ? "pointer-events-none opacity-0" : "opacity-100"
-        }`}
-      />
-
-      {/* The reels themselves — hidden until `ready`, then faded in. */}
-      <div className={`flex transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}>
+      <div className="flex">
         {SLOTS.map((videos, i) => {
           const n = videos.length;
           const unit = 100 / (n + 1);
@@ -106,6 +86,7 @@ export function HeroReels() {
                     <video
                       key={j}
                       src={src}
+                      poster={posterFor(src)}
                       style={{ height: `${unit}%` }}
                       className="w-full object-cover"
                       autoPlay
@@ -113,8 +94,6 @@ export function HeroReels() {
                       loop
                       playsInline
                       preload="auto"
-                      // Reveal as soon as the first (visible) clip has a frame.
-                      onLoadedData={j === 0 ? onSlotLoaded : undefined}
                     />
                   ))}
                 </div>
