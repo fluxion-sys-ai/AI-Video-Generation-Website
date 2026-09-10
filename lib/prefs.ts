@@ -93,6 +93,37 @@ export function takePendingImages(): PendingImage[] {
   }
 }
 
+// User settings (Profile → Settings). Persisted and actually applied:
+//   - autoplay:          hover-play video thumbnails (library + catalog)
+//   - defaultModel:      preselected model when opening /generate with no ?model
+//   - defaultResolution: initial resolution in the playground (when supported)
+//   - emailUpdates:      notification preference (mock; stored only)
+export type Settings = {
+  autoplay: boolean;
+  defaultModel: string;
+  defaultResolution: string;
+  emailUpdates: boolean;
+};
+const SETTINGS_KEY = "fluxion.settings";
+const SETTINGS_DEFAULTS: Settings = { autoplay: true, defaultModel: "", defaultResolution: "", emailUpdates: false };
+
+export function getSettings(): Settings {
+  if (typeof window === "undefined") return SETTINGS_DEFAULTS;
+  try {
+    return { ...SETTINGS_DEFAULTS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") };
+  } catch {
+    return SETTINGS_DEFAULTS;
+  }
+}
+export function saveSettings(patch: Partial<Settings>) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...getSettings(), ...patch }));
+}
+// Convenience: hover-autoplay on by default.
+export function isAutoplay(): boolean {
+  return getSettings().autoplay;
+}
+
 // Theme setting.
 //   - "dark"   → always the dark (default brand) look.
 //   - "light"  → always the light look (matches the Fluxion marketing site).

@@ -10,7 +10,8 @@ import { UsageChart } from "@/components/usage-chart";
 import { AvatarEditor } from "@/components/avatar-editor";
 import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
 import { getModels } from "@/lib/models";
-import { getTheme, applyTheme, type Theme } from "@/lib/prefs";
+import { getTheme, applyTheme, getSettings, saveSettings, type Theme } from "@/lib/prefs";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 const inputClass =
   "w-full rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none focus:border-blue focus:ring-1 focus:ring-blue";
@@ -133,22 +134,40 @@ function ProfileInner() {
   const [cardExp, setCardExp] = useState("");
   const [cardCvc, setCardCvc] = useState("");
 
-  // preferences (mock)
+  // preferences (persisted via lib/prefs settings)
   const [prefModelSlug, setPrefModelSlug] = useState(() => getModels()[0].slug);
   const [prefRes, setPrefRes] = useState("720p");
   const [autoplay, setAutoplay] = useState(true);
   const [emailUpdates, setEmailUpdates] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
   const [prefSaved, setPrefSaved] = useState(false);
   const [theme, setThemeState] = useState<Theme>("dark");
 
+  // Hydrate the theme + settings from storage.
   useEffect(() => {
     setThemeState(getTheme());
+    const s = getSettings();
+    setAutoplay(s.autoplay);
+    setEmailUpdates(s.emailUpdates);
+    if (s.defaultModel) setPrefModelSlug(s.defaultModel);
+    if (s.defaultResolution) setPrefRes(s.defaultResolution);
   }, []);
   function chooseTheme(t: Theme) {
     setThemeState(t);
     applyTheme(t);
   }
+  function savePrefs() {
+    saveSettings({ autoplay, emailUpdates, defaultModel: prefModelSlug, defaultResolution: prefRes });
+    setPrefSaved(true);
+    setTimeout(() => setPrefSaved(false), 1600);
+  }
+
+  // Esc closes any open profile modal / the avatar editor.
+  useEscapeKey(() => {
+    setAddOpen(false);
+    setCardOpen(false);
+    setAlertOpen(false);
+    setEditorSrc(null);
+  });
 
   useEffect(() => {
     if (!isSignedIn()) {
@@ -603,13 +622,6 @@ function ProfileInner() {
                   </div>
                   <div className="flex items-center justify-between gap-4 border border-line p-3">
                     <div>
-                      <p className="text-sm text-fg">Reduce motion</p>
-                      <p className="text-xs text-dim">Dim background animations.</p>
-                    </div>
-                    <Toggle on={reduceMotion} onClick={() => setReduceMotion((v) => !v)} />
-                  </div>
-                  <div className="flex items-center justify-between gap-4 border border-line p-3">
-                    <div>
                       <p className="text-sm text-fg">Email updates</p>
                       <p className="text-xs text-dim">News about new models.</p>
                     </div>
@@ -643,7 +655,7 @@ function ProfileInner() {
                 </section>
 
                 <div className="flex items-center gap-3">
-                  <button onClick={() => { setPrefSaved(true); setTimeout(() => setPrefSaved(false), 1600); }} className={btnPrimary}>
+                  <button onClick={savePrefs} className={btnPrimary}>
                     Save settings
                   </button>
                   {prefSaved && <span className="text-sm text-accent">Saved ✓</span>}

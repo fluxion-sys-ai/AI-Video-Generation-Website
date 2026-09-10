@@ -8,7 +8,8 @@ import { ApiDocs } from "@/components/api-docs";
 import { SiteFooter } from "@/components/site-footer";
 import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
-import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite } from "@/lib/prefs";
+import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings } from "@/lib/prefs";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 type Status = "idle" | "generating" | "complete" | "failed";
 
@@ -56,11 +57,17 @@ const ASPECT_USE: Record<string, string> = {
 function GenerateInner() {
   const router = useRouter();
   const params = useSearchParams();
-  const slug = params.get("model") || "aurora";
+  // No ?model → use the saved default model (Settings), else the first model.
+  const slug = params.get("model") || getSettings().defaultModel || "aurora";
   const model: Model = getModel(slug) || getModels()[0];
+  // Prefer the saved default resolution when this model supports it.
+  const preferredRes = () => {
+    const d = getSettings().defaultResolution;
+    return model.resolutions.includes(d) ? d : model.popularResolutions[0] || model.resolutions[0];
+  };
 
   const [aspect, setAspect] = useState(model.aspectRatios[0]);
-  const [resolution, setResolution] = useState(model.popularResolutions[0] || model.resolutions[0]);
+  const [resolution, setResolution] = useState(preferredRes);
   const [duration, setDuration] = useState(model.durations[0]);
   const [audio, setAudio] = useState(false);
   const [prompt, setPrompt] = useState("");
@@ -95,8 +102,9 @@ function GenerateInner() {
       return prev.filter((_, i) => i !== idx);
     });
   }
-  // Expanded image viewer (click a thumbnail to open, × to close).
+  // Expanded image viewer (click a thumbnail to open, × / Esc to close).
   const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
+  useEscapeKey(() => setLightbox(null));
 
   // Favorite (heart) for the current model — shared with the model catalog.
   const [fav, setFav] = useState(false);
@@ -147,7 +155,7 @@ function GenerateInner() {
   // Keep the prompt, but drop any generated video / refine session.
   useEffect(() => {
     setAspect(model.aspectRatios[0]);
-    setResolution(model.popularResolutions[0] || model.resolutions[0]);
+    setResolution(preferredRes());
     setDuration(model.durations[0]);
     if (!model.supports.audio) setAudio(false);
     setStatus("idle");

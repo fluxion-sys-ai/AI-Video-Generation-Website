@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Model } from "@/lib/models";
-import { isFavorite, toggleFavorite } from "@/lib/prefs";
+import { isFavorite, toggleFavorite, isAutoplay } from "@/lib/prefs";
 import { Heart } from "lucide-react";
 
 export function ModelCard({ model }: { model: Model }) {
@@ -15,7 +15,7 @@ export function ModelCard({ model }: { model: Model }) {
   }, [model.slug]);
 
   function play() {
-    videoRef.current?.play().catch(() => {});
+    if (isAutoplay()) videoRef.current?.play().catch(() => {});
   }
   function stop() {
     const v = videoRef.current;
@@ -32,6 +32,7 @@ export function ModelCard({ model }: { model: Model }) {
           ref={videoRef}
           className="h-full w-full object-cover opacity-95 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-100"
           src={model.demoVideo}
+          poster={model.poster}
           muted
           loop
           playsInline

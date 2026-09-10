@@ -15,8 +15,10 @@ import {
   getLibraryImages,
   saveLibraryImages,
   addLibraryImages,
+  isAutoplay,
   type LibImage,
 } from "@/lib/prefs";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 type VideoItem = { id: number; prompt: string; model: Model; when: string };
 
@@ -28,7 +30,7 @@ function VideoThumb({ v }: { v: VideoItem }) {
   return (
     <Link
       href={`/generate?model=${v.model.slug}`}
-      onMouseEnter={() => setHover(true)}
+      onMouseEnter={() => { if (isAutoplay()) setHover(true); }}
       onMouseLeave={() => setHover(false)}
       className="group border border-line p-3 transition-colors hover:border-[rgba(124,189,242,0.5)]"
     >
@@ -89,6 +91,16 @@ export default function LibraryPage() {
   const [addFolderOpen, setAddFolderOpen] = useState(false);
 
   const models = getModels();
+
+  // Esc closes any open menu / modal.
+  useEscapeKey(() => {
+    setCtx(null);
+    setFolderCtx(null);
+    setDeleteIds(null);
+    setDeleteFolderId(null);
+    setAddFolderOpen(false);
+    setUploadOpen(false);
+  });
 
   useEffect(() => {
     if (!isSignedIn()) {
