@@ -66,7 +66,7 @@ export default function DashboardPage() {
       <main className="relative z-10 w-full flex-1 px-10 py-8">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">Dashboard</span>
         <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">
-          Welcome back, {name}
+          Let&apos;s create something, {name}
         </h1>
 
         {/* Getting started */}
