@@ -59,7 +59,17 @@ export function GlowBlobs({ className = "", variant = "a" }: { className?: strin
         </radialGradient>
       </defs>
       {blobs.map((b, i) => (
-        <circle key={i} cx={b.cx} cy={b.cy} r={b.r} fill={b.c === "o" ? "url(#blob-o)" : "url(#blob-b)"} opacity={b.base} />
+        <circle
+          key={i}
+          // The "b" orbs are blue in dark mode; the `glow-b` class hides them
+          // there (see app/globals.css). In light mode they're warm and shown.
+          className={b.c === "b" ? "glow-b" : undefined}
+          cx={b.cx}
+          cy={b.cy}
+          r={b.r}
+          fill={b.c === "o" ? "url(#blob-o)" : "url(#blob-b)"}
+          opacity={b.base}
+        />
       ))}
     </svg>
   );

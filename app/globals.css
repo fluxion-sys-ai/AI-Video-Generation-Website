@@ -293,6 +293,15 @@
   filter: saturate(1.05);
 }
 
+/* Dark mode: hide the blue (non-orange) glow orbs; keep only the warm ones.
+   They come back in light mode (where they're warm-toned). */
+.glow-b {
+  display: none;
+}
+.light .glow-b {
+  display: inline;
+}
+
 /* Show one decor set per theme. The homepage keeps its authored dark backdrop
    art in dark mode (.decor-dark) and swaps to the theme-colored glow orbs in
    light mode (.decor-light), so nothing relies on the muddy invert filter. */
