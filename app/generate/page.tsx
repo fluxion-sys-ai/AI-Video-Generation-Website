@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { Heart } from "lucide-react";
+import { Heart, GripHorizontal } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { ApiDocs } from "@/components/api-docs";
@@ -115,6 +115,25 @@ function GenerateInner() {
   const [session, setSession] = useState(false);
   const [chat, setChat] = useState<string[]>([]);
   const [refineInput, setRefineInput] = useState("");
+
+  // Draggable floating refine bar: offset (px) from its default bottom-center
+  // spot. Drag the header grip to move it out of the way.
+  const [refinePos, setRefinePos] = useState({ x: 0, y: 0 });
+  const refineDrag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
+  useEffect(() => {
+    function move(e: MouseEvent) {
+      const d = refineDrag.current;
+      if (!d) return;
+      setRefinePos({ x: d.ox + (e.clientX - d.sx), y: d.oy + (e.clientY - d.sy) });
+    }
+    function up() { refineDrag.current = null; }
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+  }, []);
+  function startRefineDrag(e: React.MouseEvent) {
+    refineDrag.current = { sx: e.clientX, sy: e.clientY, ox: refinePos.x, oy: refinePos.y };
+  }
 
   // Reset model-dependent options when the selected model changes.
   // Track recently-used models for the dashboard.
@@ -544,9 +563,17 @@ function GenerateInner() {
 
       {/* Floating refine chatbot — fixed to the bottom-center like a chat app. */}
       {session && (
-        <div className="fixed bottom-5 left-1/2 z-[60] w-[min(92vw,640px)] -translate-x-1/2 rounded-[14px] border border-line bg-panel/95 p-3 shadow-xl shadow-black/40 backdrop-blur">
+        <div
+          className="fixed bottom-5 left-1/2 z-[60] w-[min(92vw,640px)] rounded-[14px] border border-line bg-panel/95 p-3 shadow-xl shadow-black/40 backdrop-blur"
+          style={{ transform: `translate(calc(-50% + ${refinePos.x}px), ${refinePos.y}px)` }}
+        >
           <div className="mb-2 flex items-center justify-between px-1">
-            <span className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-gold">
+            <span
+              onMouseDown={startRefineDrag}
+              title="Drag to move"
+              className="flex cursor-move select-none items-center gap-1.5 font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-gold"
+            >
+              <GripHorizontal size={14} className="text-dim" />
               Refine session
             </span>
             <div className="flex items-center gap-3 font-[family-name:var(--font-jetbrains)] text-xs">
