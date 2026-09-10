@@ -4,6 +4,8 @@ import { Onboarding } from "@/components/onboarding";
 import { PlansDots } from "@/components/plans-dots";
 import { GlowBlobs } from "@/components/glow-blobs";
 
+export const metadata = { title: "Create account" };
+
 // Sign-up is a guided, multi-step "slideshow" (components/onboarding.tsx):
 // account → name → who-are-you → payment → credits.
 export default function SignupPage() {

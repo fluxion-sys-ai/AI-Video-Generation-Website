@@ -243,6 +243,29 @@ function GenerateInner() {
     regen();
   }
 
+  // Real download: fetch the result and save it as a file (works for the mock
+  // clip, which is same-origin). WebM/GIF aren't produced in this demo.
+  async function downloadResult() {
+    if (!resultUrl) return;
+    try {
+      const res = await fetch(resultUrl);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "fluxion-video.mp4";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      const a = document.createElement("a");
+      a.href = resultUrl;
+      a.download = "fluxion-video.mp4";
+      a.click();
+    }
+  }
+
   const [aw, ah] = aspect.split(":").map(Number);
   const portrait = ah > aw;
 
@@ -571,19 +594,16 @@ function GenerateInner() {
           )}
         </div>
         {status === "complete" && resultUrl && (
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <a href={resultUrl} download="fluxion-video.mp4" className="rounded-[10px] bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent-hover">
-              Download MP4
-            </a>
-            <a href={resultUrl} download="fluxion-video.webm" className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm hover:bg-hover">
-              WebM
-            </a>
-            <a href={resultUrl} download="fluxion-video.gif" className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm hover:bg-hover">
-              GIF
-            </a>
-            <button onClick={regen} className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm hover:bg-hover">
-              Regenerate
-            </button>
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button onClick={downloadResult} className="rounded-[10px] bg-accent px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-accent-hover">
+                Download MP4
+              </button>
+              <button onClick={regen} className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
+                Regenerate
+              </button>
+            </div>
+            <p className="text-xs text-dim">WebM &amp; GIF export coming soon.</p>
           </div>
         )}
         </div>

@@ -3,7 +3,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { PlansDots } from "@/components/plans-dots";
 import { GlowBlobs } from "@/components/glow-blobs";
 
-export const metadata = { title: "Info · Fluxion AI Video" };
+export const metadata = { title: "Info & contact" };
 
 export default function InfoPage() {
   return (

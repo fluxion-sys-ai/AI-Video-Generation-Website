@@ -6,7 +6,7 @@ import { GlowBlobs } from "@/components/glow-blobs";
 import { ModelPricingTable } from "@/components/model-pricing-table";
 import { CostEstimator } from "@/components/cost-estimator";
 
-export const metadata = { title: "Pricing · Fluxion AI Video" };
+export const metadata = { title: "Pricing" };
 
 const PAYG = {
   name: "Pay as you go",

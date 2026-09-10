@@ -5,6 +5,8 @@ import { AuthForm } from "@/components/auth-form";
 import { PlansDots } from "@/components/plans-dots";
 import { GlowBlobs } from "@/components/glow-blobs";
 
+export const metadata = { title: "Log in" };
+
 export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen flex-col">

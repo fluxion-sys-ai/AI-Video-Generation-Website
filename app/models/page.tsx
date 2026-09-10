@@ -5,7 +5,7 @@ import { PlansDots } from "@/components/plans-dots";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { getModels } from "@/lib/models";
 
-export const metadata = { title: "Models · Fluxion AI Video" };
+export const metadata = { title: "Models" };
 
 export default function ModelsPage() {
   const models = getModels();

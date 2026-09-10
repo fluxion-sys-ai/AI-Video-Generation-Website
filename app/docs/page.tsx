@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { DocsSidebar } from "@/components/docs-sidebar";
 import { CopyButton } from "@/components/copy-button";
 
-export const metadata = { title: "Documentation · Fluxion AI Video" };
+export const metadata = { title: "Documentation" };
 
 // `body` mirrors the prose of each section (keywords only) so the sidebar can
 // search doc *content*, not just titles. Keep it roughly in sync with the

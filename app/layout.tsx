@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, JetBrains_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import { Spotlight } from "@/components/spotlight";
+import { Toaster } from "@/components/toaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,9 +22,27 @@ const sora = Sora({
   weight: ["500"],
 });
 
+const SITE = "Fluxion AI Video";
+const DESC = "AI video generator — choose a model, write a prompt, and generate.";
+const SITE_URL = "https://fluxion-sys-ai.github.io/AI-Video-Generation-Website/";
+
 export const metadata: Metadata = {
-  title: "Fluxion AI Video",
-  description: "AI video generator. Choose a model, write a prompt, generate.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE, template: `%s · ${SITE}` },
+  description: DESC,
+  applicationName: SITE,
+  openGraph: {
+    type: "website",
+    siteName: SITE,
+    title: SITE,
+    description: DESC,
+    url: SITE_URL,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE,
+    description: DESC,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -45,6 +64,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
         <Spotlight />
         {children}
+        <Toaster />
       </body>
     </html>
   );

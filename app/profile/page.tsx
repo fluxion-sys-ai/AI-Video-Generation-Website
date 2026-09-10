@@ -12,6 +12,7 @@ import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
 import { getModels } from "@/lib/models";
 import { getTheme, applyTheme, getSettings, saveSettings, type Theme } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
+import { toast } from "@/lib/toast";
 
 const inputClass =
   "w-full rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none focus:border-blue focus:ring-1 focus:ring-blue";
@@ -109,10 +110,7 @@ function ProfileInner() {
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<string | undefined>(undefined);
   const [editorSrc, setEditorSrc] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
-  const [alertSaved, setAlertSaved] = useState(false);
-  const [topupSaved, setTopupSaved] = useState(false);
 
   // billing (mock)
   const [autoTopup, setAutoTopup] = useState(false);
@@ -139,7 +137,6 @@ function ProfileInner() {
   const [prefRes, setPrefRes] = useState("720p");
   const [autoplay, setAutoplay] = useState(true);
   const [emailUpdates, setEmailUpdates] = useState(false);
-  const [prefSaved, setPrefSaved] = useState(false);
   const [theme, setThemeState] = useState<Theme>("dark");
 
   // Hydrate the theme + settings from storage.
@@ -157,8 +154,7 @@ function ProfileInner() {
   }
   function savePrefs() {
     saveSettings({ autoplay, emailUpdates, defaultModel: prefModelSlug, defaultResolution: prefRes });
-    setPrefSaved(true);
-    setTimeout(() => setPrefSaved(false), 1600);
+    toast("Settings saved");
   }
 
   // Esc closes any open profile modal / the avatar editor.
@@ -195,8 +191,7 @@ function ProfileInner() {
 
   function save() {
     persist();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1600);
+    toast("Changes saved");
   }
 
   // Open the picked image in the editor (crop/zoom/rotate/filter) before saving.
@@ -336,7 +331,6 @@ function ProfileInner() {
                 </div>
                 <div className="flex items-center gap-3">
                   <button onClick={save} className={btnPrimary}>Save changes</button>
-                  {saved && <span className="text-sm text-accent">Saved ✓</span>}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 border-t border-hairline pt-6">
@@ -399,12 +393,11 @@ function ProfileInner() {
                       </div>
                       <div className="mt-3 flex items-center gap-3">
                         <button
-                          onClick={() => { setTopupSaved(true); setTimeout(() => setTopupSaved(false), 1600); }}
+                          onClick={() => toast("Auto top-up saved")}
                           className={btnPrimary}
                         >
                           Confirm top-up
                         </button>
-                        {topupSaved && <span className="text-sm text-accent">Saved ✓</span>}
                       </div>
                     </>
                   )}
@@ -427,7 +420,6 @@ function ProfileInner() {
                     <button onClick={() => setAlertOpen(true)} disabled={!alertOn} className={`${btnPrimary} disabled:opacity-40`}>
                       Set
                     </button>
-                    {alertSaved && <span className="pb-2.5 text-sm text-accent">Saved ✓</span>}
                   </div>
                 </div>
 
@@ -658,7 +650,6 @@ function ProfileInner() {
                   <button onClick={savePrefs} className={btnPrimary}>
                     Save settings
                   </button>
-                  {prefSaved && <span className="text-sm text-accent">Saved ✓</span>}
                 </div>
               </div>
             )}
@@ -763,7 +754,7 @@ function ProfileInner() {
             </dl>
             <div className="mt-6 flex gap-3">
               <button
-                onClick={() => { setAlertOpen(false); setAlertSaved(true); setTimeout(() => setAlertSaved(false), 1600); }}
+                onClick={() => { setAlertOpen(false); toast("Low-balance alert set"); }}
                 className={`${btnPrimary} flex-1`}
               >
                 Confirm
