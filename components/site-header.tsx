@@ -258,6 +258,7 @@ export function SiteHeader() {
                   <MenuItem href="/dashboard#models" title="My models" sub="Recents & favorites" icon={<TabChip><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" /><rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" /></svg></TabChip>} />
                 </NavMenu>
                 <NavMenu label="Generate" href="/generate">
+                  <MenuItem href="/models" title="All models" sub="Browse the full catalog" icon={<TabChip><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" /><rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" /></svg></TabChip>} />
                   {(() => {
                     // If the user has favorited models, surface just those (with a
                     // "Your favorites" header); otherwise list them all.
@@ -274,7 +275,6 @@ export function SiteHeader() {
                       </>
                     );
                   })()}
-                  <MenuItem href="/models" title="All models" sub="Browse the full catalog" icon={<TabChip><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" /><rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" /></svg></TabChip>} />
                 </NavMenu>
                 <NavMenu label="Library" href="/library">
                   <MenuItem href="/library?tab=images" title="Images" icon={<TabChip><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="3" width="12" height="10" rx="1.5" /><circle cx="6" cy="6.5" r="1.2" /><path d="M3 12 L6.5 8.5 L9 11 L11 9 L13.5 12" strokeLinecap="round" strokeLinejoin="round" /></svg></TabChip>} />
@@ -306,15 +306,6 @@ export function SiteHeader() {
             ) : (
               <>
             <NavMenu label="Models" href="/models">
-              {models.map((m) => (
-                <MenuItem
-                  key={m.slug}
-                  href={`/generate?model=${m.slug}`}
-                  title={m.name}
-                  sub={m.tagline}
-                  icon={<ModelIcon letter={m.name.charAt(0)} />}
-                />
-              ))}
               <MenuItem
                 href="/models"
                 title="All models"
@@ -328,6 +319,15 @@ export function SiteHeader() {
                   </span>
                 }
               />
+              {models.map((m) => (
+                <MenuItem
+                  key={m.slug}
+                  href={`/generate?model=${m.slug}`}
+                  title={m.name}
+                  sub={m.tagline}
+                  icon={<ModelIcon letter={m.name.charAt(0)} />}
+                />
+              ))}
             </NavMenu>
             <Link
               href="/pricing"
