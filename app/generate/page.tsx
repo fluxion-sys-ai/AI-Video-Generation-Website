@@ -43,6 +43,9 @@ const selectClass =
 // Square corners + custom caret via `pg-select` (see app/globals.css).
 const compactSelect =
   "rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue focus:ring-1 focus:ring-blue pg-select";
+// same look but for a plain <input> (no dropdown caret / appearance:none)
+const compactInput =
+  "rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue focus:ring-1 focus:ring-blue";
 
 // common use for each aspect ratio, shown in the dropdown
 const ASPECT_USE: Record<string, string> = {
@@ -69,6 +72,9 @@ function GenerateInner() {
   const [aspect, setAspect] = useState(model.aspectRatios[0]);
   const [resolution, setResolution] = useState(preferredRes);
   const [duration, setDuration] = useState(model.durations[0]);
+  // Raw text for the duration input, so typing "10" isn't coerced mid-entry
+  // (which caused the caret to jump / digits to reorder). Clamped on blur.
+  const [durationStr, setDurationStr] = useState(String(model.durations[0]));
   const [audio, setAudio] = useState(false);
   const [prompt, setPrompt] = useState("");
   // Uploaded reference images (multiple). Each holds an object URL for the
@@ -157,6 +163,7 @@ function GenerateInner() {
     setAspect(model.aspectRatios[0]);
     setResolution(preferredRes());
     setDuration(model.durations[0]);
+    setDurationStr(String(model.durations[0]));
     if (!model.supports.audio) setAudio(false);
     setStatus("idle");
     setResultUrl(null);
@@ -179,6 +186,7 @@ function GenerateInner() {
       setAspect(d.aspect);
       setResolution(d.resolution);
       setDuration(d.duration);
+      setDurationStr(String(d.duration));
       setAudio(d.audio);
       setPrompt(d.prompt);
       clearDraft();
@@ -483,9 +491,22 @@ function GenerateInner() {
                 type="number"
                 min={3}
                 max={15}
-                value={duration}
-                onChange={(e) => setDuration(Number(e.target.value))}
-                className={`${compactSelect} w-20`}
+                inputMode="numeric"
+                value={durationStr}
+                onChange={(e) => {
+                  const s = e.target.value;
+                  setDurationStr(s);
+                  const n = Number(s);
+                  if (s !== "" && !Number.isNaN(n)) setDuration(n);
+                }}
+                onBlur={() => {
+                  let n = Number(durationStr);
+                  if (Number.isNaN(n) || durationStr === "") n = model.durations[0];
+                  n = Math.min(15, Math.max(3, Math.round(n)));
+                  setDuration(n);
+                  setDurationStr(String(n));
+                }}
+                className={`${compactInput} w-20`}
               />
             </Field>
 
