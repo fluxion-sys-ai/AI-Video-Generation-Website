@@ -112,6 +112,12 @@ export default function LibraryPage() {
     setImgLightbox(null);
   });
 
+  // Open the tab named in ?tab= (from the header Library menu).
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    if (t === "images" || t === "videos") setTab(t);
+  }, []);
+
   useEffect(() => {
     if (!isSignedIn()) {
       router.replace("/login?next=/library");

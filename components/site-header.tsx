@@ -11,7 +11,7 @@ const models = getModels();
 
 /* Hover/click dropdown - no extra deps, keyboard + outside-click aware.
    With `href`, clicking the label navigates (hover still opens the menu). */
-function NavMenu({ label, href, children }: { label: string; href?: string; children: React.ReactNode }) {
+function NavMenu({ label, href, align = "left", children }: { label: React.ReactNode; href?: string; align?: "left" | "right"; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -55,7 +55,7 @@ function NavMenu({ label, href, children }: { label: string; href?: string; chil
         </button>
       )}
       {open && (
-        <div className="absolute left-0 top-full min-w-56 pt-3">
+        <div className={`absolute top-full min-w-56 pt-3 ${align === "right" ? "right-0" : "left-0"}`}>
           <div className="overflow-hidden rounded-[10px] border border-hairline bg-panel p-1 shadow-xl shadow-black/40">
             {children}
           </div>
@@ -249,11 +249,45 @@ export function SiteHeader() {
           <div className="hidden items-center gap-7 md:flex">
             {dashMode ? (
               <>
-                <NavLink href="/dashboard" label="Dashboard" active={pathname.startsWith("/dashboard")} />
-                <NavLink href="/generate" label="Generate" active={pathname.startsWith("/generate") || pathname.startsWith("/models")} />
-                <NavLink href="/library" label="Library" active={pathname.startsWith("/library")} />
+                <NavMenu label="Dashboard" href="/dashboard">
+                  <MenuItem href="/dashboard" title="Main" icon={<TabChip><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M2.5 7.5 L8 3 L13.5 7.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 6.8V13h8V6.8" strokeLinecap="round" strokeLinejoin="round" /></svg></TabChip>} />
+                  <MenuItem href="/dashboard#models" title="My models" sub="Recents & favorites" icon={<TabChip><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" /><rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" /></svg></TabChip>} />
+                </NavMenu>
+                <NavMenu label="Generate" href="/generate">
+                  {models.map((m) => (
+                    <MenuItem key={m.slug} href={`/generate?model=${m.slug}`} title={m.name} sub={m.tagline} icon={<ModelIcon letter={m.name.charAt(0)} />} />
+                  ))}
+                  <MenuItem href="/models" title="All models" sub="Browse the full catalog" icon={<TabChip><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" /><rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" /></svg></TabChip>} />
+                </NavMenu>
+                <NavMenu label="Library" href="/library">
+                  <MenuItem href="/library?tab=images" title="Images" icon={<TabChip><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="3" width="12" height="10" rx="1.5" /><circle cx="6" cy="6.5" r="1.2" /><path d="M3 12 L6.5 8.5 L9 11 L11 9 L13.5 12" strokeLinecap="round" strokeLinejoin="round" /></svg></TabChip>} />
+                  <MenuItem href="/library?tab=videos" title="Videos" icon={<TabChip><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="3.5" width="9" height="9" rx="1.5" /><path d="M11 7 L14 5.2 V10.8 L11 9" strokeLinecap="round" strokeLinejoin="round" /></svg></TabChip>} />
+                </NavMenu>
                 <NavLink href="/docs" label="Docs" active={pathname.startsWith("/docs")} />
-                <NavLink href="/profile" label="Settings" active={pathname.startsWith("/profile")} />
+                <NavMenu
+                  align="right"
+                  href="/profile"
+                  label={
+                    <span aria-label="Settings" title="Settings" className="flex h-6 w-6 items-center justify-center">
+                      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
+                        <circle cx="8" cy="8" r="2.2" />
+                        <path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                  }
+                >
+                  {PROFILE_TABS.map((t) => (
+                    <MenuItem key={t.key} href={`/profile?tab=${t.key}`} title={t.title} icon={t.icon} />
+                  ))}
+                </NavMenu>
+                <Link
+                  href="/info"
+                  aria-label="Info"
+                  title="Info and contact"
+                  className="flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(148,170,200,0.4)] text-[11px] text-fg-soft-2 transition-colors hover:border-gold-soft hover:text-gold-soft"
+                >
+                  i
+                </Link>
               </>
             ) : (
               <>

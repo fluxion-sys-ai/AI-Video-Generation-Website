@@ -124,8 +124,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Recently used + favorites */}
-        <div className="mt-8 grid gap-8 lg:grid-cols-2">
+        {/* Recently used + favorites (My models — linked from the header menu) */}
+        <div id="models" className="mt-8 scroll-mt-24 grid gap-8 lg:grid-cols-2">
           <div>
             <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Recently used</h2>
             {recents.length === 0 ? (
