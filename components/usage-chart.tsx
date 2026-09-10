@@ -68,7 +68,7 @@ export function UsageChart({
               className="relative flex-1 rounded-t-[2px]"
               style={{
                 height: `${Math.max((v / top) * 100, 1.5)}%`,
-                background: "linear-gradient(180deg, #FFB020 0%, rgba(255,138,30,0.45) 100%)",
+                background: "#FFB020",
               }}
             />
           ))}

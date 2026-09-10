@@ -521,7 +521,7 @@ export default function LibraryPage() {
                 id="img-sort"
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as SortKey)}
-                className="pg-select rounded-none border border-accent bg-accent-soft px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-accent outline-none"
+                className="pg-select rounded-none border border-accent bg-accent-soft px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs text-accent outline-none"
               >
                 <option value="custom">Custom order</option>
                 <option value="name">Name A–Z</option>

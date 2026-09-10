@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Brand } from "@/components/brand";
 import { getModels } from "@/lib/models";
 import { getUser, isSignedIn, type User } from "@/lib/auth";
+import { Settings } from "lucide-react";
 
 const models = getModels();
 
@@ -148,7 +149,7 @@ const PROFILE_TABS: { key: string; title: string; icon: React.ReactNode }[] = [
   },
   {
     key: "preferences",
-    title: "Settings",
+    title: "Preferences",
     icon: (
       <TabChip>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
@@ -269,10 +270,7 @@ export function SiteHeader() {
                   href="/profile"
                   label={
                     <span aria-label="Settings" title="Settings" className="flex h-6 w-6 items-center justify-center">
-                      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
-                        <circle cx="8" cy="8" r="2.2" />
-                        <path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4" strokeLinecap="round" />
-                      </svg>
+                      <Settings size={17} strokeWidth={1.6} />
                     </span>
                   }
                 >
