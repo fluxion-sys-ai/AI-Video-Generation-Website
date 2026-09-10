@@ -19,6 +19,7 @@ import {
   type LibImage,
 } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
+import { Heart } from "lucide-react";
 
 type VideoItem = { id: number; prompt: string; model: Model; when: string };
 
@@ -236,9 +237,11 @@ export default function LibraryPage() {
   }
   const baseImages = searching
     ? libImages.filter((im) => im.name.toLowerCase().includes(iq))
-    : activeFolderObj
-      ? libImages.filter((im) => activeFolderObj.imageIds.includes(im.id))
-      : libImages;
+    : activeFolder === "favorites"
+      ? libImages.filter((im) => im.fav)
+      : activeFolderObj
+        ? libImages.filter((im) => activeFolderObj.imageIds.includes(im.id))
+        : libImages;
   const shownImages = sortImages(baseImages);
 
   const allSelected = selected.size > 0 && shownImages.every((i) => selected.has(i.id));
@@ -312,6 +315,16 @@ export default function LibraryPage() {
 
   // The folder an image lives in (first match), shown as a badge in search results.
   const folderNameFor = (id: string) => folders.find((f) => f.imageIds.includes(id))?.name || null;
+
+  // Heart / un-heart an image. When the last favorite is removed while on the
+  // Favorites tab, fall back to All.
+  function toggleImgFav(id: string) {
+    const next = libImages.map((im) => (im.id === id ? { ...im, fav: !im.fav } : im));
+    setLibImages(next);
+    saveLibraryImages(next);
+    if (activeFolder === "favorites" && !next.some((im) => im.fav)) setActiveFolder(null);
+  }
+  const favCount = libImages.filter((im) => im.fav).length;
 
   function modelsForFilter(): Model[] {
     const bySlug = (slug: string) => models.find((m) => m.slug === slug);
@@ -392,6 +405,18 @@ export default function LibraryPage() {
                 >
                   All ({libImages.length})
                 </button>
+                {/* Favorites pseudo-folder — appears once any image is hearted */}
+                {favCount > 0 && (
+                  <button
+                    onClick={() => setActiveFolder("favorites")}
+                    className={`flex items-center gap-1.5 rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
+                      activeFolder === "favorites" ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                    }`}
+                  >
+                    <Heart size={12} fill="currentColor" />
+                    Favorites ({favCount})
+                  </button>
+                )}
                 {folders.map((f) => (
                   <button
                     key={f.id}
@@ -539,7 +564,7 @@ export default function LibraryPage() {
                             {folderNameFor(img.id)}
                           </span>
                         )}
-                        {selectMode && (
+                        {selectMode ? (
                           <span
                             className={`absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border text-ink transition-colors ${
                               on ? "border-accent bg-accent" : "border-white/70 bg-black/40"
@@ -549,6 +574,19 @@ export default function LibraryPage() {
                               <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.5 L5 9 L9.5 3.5" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             )}
                           </span>
+                        ) : (
+                          // heart toggle (top-right); always visible if hearted, else on hover
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); toggleImgFav(img.id); }}
+                            aria-label={img.fav ? "Remove from favorites" : "Add to favorites"}
+                            title={img.fav ? "Unfavorite" : "Favorite"}
+                            className={`absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/45 backdrop-blur transition-opacity hover:bg-black/70 ${
+                              img.fav ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                            }`}
+                          >
+                            <Heart size={13} fill={img.fav ? "#FF8A1E" : "none"} color={img.fav ? "#FF8A1E" : "#E9F1FB"} />
+                          </button>
                         )}
                       </div>
                       <p className="mt-2 truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-dim">{img.name}</p>

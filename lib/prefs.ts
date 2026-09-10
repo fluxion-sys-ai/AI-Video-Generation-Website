@@ -51,6 +51,7 @@ export type LibImage = {
   size?: number; // bytes (uploads only)
   uses?: number; // times sent to a model's playground
   addedAt?: number; // upload timestamp (ms)
+  fav?: boolean; // hearted in the library
 };
 const LIB_IMAGES_KEY = "fluxion.libraryImages";
 
