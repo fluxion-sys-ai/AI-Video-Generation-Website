@@ -32,6 +32,9 @@ export function UsageChart({
   const labels = dayLabels(data.length);
   const top = niceTop(Math.max(...data, 1));
   const ticks = [top, (top * 3) / 4, top / 2, top / 4, 0];
+  // Only label ~every Nth day (plus the last) so labels never crowd/wrap when
+  // the panel is narrow. Each slot still aligns under its bar.
+  const step = Math.max(1, Math.ceil(data.length / 6));
 
   return (
     <div className={`flex gap-2 ${className}`}>
@@ -70,10 +73,12 @@ export function UsageChart({
             />
           ))}
         </div>
-        {/* X axis */}
+        {/* X axis — sparse labels (every `step` days + the last), no wrapping */}
         <div className="mt-1.5 flex gap-[3px] font-[family-name:var(--font-jetbrains)] text-[9px] text-dim">
           {labels.map((l, i) => (
-            <span key={i} className="flex-1 text-center">{l}</span>
+            <span key={i} className="min-w-0 flex-1 overflow-visible whitespace-nowrap text-center">
+              {i % step === 0 || i === labels.length - 1 ? l : " "}
+            </span>
           ))}
         </div>
       </div>
