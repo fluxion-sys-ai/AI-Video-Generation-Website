@@ -569,52 +569,67 @@ function ProfileInner() {
               </div>
             )}
 
-            {/* PREFERENCES (settings) */}
+            {/* PREFERENCES (settings) — condensed to fit without scrolling */}
             {tab === "preferences" && (
-              <div className="max-w-3xl space-y-8">
+              <div className="max-w-3xl space-y-5">
                 <section>
-                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Appearance</h2>
-                  <div className="mt-4">
-                    <label className={label}>Theme</label>
-                    <div className="inline-flex border border-line-strong font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
-                      {(["system", "dark", "light"] as Theme[]).map((t) => (
-                        <button
-                          key={t}
-                          onClick={() => chooseTheme(t)}
-                          className={`flex items-center gap-2 px-5 py-2 transition-colors ${
-                            theme === t ? "bg-accent text-ink" : "text-muted hover:text-fg"
-                          }`}
-                        >
-                          <ThemeIcon theme={t} />
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="mt-2 text-xs text-dim">
-                      System follows your device setting. Light theme matches the Fluxion site.
-                    </p>
-                  </div>
-                  <div className="mt-4 space-y-3">
-                    <div className="flex items-center justify-between gap-4 border border-line p-4">
-                      <div>
-                        <p className="text-sm text-fg">Autoplay previews</p>
-                        <p className="text-xs text-dim">Play video thumbnails on hover.</p>
+                  <div className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                      <label className={label}>Theme</label>
+                      <div className="inline-flex border border-line-strong font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
+                        {(["system", "dark", "light"] as Theme[]).map((t) => (
+                          <button
+                            key={t}
+                            onClick={() => chooseTheme(t)}
+                            className={`flex items-center gap-2 px-4 py-2 transition-colors ${
+                              theme === t ? "bg-accent text-ink" : "text-muted hover:text-fg"
+                            }`}
+                          >
+                            <ThemeIcon theme={t} />
+                            {t}
+                          </button>
+                        ))}
                       </div>
-                      <Toggle on={autoplay} onClick={() => setAutoplay((v) => !v)} />
                     </div>
-                    <div className="flex items-center justify-between gap-4 border border-line p-4">
-                      <div>
-                        <p className="text-sm text-fg">Reduce motion</p>
-                        <p className="text-xs text-dim">Dim background animations.</p>
-                      </div>
-                      <Toggle on={reduceMotion} onClick={() => setReduceMotion((v) => !v)} />
-                    </div>
+                    <p className="text-xs text-dim">System follows your device. Light matches the Fluxion site.</p>
                   </div>
                 </section>
 
-                <section className="border-t border-hairline pt-6">
+                {/* Toggle settings — 2-up grid */}
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  <div className="flex items-center justify-between gap-4 border border-line p-3">
+                    <div>
+                      <p className="text-sm text-fg">Autoplay previews</p>
+                      <p className="text-xs text-dim">Play thumbnails on hover.</p>
+                    </div>
+                    <Toggle on={autoplay} onClick={() => setAutoplay((v) => !v)} />
+                  </div>
+                  <div className="flex items-center justify-between gap-4 border border-line p-3">
+                    <div>
+                      <p className="text-sm text-fg">Reduce motion</p>
+                      <p className="text-xs text-dim">Dim background animations.</p>
+                    </div>
+                    <Toggle on={reduceMotion} onClick={() => setReduceMotion((v) => !v)} />
+                  </div>
+                  <div className="flex items-center justify-between gap-4 border border-line p-3">
+                    <div>
+                      <p className="text-sm text-fg">Email updates</p>
+                      <p className="text-xs text-dim">News about new models.</p>
+                    </div>
+                    <Toggle on={emailUpdates} onClick={() => setEmailUpdates((v) => !v)} />
+                  </div>
+                  <Link href="/docs" className="flex items-center justify-between gap-4 border border-line p-3 transition-colors hover:border-[rgba(124,189,242,0.5)]">
+                    <div>
+                      <p className="text-sm text-fg">Documentation</p>
+                      <p className="text-xs text-dim">Guides, quickstart, API.</p>
+                    </div>
+                    <span className="font-[family-name:var(--font-jetbrains)] text-sm text-blue">Open →</span>
+                  </Link>
+                </div>
+
+                <section className="border-t border-hairline pt-5">
                   <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Generation defaults</h2>
-                  <div className="mt-4 grid gap-5 sm:grid-cols-2">
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
                     <div>
                       <label className={label}>Default model</label>
                       <select value={prefModelSlug} onChange={(e) => setPrefModelSlug(e.target.value)} className={inputClass}>
@@ -628,28 +643,6 @@ function ProfileInner() {
                       </select>
                     </div>
                   </div>
-                </section>
-
-                <section className="border-t border-hairline pt-6">
-                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Notifications</h2>
-                  <div className="mt-4 flex items-center justify-between gap-4 border border-line p-4">
-                    <div>
-                      <p className="text-sm text-fg">Product email updates</p>
-                      <p className="text-xs text-dim">Occasional news about new models and features.</p>
-                    </div>
-                    <Toggle on={emailUpdates} onClick={() => setEmailUpdates((v) => !v)} />
-                  </div>
-                </section>
-
-                <section className="border-t border-hairline pt-6">
-                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Help &amp; resources</h2>
-                  <Link href="/docs" className="mt-4 flex items-center justify-between gap-4 border border-line p-4 transition-colors hover:border-[rgba(124,189,242,0.5)]">
-                    <div>
-                      <p className="text-sm text-fg">Documentation</p>
-                      <p className="text-xs text-dim">Guides, quickstart, and API reference.</p>
-                    </div>
-                    <span className="font-[family-name:var(--font-jetbrains)] text-sm text-blue">Open →</span>
-                  </Link>
                 </section>
 
                 <div className="flex items-center gap-3">
