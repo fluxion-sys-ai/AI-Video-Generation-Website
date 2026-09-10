@@ -58,7 +58,7 @@ function VideoThumb({ v }: { v: VideoItem }) {
 export default function LibraryPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [tab, setTab] = useState<"videos" | "images">("videos");
+  const [tab, setTab] = useState<"videos" | "images">("images");
 
   // Image selection + "upload to a model" flow.
   const [selectMode, setSelectMode] = useState(false);
@@ -287,7 +287,7 @@ export default function LibraryPage() {
         <p className="mt-2 text-sm text-muted">Everything you&apos;ve generated and uploaded.</p>
 
         <div className="mt-8 flex gap-6 border-b border-hairline font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
-          {(["videos", "images"] as const).map((t) => (
+          {(["images", "videos"] as const).map((t) => (
             <button
               key={t}
               onClick={() => { setTab(t); exitSelect(); }}
