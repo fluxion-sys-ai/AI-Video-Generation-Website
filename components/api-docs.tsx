@@ -122,8 +122,8 @@ print(result["video"]["url"])`,
       {/* input schema */}
       <section className="mt-8">
         <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">Input parameters</h2>
-        <div className="mt-3 overflow-hidden rounded-[10px] border border-line-strong">
-          <table className="w-full text-left text-sm">
+        <div className="mt-3 overflow-x-auto rounded-[10px] border border-line-strong">
+          <table className="w-full min-w-[440px] text-left text-sm">
             <thead className="font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-muted">
               <tr className="border-b border-line-strong">
                 <th className="px-4 py-2.5">Field</th>

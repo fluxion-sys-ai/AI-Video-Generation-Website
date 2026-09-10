@@ -518,8 +518,8 @@ function ProfileInner() {
             {tab === "usage" && (
               <div className="grid gap-8 lg:grid-cols-[2.1fr_0.9fr] lg:items-start">
                 {/* left: daily usage graph + asymmetric stat tiles (unshaded) */}
-                <div className="grid grid-cols-3 border-b border-r border-line">
-                  <div className="col-span-3 border-l border-t border-line p-5">
+                <div className="grid grid-cols-2 border-b border-r border-line sm:grid-cols-3">
+                  <div className="col-span-2 border-l border-t border-line p-5 sm:col-span-3">
                     <div className="flex items-baseline justify-between">
                       <p className="text-xs uppercase tracking-[0.06em] text-muted">Daily usage</p>
                       <p className="text-xs text-dim">Last 20 days</p>
@@ -533,9 +533,9 @@ function ProfileInner() {
                     ["Daily burn", "$0.00", "Avg over period", ""],
                     ["Model API usage", "$0.00", "This period", ""],
                   ].map(([t, v, s, span]) => (
-                    <div key={t} className={`border-l border-t border-line p-5 ${span}`}>
-                      <p className="whitespace-nowrap text-xs uppercase tracking-[0.06em] text-muted">{t}</p>
-                      <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{v}</p>
+                    <div key={t} className={`min-w-0 border-l border-t border-line p-4 sm:p-5 ${span}`}>
+                      <p className="text-xs uppercase leading-snug tracking-[0.06em] text-muted">{t}</p>
+                      <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-xl font-semibold sm:text-2xl">{v}</p>
                       {s && <p className="mt-1 text-xs text-dim">{s}</p>}
                     </div>
                   ))}
