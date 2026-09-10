@@ -121,17 +121,20 @@ function GenerateInner() {
   const [refinePos, setRefinePos] = useState({ x: 0, y: 0 });
   const refineDrag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
   useEffect(() => {
-    function move(e: MouseEvent) {
+    function move(e: PointerEvent) {
       const d = refineDrag.current;
       if (!d) return;
+      e.preventDefault();
       setRefinePos({ x: d.ox + (e.clientX - d.sx), y: d.oy + (e.clientY - d.sy) });
     }
     function up() { refineDrag.current = null; }
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
-    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    return () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
   }, []);
-  function startRefineDrag(e: React.MouseEvent) {
+  function startRefineDrag(e: React.PointerEvent) {
+    // Don't start a drag when pressing the header buttons (Undo/Restart).
+    if ((e.target as HTMLElement).closest("button")) return;
     refineDrag.current = { sx: e.clientX, sy: e.clientY, ox: refinePos.x, oy: refinePos.y };
   }
 
@@ -564,18 +567,19 @@ function GenerateInner() {
           className="fixed bottom-5 left-1/2 z-[60] w-[min(92vw,640px)] rounded-[14px] border border-line bg-panel/95 p-3 shadow-xl shadow-black/40 backdrop-blur"
           style={{ transform: `translate(calc(-50% + ${refinePos.x}px), ${refinePos.y}px)` }}
         >
-          <div className="mb-2 flex items-center justify-between px-1">
-            <span
-              onMouseDown={startRefineDrag}
-              title="Drag to move"
-              className="flex cursor-move select-none items-center gap-1.5 font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-gold"
-            >
+          {/* whole header is the drag handle (buttons excluded) */}
+          <div
+            onPointerDown={startRefineDrag}
+            title="Drag to move"
+            className="mb-2 flex cursor-move touch-none select-none items-center justify-between px-1"
+          >
+            <span className="flex items-center gap-1.5 font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.08em] text-gold">
               <GripHorizontal size={14} className="text-dim" />
               Refine session
             </span>
             <div className="flex items-center gap-3 font-[family-name:var(--font-jetbrains)] text-xs">
-              <button onClick={undoRefine} disabled={chat.length === 0} className="text-muted hover:text-fg disabled:opacity-40">Undo</button>
-              <button onClick={restartRefine} className="text-muted hover:text-fg">Restart</button>
+              <button onClick={undoRefine} disabled={chat.length === 0} className="cursor-pointer text-muted hover:text-fg disabled:opacity-40">Undo</button>
+              <button onClick={restartRefine} className="cursor-pointer text-muted hover:text-fg">Restart</button>
             </div>
           </div>
 
