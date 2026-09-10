@@ -286,10 +286,11 @@
   filter: invert(1) hue-rotate(180deg);
 }
 
-/* Glow orbs are theme-colored (not inverted); pump saturation a touch in light
-   mode so the warm colors read bright on white. */
+/* Glow orbs are theme-colored (not inverted). In light mode keep them faint so
+   they read as a subtle warm wash on white rather than strong blobs. */
 .light .glow-blobs {
-  filter: saturate(1.2);
+  opacity: 0.42;
+  filter: saturate(1.05);
 }
 
 /* Show one decor set per theme. The homepage keeps its authored dark backdrop
