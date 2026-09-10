@@ -189,14 +189,11 @@ function GenerateInner() {
     }
     setResultUrl(null);
     setStatus("generating");
+    // Mock: always "succeeds" after a short delay by replaying the model clip.
     timer.current = setTimeout(() => {
-      if (Math.random() < 0.12) {
-        setStatus("failed");
-      } else {
-        setResultUrl(model.demoVideo);
-        setStatus("complete");
-        setSession(true);
-      }
+      setResultUrl(model.demoVideo);
+      setStatus("complete");
+      setSession(true);
     }, 3500 + Math.random() * 3000);
   }
 
@@ -530,7 +527,7 @@ function GenerateInner() {
                   </div>
                 </>
               ) : status === "failed" ? (
-                <p className="text-sm text-fg">Generation failed. Try again.</p>
+                <p className="text-sm text-white">Generation failed. Try again.</p>
               ) : (
                 <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-muted">
                   {aspect}
