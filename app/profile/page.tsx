@@ -12,6 +12,8 @@ import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
 import { getModels } from "@/lib/models";
 import { getTheme, applyTheme, getSettings, saveSettings, type Theme } from "@/lib/prefs";
 import { getCards, addCard as billAddCard, removeCard as billRemoveCard, saveCards } from "@/lib/billing";
+import { EmptyState } from "@/components/empty-state";
+import { Search } from "lucide-react";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { toast } from "@/lib/toast";
 
@@ -553,7 +555,11 @@ function ProfileInner() {
                   {/* scrollable list (max height ≈ 5 rows, then scrolls) */}
                   <div className="mt-3 flex max-h-[22rem] flex-col overflow-y-auto border border-line">
                     {filteredHistory.length === 0 ? (
-                      <p className="p-4 text-sm text-dim">No generations match “{historyQuery}”.</p>
+                      <EmptyState
+                        icon={<Search size={22} />}
+                        title={`No generations match “${historyQuery}”`}
+                        hint="Try a different search."
+                      />
                     ) : (
                       filteredHistory.map((h, i) => (
                         <Link

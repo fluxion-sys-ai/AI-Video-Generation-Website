@@ -308,7 +308,7 @@ function GenerateInner() {
               <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-fg">{model.name}</span>
             </span>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className={`shrink-0 transition-transform ${pickerOpen ? "rotate-180" : ""}`}>
-              <path d="M3 6 L8 11 L13 6" stroke="#9FB2CC" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M3 6 L8 11 L13 6" stroke="var(--c-muted)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
           {pickerOpen && (

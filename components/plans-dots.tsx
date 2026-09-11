@@ -46,9 +46,9 @@ export function PlansDots({ className = "", variant = "a" }: { className?: strin
     >
       <defs>
         <radialGradient id="pdFill" cx="50%" cy="50%" r="50%">
-          <stop offset="0" stopColor="#FFE0A0" />
-          <stop offset="0.4" stopColor="#FFC15E" />
-          <stop offset="1" stopColor="#FFC15E" stopOpacity="0" />
+          <stop offset="0" style={{ stopColor: "var(--dot-glow-0)" }} />
+          <stop offset="0.4" style={{ stopColor: "var(--dot-glow-1)" }} />
+          <stop offset="1" style={{ stopColor: "var(--dot-glow-1)" }} stopOpacity="0" />
         </radialGradient>
       </defs>
 

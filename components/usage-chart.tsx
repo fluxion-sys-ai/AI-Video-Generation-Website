@@ -75,7 +75,7 @@ export function UsageChart({
               className="relative flex-1 cursor-default rounded-t-[2px] transition-colors"
               style={{
                 height: `${Math.max((v / top) * 100, 1.5)}%`,
-                background: hover === i ? "var(--c-accent)" : "#FFB020",
+                background: hover === i ? "var(--c-accent)" : "var(--c-chart-bar)",
               }}
             />
           ))}

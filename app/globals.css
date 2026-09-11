@@ -226,6 +226,18 @@
   --dot-line: #7fa8d8;
   /* Hero-reels frame shadow: deep drop shadow + warm gold glow (dark). */
   --reel-shadow: 0 20px 55px rgba(0, 0, 0, 0.55), 0 0 70px -8px rgba(255, 193, 94, 0.55);
+  /* Usage-chart bar fill (components/usage-chart.tsx). */
+  --c-chart-bar: #ffb020;
+  /* Favorite-heart colors (model cards, library). The idle outline sits over
+     (dark) media thumbnails, so it stays light in both themes. */
+  --c-heart: #ff8a1e;
+  --c-heart-idle: #e9f1fb;
+  /* Loading-skeleton shimmer (components/skeleton.tsx). */
+  --c-skeleton: #0e1b30;
+  --c-skeleton-hi: #17273e;
+  /* Moving dot's radial glow (components/plans-dots.tsx): warm gold. */
+  --dot-glow-0: #ffe0a0;
+  --dot-glow-1: #ffc15e;
 }
 
 /* Light theme — matches the Fluxion site's light look. Only surfaces, text,
@@ -281,6 +293,17 @@
   --dot-line: #eaa23c;
   /* Reels shadow in light mode: no heavy black — a soft warm drop + gold glow. */
   --reel-shadow: 0 16px 40px -14px rgba(180, 120, 30, 0.35), 0 0 55px -8px rgba(255, 176, 32, 0.5);
+  /* Vivid amber bar so the chart stays punchy on the pale canvas (the gold text
+     tokens darken for contrast, but a chart fill wants to stay bright). */
+  --c-chart-bar: #e0891e;
+  /* Heart still sits over dark media, so keep the idle outline light. */
+  --c-heart-idle: #ffffff;
+  /* Skeleton shimmer on the light canvas. */
+  --c-skeleton: #e2e8f2;
+  --c-skeleton-hi: #f3f7fc;
+  /* Dot glow darkens to a richer gold so it stays visible on the pale canvas. */
+  --dot-glow-0: #f0b24a;
+  --dot-glow-1: #e69a2e;
 }
 
 /* Expose the tokens as Tailwind color utilities. `inline` makes them resolve at
@@ -430,4 +453,24 @@ mark.doc-hl {
 }
 .marquee-pause:hover .animate-marquee {
   animation-play-state: paused;
+}
+
+/* Loading-skeleton shimmer. A placeholder block that pulses a highlight across
+   itself until the real content (usually a media poster) loads in. */
+.skeleton {
+  background: linear-gradient(
+    100deg,
+    var(--c-skeleton) 30%,
+    var(--c-skeleton-hi) 50%,
+    var(--c-skeleton) 70%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
 }

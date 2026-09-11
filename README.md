@@ -207,6 +207,8 @@ components/              Reusable UI
   copy-button.tsx        Click-to-copy icon button (docs/API snippets)
   toaster.tsx            Toast host (listens for lib/toast events)
   docs-sidebar.tsx       Docs navigation sidebar
+  empty-state.tsx        Reusable "nothing here yet" placeholder (icon + action)
+  skeleton.tsx           Shimmering image placeholder shown until media loads
 lib/                     Backend seams (see BACKEND.md) — swap mock bodies for real API calls
   api.ts                 Video generate/refine (the render-backend seam)
   billing.ts             Payment methods, credits, "can generate?" gate

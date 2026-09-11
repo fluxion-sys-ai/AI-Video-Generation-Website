@@ -9,7 +9,7 @@ import { ModelPricingTable } from "@/components/model-pricing-table";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { PlansDots } from "@/components/plans-dots";
 
-function Kicker({ label, color = "#E0A24E" }: { label: string; color?: string }) {
+function Kicker({ label, color = "var(--c-gold)" }: { label: string; color?: string }) {
   return (
     <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em]" style={{ color }}>
       {label}
@@ -22,7 +22,7 @@ function SectionHeading({
   index,
   label,
   title,
-  color = "#E0A24E",
+  color = "var(--c-gold)",
   center = false,
 }: {
   index: string;
@@ -127,7 +127,7 @@ export default function Home() {
       {/* Walkthrough */}
       <section className="px-10 py-20">
         <Reveal className="mx-auto max-w-4xl text-center">
-          <SectionHeading index="02" label="Walkthrough" title="See it in action" color="#7CBDF2" center />
+          <SectionHeading index="02" label="Walkthrough" title="See it in action" color="var(--c-blue)" center />
           <p className="mx-auto mt-4 max-w-xl text-muted">
             Watch a prompt become a finished video in under a minute.
           </p>
@@ -148,7 +148,7 @@ export default function Home() {
       <section className="px-10 pb-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="text-center">
-            <SectionHeading index="03" label="Pricing" title="Pay as you go" color="#FFB020" center />
+            <SectionHeading index="03" label="Pricing" title="Pay as you go" color="var(--c-gold-bright)" center />
             <p className="mx-auto mt-4 max-w-xl text-muted">
               No subscriptions. Pay per second of video, priced per model.
             </p>

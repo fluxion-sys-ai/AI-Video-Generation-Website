@@ -9,6 +9,7 @@ import { Heart } from "lucide-react";
 export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<string> }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [fav, setFav] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     setFav(isFavorite(model.slug));
@@ -28,8 +29,10 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
   return (
     <Link href={`/generate?model=${model.slug}`} onMouseEnter={play} onMouseLeave={stop} className="group block">
       <div className="relative aspect-video overflow-hidden rounded-[10px] bg-black">
+        {!loaded && <span aria-hidden="true" className="skeleton absolute inset-0" />}
         <video
           ref={videoRef}
+          onLoadedData={() => setLoaded(true)}
           className="h-full w-full object-cover opacity-95 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-100"
           src={model.demoVideo}
           poster={model.poster}
@@ -48,7 +51,7 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
           }}
           className="hit absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 backdrop-blur transition-colors hover:bg-black/70"
         >
-          <Heart size={16} strokeWidth={2} fill={fav ? "#FF8A1E" : "none"} color={fav ? "#FF8A1E" : "#E9F1FB"} />
+          <Heart size={16} strokeWidth={2} fill={fav ? "var(--c-heart)" : "none"} color={fav ? "var(--c-heart)" : "var(--c-heart-idle)"} />
         </button>
       </div>
       <div className="mt-4">

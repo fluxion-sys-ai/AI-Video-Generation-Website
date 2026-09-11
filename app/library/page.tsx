@@ -19,7 +19,9 @@ import {
   type LibImage,
 } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
-import { Heart } from "lucide-react";
+import { Heart, ImageIcon, FolderOpen, Search } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { SkeletonImg } from "@/components/skeleton";
 
 type VideoItem = { id: number; prompt: string; model: Model; when: string };
 
@@ -36,8 +38,7 @@ function VideoThumb({ v }: { v: VideoItem }) {
       className="group border border-line p-3 transition-colors hover:border-blue-line"
     >
       <div className="relative aspect-video w-full overflow-hidden bg-black">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={v.model.poster} alt="" className="h-full w-full object-cover" />
+        <SkeletonImg src={v.model.poster} imgClassName="h-full w-full object-cover" />
         {hover && (
           <video
             src={v.model.demoVideo}
@@ -544,7 +545,29 @@ function LibraryInner() {
             {/* image grid */}
             <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
               {shownImages.length === 0 ? (
-                <p className="col-span-full text-sm text-dim">{searching ? `No images match “${imgQuery}”.` : activeFolderObj ? "This folder is empty. Drag images here, or upload into it." : "No images yet. Upload some to get started."}</p>
+                <div className="col-span-full">
+                  {searching ? (
+                    <EmptyState
+                      icon={<Search size={22} />}
+                      title={`No images match “${imgQuery}”`}
+                      hint="Try a different search."
+                    />
+                  ) : activeFolderObj ? (
+                    <EmptyState
+                      icon={<FolderOpen size={22} />}
+                      title="This folder is empty"
+                      hint="Drag images here, or upload into it."
+                      action={{ label: "Upload images", onClick: () => uploadRef.current?.click() }}
+                    />
+                  ) : (
+                    <EmptyState
+                      icon={<ImageIcon size={22} />}
+                      title="Nothing here yet"
+                      hint="Upload images to use them across your models."
+                      action={{ label: "Upload images", onClick: () => uploadRef.current?.click() }}
+                    />
+                  )}
+                </div>
               ) : (
                 shownImages.map((img) => {
                   const on = selected.has(img.id);
@@ -593,7 +616,7 @@ function LibraryInner() {
                               img.fav ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                             }`}
                           >
-                            <Heart size={13} fill={img.fav ? "#FF8A1E" : "none"} color={img.fav ? "#FF8A1E" : "#E9F1FB"} />
+                            <Heart size={13} fill={img.fav ? "var(--c-heart)" : "none"} color={img.fav ? "var(--c-heart)" : "var(--c-heart-idle)"} />
                           </button>
                         )}
                       </div>
