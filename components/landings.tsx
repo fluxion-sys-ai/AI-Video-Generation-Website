@@ -125,9 +125,26 @@ export function LandingOG() {
 /* ------------------------------------------------------------- EDITORIAL ---- */
 export function LandingEditorial() {
   const models = getModels();
+  const byslug = (s: string) => models.find((m) => m.slug === s) ?? models[0];
   const features = [
-    ["Bold type, quiet interface", "Chunky headlines carry the page; the UI stays out of the way so your idea is the hero."],
-    ["Tactile, editorial, warm", "Rounded cards, frosted glass, and soft shadows — it feels less like a tool and more like a studio."],
+    {
+      h: "Text to video in seconds",
+      b: "Describe a shot and Aurora renders cinematic motion — steady camera moves, coherent scenes, and sound on demand.",
+      img: byslug("aurora").poster,
+      href: "/generate?model=aurora",
+    },
+    {
+      h: "Animate any still image",
+      b: "Bring a photo to life with Volt. Keep your subject, add natural motion, and export a finished clip in one click.",
+      img: byslug("volt").poster,
+      href: "/generate?model=volt",
+    },
+    {
+      h: "Finish in high resolution",
+      b: "Take a draft all the way to a polished 1080p cut with Nova — crisp detail for the shots that matter.",
+      img: byslug("nova").poster,
+      href: "/generate?model=nova",
+    },
   ];
   return (
     <div className="min-h-screen">
@@ -154,13 +171,16 @@ export function LandingEditorial() {
 
       {/* Zigzag feature rhythm */}
       <section className="mx-auto max-w-6xl px-8">
-        {features.map(([h, b], i) => (
+        {features.map((f, i) => (
           <div key={i} className={`grid items-center gap-10 py-10 md:grid-cols-2 ${i % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""}`}>
-            <div className="aspect-[16/11] bg-raised" style={{ background: "linear-gradient(140deg, var(--c-accent-soft), var(--c-base-2))" }} />
+            <div className="overflow-hidden bg-surface p-2 shadow-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={f.img} alt={f.h} className="aspect-[16/11] w-full object-cover" />
+            </div>
             <div>
-              <h2 className="text-3xl font-semibold text-fg-strong">{h}</h2>
-              <p className="mt-3 max-w-md font-light leading-relaxed text-muted">{b}</p>
-              <Link href="/models" className="mt-5 inline-block border-b-2 border-accent pb-0.5 font-medium text-fg">Learn more →</Link>
+              <h2 className="text-3xl font-semibold text-fg-strong">{f.h}</h2>
+              <p className="mt-3 max-w-md font-light leading-relaxed text-muted">{f.b}</p>
+              <Link href={f.href} className="mt-5 inline-block border-b-2 border-accent pb-0.5 font-medium text-fg">Try it →</Link>
             </div>
           </div>
         ))}
