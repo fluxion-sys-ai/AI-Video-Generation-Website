@@ -486,9 +486,9 @@ html.skin-luxury {
   --c-blue-line: rgba(127, 168, 216, 0.5);
   --c-danger: #e06a6a;
   --c-danger-hover: #ec8383;
-  --radius-card: 16px;
-  --radius-control: 12px;
-  --radius-chip: 999px;
+  --radius-card: 0;
+  --radius-control: 0;
+  --radius-chip: 0;
   --spotlight: radial-gradient(circle, rgba(212, 175, 90, 0.12), rgba(127, 168, 216, 0.06) 45%, transparent 72%);
   --glow-o0: #e6c877;
   --glow-o1: #b98b3e;
@@ -768,23 +768,22 @@ html.skin-luxury .pg-prompt { max-width: 26rem; }
 html.skin-editorial .pg-viewnav { margin-left: auto; gap: 1.25rem; }
 html.skin-editorial .pg-viewnav button { border-bottom: 2px solid transparent; padding-left: 0; padding-right: 0; }
 html.skin-editorial .pg-viewnav button:hover { background: transparent; }
-html.skin-luxury .pg-viewnav button { border-radius: 999px; }
+html.skin-luxury .pg-viewnav button { border-radius: 0; }
 html.skin-playful .pg-viewnav { gap: 0.4rem; }
 html.skin-playful .pg-viewnav button { border-radius: 999px; border: 2px solid var(--c-hairline-strong); }
 
-/* Playful playground: a different arrangement, the preview sits big on top,
-   with the controls and examples side-by-side beneath it. */
+/* Playful playground: condensed two-pane (controls left get the full height so
+   they don't scroll; preview right). Examples move to their own concern. */
+html.skin-playful .pg-examples { display: none; }
 @media (min-width: 1024px) {
   html.skin-playful .pg-grid {
-    grid-template-columns: minmax(0, 1fr) 300px !important;
-    grid-template-areas: "preview preview" "form examples" !important;
-    grid-template-rows: minmax(0, 48vh) minmax(0, 1fr);
-    gap: 2rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 44%) !important;
+    grid-template-areas: "form preview" !important;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 1.5rem;
   }
-  html.skin-playful .pg-preview { grid-area: preview; }
   html.skin-playful .pg-form { grid-area: form; }
-  html.skin-playful .pg-examples { grid-area: examples; }
-  html.skin-playful .pg-examples > div { border-right: 0; border-left: 1px solid var(--c-line); padding-left: 1.25rem; padding-right: 0; }
+  html.skin-playful .pg-preview { grid-area: preview; }
 }
 
 /* Per-skin model catalog grid density (further per-skin styling in JSX). */
@@ -808,7 +807,7 @@ html.skin-editorial .settings-nav > button { border-radius: 0; border-bottom: 2p
 html.skin-editorial .settings-nav > button:hover { background: transparent; }
 /* Luxury: centered gold-accented top tabs. */
 html.skin-luxury .settings-nav { justify-content: center; border-color: var(--c-hairline); border-radius: 999px; }
-html.skin-luxury .settings-nav > button { border-radius: 999px; }
+html.skin-luxury .settings-nav > button { border-radius: 0; }
 /* Playful: chunky pill tabs. */
 html.skin-playful .settings-nav { border: 0; padding: 0; gap: 0.5rem; }
 html.skin-playful .settings-nav > button { border-radius: 999px; border: 2px solid var(--c-hairline-strong); }
@@ -821,7 +820,7 @@ html.skin-editorial .lib-head p { display: none; }
 
 /* Luxury: spacious gallery; drop the subtitle; folder tabs become gold pills. */
 html.skin-luxury .lib-head p { display: none; }
-html.skin-luxury .lib-toolbar button { border-radius: 999px; }
+html.skin-luxury .lib-toolbar button { border-radius: 0; }
 @media (min-width: 1024px) { html.skin-luxury .lib-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1.5rem; } }
 
 /* Playful: desktop vibe, no title, centered pill search, big rounded tiles,
@@ -838,23 +837,16 @@ html.skin-cosmos .lib-head p { display: none; }
 html.skin-cosmos .lib-grid > * { border-radius: 10px; overflow: hidden; box-shadow: 0 0 0 1px var(--c-hairline); }
 @media (min-width: 1024px) { html.skin-cosmos .lib-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; } }
 
-/* ==== Luxury: soft rounded corners, pill buttons, gold-edged navy cards. ==== */
-html.skin-luxury .rounded-none { border-radius: 12px !important; }
-html.skin-luxury .rounded-\[6px\],
-html.skin-luxury .rounded-\[7px\],
-html.skin-luxury .rounded-\[8px\] { border-radius: 12px !important; }
-html.skin-luxury .rounded-\[10px\],
-html.skin-luxury .rounded-lg { border-radius: 16px !important; }
-html.skin-luxury .rounded-\[14px\] { border-radius: 20px !important; }
+/* ==== Luxury: SHARP corners everywhere (buttons + cards). Only genuinely
+   circular elements (rounded-full avatars) keep their shape. ==== */
+html.skin-luxury [class*="rounded-"]:not([class*="rounded-full"]) { border-radius: 0 !important; }
+html.skin-luxury button:not([class*="rounded-full"]) { border-radius: 0 !important; }
 /* Cards: subtle gold hairline + soft depth on the navy canvas. */
 html.skin-luxury .bg-surface,
 html.skin-luxury .bg-panel {
   border: 1px solid var(--c-hairline);
   box-shadow: 0 24px 50px -32px rgba(0, 0, 0, 0.6);
 }
-/* Gold pill buttons, the luxury signature. */
-html.skin-luxury button:not(.hit):not([class*="rounded-full"]),
-html.skin-luxury a[class*="bg-accent"] { border-radius: 999px; }
 /* Small-caps, letter-spaced navigation for the refined brochure feel. */
 html.skin-luxury nav a,
 html.skin-luxury nav span,

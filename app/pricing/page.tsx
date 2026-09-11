@@ -24,7 +24,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <GlowBlobs variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <PlansDots variant="a" className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
       <SiteHeader />
-      <main className="relative z-10 flex min-h-0 flex-1 flex-col justify-center overflow-hidden px-8 py-6">
+      <main className="relative z-10 flex min-h-0 flex-1 flex-col justify-start overflow-hidden px-8 pt-8">
         <div className="mx-auto w-full max-w-6xl">{children}</div>
       </main>
     </div>

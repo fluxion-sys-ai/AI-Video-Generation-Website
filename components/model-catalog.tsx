@@ -208,25 +208,20 @@ export function ModelCatalog({ models }: { models: Model[] }) {
         </div>
         <div className="mt-4"><TagChips allTags={allTags} tags={tags} toggleTag={toggleTag} clear={() => setTags(new Set())} /></div>
         {list.length === 0 ? empty : (
-          <div className="mt-6 flex gap-6 overflow-x-auto pb-4" style={{ scrollSnapType: "x mandatory" }}>
+          <div className="mt-6 grid auto-cols-[300px] grid-flow-col grid-rows-2 gap-5 overflow-x-auto pb-4" style={{ scrollSnapType: "x mandatory" }}>
             {list.map((m, i) => (
-              <div key={m.slug} style={{ scrollSnapAlign: "center" }} className="grid w-[min(88vw,860px)] shrink-0 overflow-hidden rounded-[16px] border border-hairline bg-surface md:grid-cols-2">
-                <div className="relative aspect-video md:aspect-auto md:h-full">
-                  <img src={m.poster} alt="" className="h-full w-full object-cover" />
-                  <span className="absolute left-3 top-3 rounded-full bg-black/40 px-3 py-1 font-[family-name:var(--font-jetbrains)] text-xs text-white backdrop-blur">{String(i + 1).padStart(2, "0")} / {String(list.length).padStart(2, "0")}</span>
-                  <div className="absolute right-3 top-3"><FavHeart slug={m.slug} light /></div>
+              <Link key={m.slug} href={`/generate?model=${m.slug}`} style={{ scrollSnapAlign: "start" }} className="group overflow-hidden rounded-[12px] border border-hairline bg-surface transition-transform hover:-translate-y-1">
+                <div className="relative aspect-video overflow-hidden bg-black">
+                  <img src={m.poster} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <span className="absolute left-2.5 top-2.5 rounded-full bg-black/40 px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-white backdrop-blur">{String(i + 1).padStart(2, "0")}</span>
+                  <div className="absolute right-2.5 top-2.5"><FavHeart slug={m.slug} light /></div>
                 </div>
-                <div className="flex flex-col justify-center p-8">
-                  <h3 className="font-[family-name:var(--font-space)] text-3xl font-semibold text-fg-strong">{m.name}</h3>
-                  <p className="mt-1 text-accent-ink">{m.tagline}</p>
-                  <p className="mt-4 text-sm text-fg-soft">{m.description}</p>
-                  <div className="mt-5 flex flex-wrap gap-2">{m.capabilities.map((c) => <span key={c} className="rounded-full border border-hairline-strong px-2.5 py-0.5 text-[11px] uppercase tracking-[0.05em] text-fg-soft">{c}</span>)}</div>
-                  <div className="mt-6 flex items-center gap-4">
-                    <Link href={`/generate?model=${m.slug}`} className="rounded-[8px] bg-accent px-6 py-2.5 font-semibold text-ink transition-transform hover:-translate-y-0.5">Open →</Link>
-                    <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-muted">{m.creditsPerSecond} cr/s · up to {m.resolutions[m.resolutions.length - 1]}</span>
-                  </div>
+                <div className="p-4">
+                  <h3 className="font-[family-name:var(--font-space)] text-lg font-semibold text-fg-strong">{m.name}</h3>
+                  <p className="mt-1 text-sm text-muted">{m.tagline}</p>
+                  <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-accent-ink">{m.creditsPerSecond} cr/s · {m.resolutions[m.resolutions.length - 1]} →</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

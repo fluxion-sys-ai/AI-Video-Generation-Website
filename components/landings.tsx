@@ -327,7 +327,7 @@ export function WaveEdge({ flip = false, fill = "var(--c-base)", className = "" 
 // Champagne-gold pill button.
 function GoldPill({ href, children, ghost = false }: { href: string; children: React.ReactNode; ghost?: boolean }) {
   return (
-    <Link href={href} className={`inline-block rounded-full px-7 py-3 font-medium tracking-[0.02em] transition-colors ${ghost ? "border border-accent-border text-accent-ink hover:bg-accent-soft" : "bg-accent text-ink hover:bg-accent-hover"}`}>
+    <Link href={href} className={`inline-block rounded-none px-7 py-3 font-medium tracking-[0.02em] transition-colors ${ghost ? "border border-accent-border text-accent-ink hover:bg-accent-soft" : "bg-accent text-ink hover:bg-accent-hover"}`}>
       {children}
     </Link>
   );
