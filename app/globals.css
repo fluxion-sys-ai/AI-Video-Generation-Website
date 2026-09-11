@@ -440,10 +440,9 @@ html.skin-editorial {
   --c-heart-idle: #ffffff;
   --c-skeleton: #efe3d6;
   --c-skeleton-hi: #f9f1e8;
-  /* fonts: clean body + UI, chunky display */
+  /* fonts: clean body + UI (logo font is left unchanged on purpose). */
   --font-jetbrains: var(--font-space);
   --font-geist-sans: var(--font-inter);
-  --font-sora: var(--font-archivo);
 }
 html.skin-editorial h1,
 html.skin-editorial h2 {
@@ -503,10 +502,9 @@ html.skin-expedition {
   --c-heart-idle: #f2ede4;
   --c-skeleton: #2b343a;
   --c-skeleton-hi: #364149;
-  /* fonts: clean body + UI, serif headers, brush logo */
+  /* fonts: clean UI, serif headers (logo font is left unchanged on purpose). */
   --font-jetbrains: var(--font-space);
   --font-geist-sans: var(--font-inter);
-  --font-sora: var(--font-caveat);
 }
 html.skin-expedition h1,
 html.skin-expedition h2 {
@@ -527,6 +525,55 @@ html.skin-expedition h2 {
 .skin-editorial .glow-blobs {
   opacity: 0.5;
 }
+
+/* ----------------------------------------------------------------------------
+   STRUCTURAL layer — beyond colors/fonts, each skin reshapes the shared UI
+   primitives site-wide by overriding the utility classes the pages already use
+   (radius, surfaces, borders, shadows, buttons). This is what makes switching
+   skins actually restructure every page, not just recolor it.
+   ---------------------------------------------------------------------------- */
+
+/* ==== Editorial: soft, rounded, frosted glass, generous shadows ==== */
+/* Flip the app's sharp corners to rounded, and round the small radii further. */
+html.skin-editorial .rounded-none { border-radius: 14px !important; }
+html.skin-editorial .rounded-\[6px\],
+html.skin-editorial .rounded-\[7px\],
+html.skin-editorial .rounded-\[8px\] { border-radius: 12px !important; }
+html.skin-editorial .rounded-\[10px\],
+html.skin-editorial .rounded-lg { border-radius: 18px !important; }
+html.skin-editorial .rounded-\[14px\] { border-radius: 22px !important; }
+/* Frosted translucent surfaces + soft warm shadow = glassmorphism everywhere. */
+html.skin-editorial .bg-surface,
+html.skin-editorial .bg-panel,
+html.skin-editorial .bg-raised {
+  background-color: color-mix(in srgb, var(--c-surface) 76%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+html.skin-editorial .bg-surface,
+html.skin-editorial .bg-panel {
+  box-shadow: 0 22px 48px -30px rgba(120, 60, 40, 0.45);
+}
+/* Buttons feel like tactile pills. */
+html.skin-editorial button:not(.hit):not([class*="rounded-full"]) { border-radius: 12px; }
+
+/* ==== Expedition: hard-edged, flat, rugged. Kill soft corners. ==== */
+html.skin-expedition .rounded-\[4px\],
+html.skin-expedition .rounded-\[6px\],
+html.skin-expedition .rounded-\[7px\],
+html.skin-expedition .rounded-\[8px\],
+html.skin-expedition .rounded-\[10px\],
+html.skin-expedition .rounded-\[14px\],
+html.skin-expedition .rounded-lg { border-radius: 0 !important; }
+/* Panels read like field cards: flat, with a thin rust rule along the top. */
+html.skin-expedition .bg-panel,
+html.skin-expedition .bg-surface {
+  border-top: 2px solid var(--c-accent-border);
+}
+/* Letter-spaced, upper-tracked navigation/labels for the expedition-journal feel. */
+html.skin-expedition nav a,
+html.skin-expedition nav span,
+html.skin-expedition nav button { letter-spacing: 0.14em; }
 
 /* Cursor spotlight fill — token-driven so light mode softens it. */
 .spotlight-glow {
