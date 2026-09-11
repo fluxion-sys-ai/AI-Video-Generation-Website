@@ -372,6 +372,13 @@ export function SiteHeader() {
             >
               Docs
             </Link>
+            {/* TEMP: theme-concept preview gallery — remove once a direction is chosen. */}
+            <Link
+              href="/themes"
+              className="text-sm uppercase tracking-[0.06em] text-accent-ink transition-colors hover:text-gold-soft"
+            >
+              Themes
+            </Link>
             <Link
               href="/info"
               aria-label="Info"
