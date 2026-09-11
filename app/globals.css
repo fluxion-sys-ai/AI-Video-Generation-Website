@@ -440,9 +440,9 @@ html.skin-editorial {
   --c-heart-idle: #ffffff;
   --c-skeleton: #efe3d6;
   --c-skeleton-hi: #f9f1e8;
-  /* fonts: clean body + UI (logo font is left unchanged on purpose). */
-  --font-jetbrains: var(--font-space);
-  --font-geist-sans: var(--font-inter);
+  /* fonts: chunky display (Archivo Black) over a soft serif body/UI (Fraunces). */
+  --font-jetbrains: var(--font-fraunces);
+  --font-geist-sans: var(--font-fraunces);
 }
 html.skin-editorial h1,
 html.skin-editorial h2 {
@@ -502,9 +502,9 @@ html.skin-luxury {
   --c-heart-idle: #f1ecdd;
   --c-skeleton: #121c3c;
   --c-skeleton-hi: #1c2a54;
-  /* fonts: clean UI, elegant serif headers (logo font left unchanged). */
-  --font-jetbrains: var(--font-space);
-  --font-geist-sans: var(--font-inter);
+  /* fonts: elegant serif display (Playfair) over a refined geometric sans (Jost). */
+  --font-jetbrains: var(--font-jost);
+  --font-geist-sans: var(--font-jost);
 }
 html.skin-luxury h1,
 html.skin-luxury h2 {
@@ -565,9 +565,9 @@ html.skin-playful {
   --c-heart-idle: #ffffff;
   --c-skeleton: #f0eafa;
   --c-skeleton-hi: #faf6ff;
-  /* fonts: clean modern geometric UI + display (logo font left unchanged). */
-  --font-jetbrains: var(--font-outfit);
-  --font-geist-sans: var(--font-inter);
+  /* fonts: bold Outfit display over a rounded, friendly body/UI (Quicksand). */
+  --font-jetbrains: var(--font-quicksand);
+  --font-geist-sans: var(--font-quicksand);
 }
 html.skin-playful h1,
 html.skin-playful h2 {
@@ -629,8 +629,9 @@ html.skin-cosmos {
   --c-heart-idle: #ffffff;
   --c-skeleton: #e6eaf7;
   --c-skeleton-hi: #f3f5fc;
-  --font-jetbrains: var(--font-space);
-  --font-geist-sans: var(--font-inter);
+  /* fonts: Space Grotesk display over a clean modern body/UI (Manrope). */
+  --font-jetbrains: var(--font-manrope);
+  --font-geist-sans: var(--font-manrope);
 }
 html.skin-cosmos h1,
 html.skin-cosmos h2 {
