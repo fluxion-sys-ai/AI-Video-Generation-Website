@@ -33,7 +33,7 @@ export function SkinSwitcher() {
   if (!mounted) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[60] print:hidden">
+    <div className="fixed right-3 top-1/2 z-[80] -translate-y-1/2 print:hidden">
       {open ? (
         <div className="flex flex-col gap-1.5 rounded-[var(--radius-control)] border border-line bg-panel/95 p-2 shadow-lg shadow-black/20 backdrop-blur">
           <div className="flex items-center justify-between gap-3 px-1">

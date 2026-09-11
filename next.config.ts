@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   basePath: isProd ? `/${repo}` : "",
   assetPrefix: isProd ? `/${repo}/` : "",
+  // Hide the floating Next.js dev indicator (it sat in a corner and covered the
+  // theme switcher during local dev).
+  devIndicators: false,
 };
 
 export default nextConfig;
