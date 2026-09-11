@@ -380,6 +380,154 @@
   display: none;
 }
 
+/* ============================================================================
+   ALTERNATE SKINS (preview). Each redefines the whole `--c-*` palette + fonts +
+   radii on <html>, so every token-driven page re-skins with no page edits. A
+   skin class beats both :root and .light on specificity, so it wins regardless
+   of the dark/light setting. Toggled via lib/prefs applySkin(). Both use the
+   tokenized decor (glow orbs + dot field) instead of the fixed dark backdrop.
+   ============================================================================ */
+
+/* ---- Editorial: warm frosted "food magazine". Cream canvas, black buttons,
+   terracotta accents, chunky Archivo Black headlines, rounded tactile cards. -- */
+html.skin-editorial {
+  --c-base: #faf1e8;
+  --c-base-2: #f3e7db;
+  --c-surface: #ffffff;
+  --c-panel: #fdf6ef;
+  --c-raised: #f6ece1;
+  --c-track: #e0d0c0;
+  --c-ink: #ffffff;          /* text on the (black) accent fills */
+  --c-fg: #241b15;
+  --c-fg-strong: #120d0a;
+  --c-fg-soft: #4a3f36;
+  --c-fg-soft-2: #5c4f42;
+  --c-muted: #7a6a5b;
+  --c-dim: #9a8a7a;
+  --c-line: #e4d5c5;
+  --c-line-strong: #cdb9a3;
+  --c-hairline: rgba(90, 60, 40, 0.16);
+  --c-hairline-strong: rgba(90, 60, 40, 0.3);
+  --c-hover: rgba(90, 60, 40, 0.05);
+  --c-accent: #1a1a1a;       /* strong black buttons/icons */
+  --c-accent-hover: #333333;
+  --c-accent-ink: #c4552b;   /* terracotta accent *text* on the cream canvas */
+  --c-accent-soft: rgba(196, 85, 43, 0.12);
+  --c-accent-border: rgba(196, 85, 43, 0.5);
+  --c-gold: #b0542a;
+  --c-gold-soft: #c4552b;
+  --c-gold-bright: #c4552b;
+  --c-gold-2: #a84a24;
+  --c-blue: #a15a2e;         /* repurposed warm so nothing reads cold */
+  --c-blue-chip: rgba(196, 85, 43, 0.1);
+  --c-blue-chip-border: rgba(196, 85, 43, 0.4);
+  --c-blue-line: rgba(196, 85, 43, 0.5);
+  --c-danger: #c0392b;
+  --c-danger-hover: #d94b3c;
+  --radius-card: 18px;
+  --radius-control: 12px;
+  --radius-chip: 10px;
+  --spotlight: radial-gradient(circle, rgba(196, 85, 43, 0.1), rgba(255, 180, 120, 0.06) 42%, transparent 70%);
+  --glow-o0: #ffd9b0;
+  --glow-o1: #ff9e6a;
+  --glow-b0: #ffc7d9;
+  --glow-b1: #ffd9b0;
+  --dot-line: #d8a878;
+  --dot-glow-0: #ffdca8;
+  --dot-glow-1: #f0a86a;
+  --reel-shadow: 0 22px 50px -20px rgba(120, 60, 40, 0.4), 0 0 60px -10px rgba(255, 170, 110, 0.5);
+  --c-chart-bar: #d9772e;
+  --c-heart-idle: #ffffff;
+  --c-skeleton: #efe3d6;
+  --c-skeleton-hi: #f9f1e8;
+  /* fonts: clean body + UI, chunky display */
+  --font-jetbrains: var(--font-space);
+  --font-geist-sans: var(--font-inter);
+  --font-sora: var(--font-archivo);
+}
+html.skin-editorial h1,
+html.skin-editorial h2 {
+  font-family: var(--font-archivo);
+  letter-spacing: -0.02em;
+}
+
+/* ---- Expedition: rugged cinematic. Charcoal canvas, rust accents, serif
+   headers (Playfair), brush-script logo (Caveat), squared-off controls. ------ */
+html.skin-expedition {
+  --c-base: #20262b;
+  --c-base-2: #252c31;
+  --c-surface: #272f34;
+  --c-panel: #2b343a;
+  --c-raised: #2f393f;
+  --c-track: #45525a;
+  --c-ink: #201712;          /* dark text on the rust accent fills */
+  --c-fg: #e8ece6;
+  --c-fg-strong: #f5f8f3;
+  --c-fg-soft: #c3ccc2;
+  --c-fg-soft-2: #a7b2a8;
+  --c-muted: #8b968c;
+  --c-dim: #6d776e;
+  --c-line: #3a464a;
+  --c-line-strong: #47555b;
+  --c-hairline: rgba(200, 210, 200, 0.12);
+  --c-hairline-strong: rgba(200, 210, 200, 0.2);
+  --c-hover: rgba(200, 210, 200, 0.06);
+  --c-accent: #d0793c;       /* rust */
+  --c-accent-hover: #e08c4f;
+  --c-accent-ink: #e59a5f;   /* rust text on charcoal */
+  --c-accent-soft: rgba(208, 121, 60, 0.15);
+  --c-accent-border: rgba(208, 121, 60, 0.55);
+  --c-gold: #d8944f;
+  --c-gold-soft: #e0a566;
+  --c-gold-bright: #e6a95f;
+  --c-gold-2: #d8944f;
+  --c-blue: #7fa89b;         /* muted stone-teal instead of cold blue */
+  --c-blue-chip: rgba(127, 168, 155, 0.12);
+  --c-blue-chip-border: rgba(127, 168, 155, 0.4);
+  --c-blue-line: rgba(127, 168, 155, 0.5);
+  --c-danger: #d9604f;
+  --c-danger-hover: #e8776a;
+  --radius-card: 4px;
+  --radius-control: 3px;
+  --radius-chip: 3px;
+  --spotlight: radial-gradient(circle, rgba(208, 121, 60, 0.12), rgba(127, 168, 155, 0.05) 45%, transparent 70%);
+  --glow-o0: #d8944f;
+  --glow-o1: #b5652c;
+  --glow-b0: #7fa89b;
+  --glow-b1: #d8944f;
+  --dot-line: #7f8a6f;
+  --dot-glow-0: #d8a45f;
+  --dot-glow-1: #b5652c;
+  --reel-shadow: 0 24px 55px rgba(0, 0, 0, 0.5), 0 0 60px -10px rgba(216, 148, 79, 0.4);
+  --c-chart-bar: #d8944f;
+  --c-heart-idle: #f2ede4;
+  --c-skeleton: #2b343a;
+  --c-skeleton-hi: #364149;
+  /* fonts: clean body + UI, serif headers, brush logo */
+  --font-jetbrains: var(--font-space);
+  --font-geist-sans: var(--font-inter);
+  --font-sora: var(--font-caveat);
+}
+html.skin-expedition h1,
+html.skin-expedition h2 {
+  font-family: var(--font-playfair);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Both skins use the tokenized (recolorable) decor, not the fixed dark backdrop. */
+.skin-editorial .decor-dark,
+.skin-expedition .decor-dark {
+  display: none;
+}
+.skin-editorial .decor-light,
+.skin-expedition .decor-light {
+  display: block;
+}
+.skin-editorial .glow-blobs {
+  opacity: 0.5;
+}
+
 /* Cursor spotlight fill — token-driven so light mode softens it. */
 .spotlight-glow {
   background: var(--spotlight);

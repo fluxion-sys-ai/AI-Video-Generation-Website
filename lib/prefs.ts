@@ -173,6 +173,31 @@ export function applyTheme(t: Theme) {
   document.documentElement.classList.toggle("light", resolveTheme(t) === "light");
 }
 
+// Brand "skin" — an independent axis from dark/light. Overrides the whole token
+// palette + fonts + radii site-wide via a class on <html> (see app/globals.css):
+//   - "og"         → the original Fluxion look (dark/light theme still applies)
+//   - "editorial"  → warm frosted-glass, chunky black headlines (its own palette)
+//   - "expedition" → rugged cinematic, serif headers + brush logo (its own palette)
+// This is a preview mechanism so all three can be compared across the real site.
+const SKIN_KEY = "fluxion.skin";
+export type Skin = "og" | "editorial" | "expedition";
+
+export function getSkin(): Skin {
+  if (typeof window === "undefined") return "og";
+  const v = localStorage.getItem(SKIN_KEY);
+  return v === "editorial" || v === "expedition" ? v : "og";
+}
+
+// Persist the skin and reflect it on <html> immediately (toggling the skin class
+// that every alternate-theme token keys off of).
+export function applySkin(skin: Skin) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(SKIN_KEY, skin);
+  const el = document.documentElement;
+  el.classList.remove("skin-editorial", "skin-expedition");
+  if (skin !== "og") el.classList.add(`skin-${skin}`);
+}
+
 // Re-apply the effective look whenever the OS scheme flips, but only while the
 // user is on "system". Returns an unsubscribe fn. Mounted once site-wide in
 // components/spotlight.tsx.
