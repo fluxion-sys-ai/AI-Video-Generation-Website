@@ -152,10 +152,10 @@ export function AvatarEditor({ src, onCancel, onSave }: { src: string; onCancel:
         </div>
 
         <div className="mt-5 flex gap-3">
-          <button onClick={save} className="flex-1 rounded-[10px] bg-accent px-4 py-2.5 text-sm font-medium uppercase tracking-[0.06em] text-ink transition-colors hover:bg-accent-hover">
+          <button onClick={save} className="flex-1 rounded-none bg-accent px-4 py-2.5 text-sm font-medium uppercase tracking-[0.06em] text-ink transition-colors hover:bg-accent-hover">
             Save photo
           </button>
-          <button onClick={onCancel} className="rounded-[10px] border border-hairline-strong px-4 py-2.5 text-sm text-fg transition-colors hover:bg-hover">
+          <button onClick={onCancel} className="rounded-none border border-hairline-strong px-4 py-2.5 text-sm text-fg transition-colors hover:bg-hover">
             Cancel
           </button>
         </div>

@@ -86,13 +86,13 @@ export default function Home() {
             <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
               <Link
                 href="/signup"
-                className="w-full rounded-[10px] bg-accent px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-ink transition-colors hover:bg-accent-hover sm:w-auto"
+                className="w-full rounded-none bg-accent px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-ink transition-colors hover:bg-accent-hover sm:w-auto"
               >
                 Get started
               </Link>
               <a
                 href="#models"
-                className="w-full rounded-[10px] border border-hairline-strong px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-fg transition-colors hover:bg-raised sm:w-auto"
+                className="w-full rounded-none border border-hairline-strong px-6 py-3 text-center font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-fg transition-colors hover:bg-raised sm:w-auto"
               >
                 Explore models
               </a>
@@ -159,7 +159,7 @@ export default function Home() {
           <div className="mt-6 text-center">
             <Link
               href="/pricing"
-              className="rounded-[10px] border border-hairline-strong px-6 py-3 font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-fg transition-colors hover:bg-raised"
+              className="rounded-none border border-hairline-strong px-6 py-3 font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.04em] text-fg transition-colors hover:bg-raised"
             >
               See full pricing
             </Link>

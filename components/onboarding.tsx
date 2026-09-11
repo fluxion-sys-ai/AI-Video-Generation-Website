@@ -29,9 +29,9 @@ const inputClass =
   "w-full rounded-[10px] border border-hairline-strong bg-panel px-3 py-2.5 text-sm text-fg outline-none transition-colors focus:border-blue";
 const labelClass = "mb-1.5 block text-xs uppercase tracking-[0.06em] text-muted";
 const btnPrimary =
-  "rounded-[10px] bg-accent px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-accent-hover disabled:opacity-40";
+  "rounded-none bg-accent px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-accent-hover disabled:opacity-40";
 const btnGhost =
-  "rounded-[10px] border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover";
+  "rounded-none border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover";
 
 // Persona choices for the "Who are you?" step.
 const PERSONAS = [
@@ -210,7 +210,7 @@ export function Onboarding() {
                     key={p.key}
                     type="button"
                     onClick={() => setPersona(on ? null : p.key)}
-                    className={`rounded-[10px] border p-4 text-left transition-colors ${
+                    className={`rounded-none border p-4 text-left transition-colors ${
                       on ? "border-accent bg-accent-soft" : "border-line hover:bg-hover"
                     }`}
                   >
@@ -279,7 +279,7 @@ export function Onboarding() {
                   key={a}
                   type="button"
                   onClick={() => setCredits(a)}
-                  className={`rounded-[10px] border py-3 font-[family-name:var(--font-jetbrains)] text-sm transition-colors ${
+                  className={`rounded-none border py-3 font-[family-name:var(--font-jetbrains)] text-sm transition-colors ${
                     credits === a ? "border-accent text-accent-ink" : "border-hairline-strong hover:border-accent hover:text-accent-ink"
                   }`}
                 >

@@ -17,8 +17,8 @@ import { toast } from "@/lib/toast";
 const inputClass =
   "w-full rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none focus:border-blue focus:ring-1 focus:ring-blue";
 const label = "mb-1.5 block text-xs uppercase tracking-[0.06em] text-muted";
-const btnPrimary = "rounded-[10px] bg-accent px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-accent-hover";
-const btnGhost = "rounded-[10px] border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover";
+const btnPrimary = "rounded-none bg-accent px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-accent-hover";
+const btnGhost = "rounded-none border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover";
 
 function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
@@ -335,7 +335,7 @@ function ProfileInner() {
 
                 <div className="flex flex-wrap items-center gap-4 border-t border-hairline pt-6">
                   <button onClick={out} className={btnGhost}>Sign out</button>
-                  <button onClick={del} className="rounded-[10px] border border-[rgba(255,107,107,0.4)] px-5 py-2.5 text-sm text-danger transition-colors hover:bg-[rgba(255,107,107,0.08)]">
+                  <button onClick={del} className="rounded-none border border-[rgba(255,107,107,0.4)] px-5 py-2.5 text-sm text-danger transition-colors hover:bg-[rgba(255,107,107,0.08)]">
                     Delete account
                   </button>
                 </div>
@@ -675,7 +675,7 @@ function ProfileInner() {
                 <button
                   key={a}
                   onClick={() => setAddAmount(a)}
-                  className={`rounded-[10px] border py-3 font-[family-name:var(--font-jetbrains)] text-sm transition-colors ${
+                  className={`rounded-none border py-3 font-[family-name:var(--font-jetbrains)] text-sm transition-colors ${
                     addAmount === a
                       ? "border-accent text-accent-ink"
                       : "border-hairline-strong hover:border-accent hover:text-accent-ink"

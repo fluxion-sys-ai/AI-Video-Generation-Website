@@ -49,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${jetbrainsMono.variable} ${sora.variable} h-full scroll-smooth antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-base text-fg font-[family-name:var(--font-geist-sans)]">

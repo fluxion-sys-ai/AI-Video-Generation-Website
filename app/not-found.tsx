@@ -26,13 +26,13 @@ export default function NotFound() {
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
           <Link
             href="/"
-            className="rounded-[10px] bg-accent px-6 py-3 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.04em] text-ink transition-colors hover:bg-accent-hover"
+            className="rounded-none bg-accent px-6 py-3 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.04em] text-ink transition-colors hover:bg-accent-hover"
           >
             Back home
           </Link>
           <Link
             href="/models"
-            className="rounded-[10px] border border-hairline-strong px-6 py-3 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.04em] text-fg transition-colors hover:bg-hover"
+            className="rounded-none border border-hairline-strong px-6 py-3 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.04em] text-fg transition-colors hover:bg-hover"
           >
             Explore models
           </Link>

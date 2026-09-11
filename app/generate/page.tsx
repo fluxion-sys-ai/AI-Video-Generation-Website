@@ -342,7 +342,7 @@ function GenerateInner() {
           <button
             key={v}
             onClick={() => setView(v)}
-            className={`rounded-[8px] px-3 py-2 text-left transition-colors ${
+            className={`rounded-none px-3 py-2 text-left transition-colors ${
               view === v ? "bg-accent-soft text-accent-ink" : "text-muted hover:bg-hover hover:text-fg"
             }`}
           >
@@ -444,7 +444,7 @@ function GenerateInner() {
           {(
             <Field label="Images" hint="Optional">
               {images.length === 0 ? (
-                <label className="flex w-fit cursor-pointer items-center gap-3 rounded-[8px] border border-dashed border-line-strong px-3 py-2 text-sm text-fg-soft hover:border-blue">
+                <label className="flex w-fit cursor-pointer items-center gap-3 rounded-none border border-dashed border-line-strong px-3 py-2 text-sm text-fg-soft hover:border-blue">
                   <span>Choose images</span>
                   <span className="text-blue">Browse</span>
                   <input type="file" accept="image/*" multiple className="hidden" onChange={addImages} />
@@ -596,16 +596,16 @@ function GenerateInner() {
         {status === "complete" && resultUrl && (
           <div className="flex flex-col items-center gap-1.5">
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <button onClick={downloadResult} className="rounded-[10px] bg-accent px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-accent-hover">
+              <button onClick={downloadResult} className="rounded-none bg-accent px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-accent-hover">
                 Download MP4
               </button>
-              <button disabled title="Coming soon" className="cursor-not-allowed rounded-[10px] border border-hairline-strong px-4 py-2 text-sm opacity-40">
+              <button disabled title="Coming soon" className="cursor-not-allowed rounded-none border border-hairline-strong px-4 py-2 text-sm opacity-40">
                 WebM
               </button>
-              <button disabled title="Coming soon" className="cursor-not-allowed rounded-[10px] border border-hairline-strong px-4 py-2 text-sm opacity-40">
+              <button disabled title="Coming soon" className="cursor-not-allowed rounded-none border border-hairline-strong px-4 py-2 text-sm opacity-40">
                 GIF
               </button>
-              <button onClick={regen} className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
+              <button onClick={regen} className="rounded-none border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
                 Regenerate
               </button>
             </div>
@@ -656,12 +656,12 @@ function GenerateInner() {
               onChange={(e) => setRefineInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") sendRefine(); }}
               placeholder="Add an edit and press Enter…  (e.g. “make it slower”, “add rain”)"
-              className="flex-1 rounded-[10px] border border-line-strong bg-raised px-3 py-2.5 text-sm text-fg outline-none focus:border-blue"
+              className="flex-1 rounded-none border border-line-strong bg-raised px-3 py-2.5 text-sm text-fg outline-none focus:border-blue"
             />
             <button
               onClick={sendRefine}
               disabled={status === "generating" || !refineInput.trim()}
-              className="rounded-[10px] bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-ink transition-colors hover:bg-accent-hover disabled:opacity-40"
+              className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-ink transition-colors hover:bg-accent-hover disabled:opacity-40"
             >
               Send
             </button>

@@ -418,7 +418,7 @@ export function SiteHeader() {
               </Link>
               <Link
                 href="/signup"
-                className="rounded-[10px] bg-accent px-5 py-2.5 font-medium text-ink transition-colors hover:bg-accent-hover"
+                className="rounded-none bg-accent px-5 py-2.5 font-medium text-ink transition-colors hover:bg-accent-hover"
               >
                 Sign up
               </Link>

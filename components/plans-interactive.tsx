@@ -99,7 +99,7 @@ export function PlansInteractive({ plans }: { plans: Plan[] }) {
               </ul>
               <Link
                 href="/signup"
-                className={`mt-6 block rounded-[10px] px-4 py-2.5 text-center font-medium transition-colors ${
+                className={`mt-6 block rounded-none px-4 py-2.5 text-center font-medium transition-colors ${
                   active
                     ? "bg-accent text-ink hover:bg-accent-hover"
                     : "border border-hairline-strong text-fg hover:bg-hover"

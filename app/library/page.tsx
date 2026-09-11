@@ -684,8 +684,8 @@ function LibraryInner() {
             <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Delete {deleteIds.length} image{deleteIds.length === 1 ? "" : "s"}?</h3>
             <p className="mt-2 text-sm text-muted">This can&apos;t be undone. The image{deleteIds.length === 1 ? "" : "s"} will be removed from your library and any folders.</p>
             <div className="mt-6 flex justify-end gap-3">
-              <button onClick={() => setDeleteIds(null)} className="rounded-[10px] border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Cancel</button>
-              <button onClick={() => deleteImages(deleteIds)} className="rounded-[10px] bg-danger px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-danger-hover">Delete</button>
+              <button onClick={() => setDeleteIds(null)} className="rounded-none border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Cancel</button>
+              <button onClick={() => deleteImages(deleteIds)} className="rounded-none bg-danger px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-danger-hover">Delete</button>
             </div>
           </div>
         </div>
@@ -700,8 +700,8 @@ function LibraryInner() {
             </h3>
             <p className="mt-2 text-sm text-muted">The folder is removed. Your images stay in the library.</p>
             <div className="mt-6 flex justify-end gap-3">
-              <button onClick={() => setDeleteFolderId(null)} className="rounded-[10px] border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Cancel</button>
-              <button onClick={() => { deleteFolder(deleteFolderId); setDeleteFolderId(null); }} className="rounded-[10px] bg-danger px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-danger-hover">Delete folder</button>
+              <button onClick={() => setDeleteFolderId(null)} className="rounded-none border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Cancel</button>
+              <button onClick={() => { deleteFolder(deleteFolderId); setDeleteFolderId(null); }} className="rounded-none bg-danger px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-danger-hover">Delete folder</button>
             </div>
           </div>
         </div>
