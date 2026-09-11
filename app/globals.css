@@ -654,6 +654,14 @@ html.skin-editorial .pg-preview { padding: 0.25rem; }
 /* Luxury: shrink the (over-long) prompt box right down. */
 html.skin-luxury .pg-prompt { max-width: 26rem; }
 
+/* Distinct Playground/API tab styling per skin (OG uses its left rail). */
+html.skin-editorial .pg-viewnav { margin-left: auto; gap: 1.25rem; }
+html.skin-editorial .pg-viewnav button { border-bottom: 2px solid transparent; padding-left: 0; padding-right: 0; }
+html.skin-editorial .pg-viewnav button:hover { background: transparent; }
+html.skin-luxury .pg-viewnav button { border-radius: 999px; }
+html.skin-playful .pg-viewnav { gap: 0.4rem; }
+html.skin-playful .pg-viewnav button { border-radius: 999px; border: 2px solid var(--c-hairline-strong); }
+
 /* Playful playground: a different arrangement, the preview sits big on top,
    with the controls and examples side-by-side beneath it. */
 @media (min-width: 1024px) {

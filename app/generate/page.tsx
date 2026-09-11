@@ -10,6 +10,7 @@ import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
 import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
+import { useSkin } from "@/lib/use-skin";
 import { generateVideo, refineVideo } from "@/lib/api";
 import { hasPaymentMethod } from "@/lib/billing";
 import { addGeneration } from "@/lib/generations";
@@ -124,6 +125,7 @@ function GenerateInner() {
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<"examples" | "change">("examples");
   const [view, setView] = useState<"playground" | "api">("playground");
+  const skin = useSkin();
   const [panelOpen, setPanelOpen] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
@@ -361,23 +363,43 @@ function GenerateInner() {
             </div>
           )}
       </div>
-      {/* Playground / API tabs, top bar beside the model picker. */}
-      <nav className="pg-viewnav flex gap-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
-        {(["playground", "api"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            className={`rounded-none px-3 py-2 text-left transition-colors ${
-              view === v ? "bg-accent-soft text-accent-ink" : "text-muted hover:bg-hover hover:text-fg"
-            }`}
-          >
-            {v === "playground" ? "Playground" : "API"}
-          </button>
-        ))}
-      </nav>
+      {/* Alt skins: Playground / API tabs live in the top bar beside the picker.
+          OG keeps its original left rail (rendered inside the body below). */}
+      {skin !== "og" && (
+        <nav className="pg-viewnav flex gap-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
+          {(["playground", "api"] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`rounded-none px-3 py-2 text-left transition-colors ${
+                view === v ? "bg-accent-soft text-accent-ink" : "text-muted hover:bg-hover hover:text-fg"
+              }`}
+            >
+              {v === "playground" ? "Playground" : "API"}
+            </button>
+          ))}
+        </nav>
+      )}
       </div>
 
-      <div className="pg-body lg:h-[calc(100vh-7rem)]">
+      <div className={`lg:h-[calc(100vh-7rem)] ${skin === "og" ? "grid gap-6 lg:grid-cols-[150px_1fr]" : "pg-body"}`}>
+      {/* OG: original left-rail Playground / API tabs. */}
+      {skin === "og" && (
+        <nav className="flex gap-2 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col lg:gap-1">
+          {(["playground", "api"] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`rounded-none px-3 py-2 text-left transition-colors ${
+                view === v ? "bg-accent-soft text-accent-ink" : "text-muted hover:bg-hover hover:text-fg"
+              }`}
+            >
+              {v === "playground" ? "Playground" : "API"}
+            </button>
+          ))}
+        </nav>
+      )}
+      <div className="min-w-0">
       {view === "api" ? (
         <div className="min-h-0 lg:overflow-y-auto">
           <ApiDocs model={model} />
@@ -643,6 +665,7 @@ function GenerateInner() {
       </section>
       </div>
       )}
+      </div>
       </div>
 
       {/* Floating refine chatbot, fixed to the bottom-center like a chat app. */}

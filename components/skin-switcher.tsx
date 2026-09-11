@@ -67,7 +67,7 @@ export function SkinSwitcher() {
   return (
     <div ref={boxRef} className="fixed z-[80] print:hidden" style={{ left: pos.x, top: pos.y }}>
       {open ? (
-        <div className="flex flex-col gap-1.5 rounded-[var(--radius-control)] border border-line bg-panel/95 p-2 shadow-lg shadow-black/20 backdrop-blur">
+        <div style={{ borderRadius: 0 }} className="flex flex-col gap-1.5 border border-line bg-panel/95 p-2 shadow-lg shadow-black/20 backdrop-blur">
           {/* drag handle */}
           <div onPointerDown={startDrag} className="flex cursor-grab items-center justify-between gap-3 px-1 active:cursor-grabbing select-none">
             <span className="flex items-center gap-1.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.14em] text-accent-ink">
@@ -83,7 +83,8 @@ export function SkinSwitcher() {
               <button
                 key={o.key}
                 onClick={() => pick(o.key)}
-                className={`rounded-[var(--radius-chip)] border px-2.5 py-1.5 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] transition-colors ${
+                style={{ borderRadius: 0 }}
+                className={`border px-2.5 py-1.5 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] transition-colors ${
                   skin === o.key ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                 }`}
               >
