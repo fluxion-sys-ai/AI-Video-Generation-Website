@@ -133,9 +133,9 @@ export default function PricingPage() {
           <p className="text-sm text-fg-soft">{PAYG.price} {PAYG.note} · no subscriptions</p>
         </div>
         <div className="mt-6 grid gap-5 lg:grid-cols-[1.5fr_1fr] lg:items-start">
-          <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollSnapType: "x mandatory" }}>
+          <div className="grid grid-cols-2 gap-4">
             {models.map((m) => (
-              <div key={m.slug} style={{ scrollSnapAlign: "start" }} className="w-[190px] shrink-0 rounded-[14px] border border-hairline bg-surface p-5">
+              <div key={m.slug} className="rounded-[14px] border border-hairline bg-surface p-5">
                 <p className="font-[family-name:var(--font-space)] font-semibold text-fg-strong">{m.name}</p>
                 <p className="mt-3 text-3xl font-semibold text-accent-ink">${price(m.creditsPerSecond)}</p>
                 <p className="text-xs text-muted">per 5s · {m.creditsPerSecond} cr/s</p>
