@@ -1,7 +1,7 @@
 "use client";
 
 import { useSkin } from "@/lib/use-skin";
-import { LandingOG, LandingEditorial, LandingLuxury, LandingPlayful, LandingCosmos } from "@/components/landings";
+import { LandingOG, LandingEditorial, LandingLuxury, LandingPlayful, LandingCosmos } from "@/components/skins/landings";
 
 // The landing page has a genuinely different layout per skin (not just a
 // recolor). useSkin() is live-reactive, so flipping the switcher swaps the whole

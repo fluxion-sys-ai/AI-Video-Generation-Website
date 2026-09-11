@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { GlowBlobs } from "@/components/glow-blobs";
-import { PlansDots } from "@/components/plans-dots";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
+import { GlowBlobs } from "@/components/decor/glow-blobs";
+import { PlansDots } from "@/components/decor/plans-dots";
 
 export const metadata = { title: "Page not found" };
 

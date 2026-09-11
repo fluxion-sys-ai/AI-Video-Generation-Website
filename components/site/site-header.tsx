@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Brand } from "@/components/brand";
+import { Brand } from "@/components/site/brand";
 import { getModels } from "@/lib/models";
 import { getUser, isSignedIn, type User } from "@/lib/auth";
 import { getFavorites } from "@/lib/prefs";

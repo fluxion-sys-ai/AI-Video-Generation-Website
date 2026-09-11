@@ -1,8 +1,8 @@
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { Onboarding } from "@/components/onboarding";
-import { PlansDots } from "@/components/plans-dots";
-import { GlowBlobs } from "@/components/glow-blobs";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
+import { Onboarding } from "@/components/auth/onboarding";
+import { PlansDots } from "@/components/decor/plans-dots";
+import { GlowBlobs } from "@/components/decor/glow-blobs";
 
 export const metadata = { title: "Create account" };
 

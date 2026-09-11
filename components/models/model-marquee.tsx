@@ -1,7 +1,7 @@
 "use client";
 
 import { getModels } from "@/lib/models";
-import { ModelCard } from "@/components/model-card";
+import { ModelCard } from "@/components/models/model-card";
 
 // One horizontal line, auto-scrolling. Hover pauses; hovering a card plays it.
 export function ModelMarquee() {

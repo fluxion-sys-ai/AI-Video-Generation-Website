@@ -12,16 +12,16 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Heart } from "lucide-react";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { ModelMarquee } from "@/components/model-marquee";
-import { ModelCard } from "@/components/model-card";
-import { Reveal } from "@/components/reveal";
-import { HeroReels } from "@/components/hero-reels";
-import { Stats } from "@/components/stats";
-import { ModelPricingTable } from "@/components/model-pricing-table";
-import { GlowBlobs } from "@/components/glow-blobs";
-import { PlansDots } from "@/components/plans-dots";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
+import { ModelMarquee } from "@/components/models/model-marquee";
+import { ModelCard } from "@/components/models/model-card";
+import { Reveal } from "@/components/decor/reveal";
+import { HeroReels } from "@/components/landing/hero-reels";
+import { Stats } from "@/components/landing/stats";
+import { ModelPricingTable } from "@/components/models/model-pricing-table";
+import { GlowBlobs } from "@/components/decor/glow-blobs";
+import { PlansDots } from "@/components/decor/plans-dots";
 import { getModels, type Model } from "@/lib/models";
 import { isFavorite, toggleFavorite, isAutoplay } from "@/lib/prefs";
 

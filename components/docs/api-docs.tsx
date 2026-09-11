@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Model } from "@/lib/models";
-import { CopyButton } from "@/components/copy-button";
+import { CopyButton } from "@/components/docs/copy-button";
 
 type Lang = "js" | "python" | "curl";
 

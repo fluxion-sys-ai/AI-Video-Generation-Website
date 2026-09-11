@@ -29,7 +29,7 @@ The same header switches between two "modes":
   **Dashboard · Generate · Library · Settings**. The logo always returns you to
   the public home (you stay signed in).
 
-**How the mode is decided** (`components/site-header.tsx`):
+**How the mode is decided** (`components/site/site-header.tsx`):
 - Marketing routes (`/`, `/pricing`, `/info`, `/login`, `/signup`) always show
   the public bar.
 - App routes (`/dashboard`, `/library`, `/settings`) always show the app bar.
@@ -74,20 +74,20 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | **Price (`creditsPerSecond`)** | invented numbers | `lib/models.ts` → `creditsPerSecond` |
 | **Model poster images** | self-hosted first-frame JPGs in `public/models/<slug>.jpg` (extracted from the clips) | `lib/models.ts` → `poster` |
 | **Pay-as-you-go rate** (`from $0.03 / second`, feature bullets) | invented | `app/pricing/page.tsx` → `PAYG` |
-| **Cost estimator math** | `1 credit ≈ $0.01`, resolution multipliers `480p/720p/1080p = 1 / 1.5 / 2.5` | `components/cost-estimator.tsx` (`PER_CREDIT`, `RES_MULT`) |
-| **Per-model table `≈ $ / 5s clip`** | same made-up `$0.01/credit` rate | `components/model-pricing-table.tsx` |
-| **Landing stats** (`3.5K+`, `10x`, …) | invented marketing numbers | `components/stats.tsx` → `STATS` |
-| **Daily usage / spend charts** | random sample values | `components/usage-chart.tsx` (`DEFAULT`) |
+| **Cost estimator math** | `1 credit ≈ $0.01`, resolution multipliers `480p/720p/1080p = 1 / 1.5 / 2.5` | `components/landing/cost-estimator.tsx` (`PER_CREDIT`, `RES_MULT`) |
+| **Per-model table `≈ $ / 5s clip`** | same made-up `$0.01/credit` rate | `components/models/model-pricing-table.tsx` |
+| **Landing stats** (`3.5K+`, `10x`, …) | invented marketing numbers | `components/landing/stats.tsx` → `STATS` |
+| **Daily usage / spend charts** | random sample values | `components/ui/usage-chart.tsx` (`DEFAULT`) |
 | **Aspect-ratio use labels** (YouTube, Reels/TikTok…) | guesses | `app/generate/page.tsx` → `ASPECT_USE` |
 | **Generation history** (Library videos + Profile usage) | seeded sample history, appended to on each generate | `lib/generations.ts` |
 | **Uploaded library images, dashboard recents seed** | invented | `app/library/page.tsx`, `lib/prefs.ts` |
 | **Billing / payment / usage numbers** (`$0.00`, Visa •••• 4242, dates) | fake | `app/profile/page.tsx` |
-| **Docs content** (endpoints, code snippets, `api.fluxion-sys.ai`) | illustrative | `app/docs/page.tsx`, `components/api-docs.tsx` |
-| **Contact email / links** (`hello@fluxion-sys.ai`) | placeholder | `app/info/page.tsx`, `components/site-footer.tsx` |
+| **Docs content** (endpoints, code snippets, `api.fluxion-sys.ai`) | illustrative | `app/docs/page.tsx`, `components/docs/api-docs.tsx` |
+| **Contact email / links** (`hello@fluxion-sys.ai`) | placeholder | `app/info/page.tsx`, `components/site/site-footer.tsx` |
 | **Generated result video** | replays the model's sample clip (no real AI) | **`lib/api.ts`** (`generateVideo` / `refineVideo`), the one place to wire a real render backend |
 | **Payment methods, credits, "can generate?" gate** | fake (`localStorage`) | **`lib/billing.ts`** |
 | **Sign in / accounts / favorites** | fake (`localStorage`) | `lib/auth.ts`, `lib/prefs.ts` |
-| **Sign-up onboarding** (persona list, credit presets, card entry) | mock, nothing sent anywhere | `components/onboarding.tsx` |
+| **Sign-up onboarding** (persona list, credit presets, card entry) | mock, nothing sent anywhere | `components/auth/onboarding.tsx` |
 
 > **Backend integration:** see **[BACKEND.md](BACKEND.md)**, it lists every seam
 > (`lib/api.ts`, `lib/billing.ts`, `lib/auth.ts`, …), the exact function to replace,
@@ -99,11 +99,12 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | `fluxion.signedIn` | signed-in flag | `lib/auth.ts` |
 | `fluxion.user` | `{ name, username, email, avatar? }` | `lib/auth.ts` |
 | `fluxion.genDraft` | generation form draft (survives a sign-in detour) | `lib/auth.ts` |
-| `fluxion.mode` | `public` \| `dashboard` (which nav to show) | `components/site-header.tsx` |
+| `fluxion.mode` | `public` \| `dashboard` (which nav to show) | `components/site/site-header.tsx` |
 | `fluxion.favorites` | array of favorited model slugs | `lib/prefs.ts` |
 | `fluxion.recents` | recently-used model slugs (max 8) | `lib/prefs.ts` |
 | `fluxion.theme` | `dark` \| `light` \| `system` (follows the OS) | `lib/prefs.ts` + `app/layout.tsx` |
-| `fluxion.persona` | who-are-you answer from onboarding (student, developer, …) | `components/onboarding.tsx` |
+| `fluxion.skin` | active theme skin: `og` \| `editorial` \| `luxury` \| `playful` \| `cosmos` (see Themes) | `lib/prefs.ts` + `app/layout.tsx` |
+| `fluxion.persona` | who-are-you answer from onboarding (student, developer, …) | `components/auth/onboarding.tsx` |
 | `fluxion.cards` | saved payment methods `{ id, brand, last4, exp, primary }[]` (source of truth for the generation gate) | `lib/billing.ts` |
 | `fluxion.hasCard` | legacy `1`/`0` mirror of "has a card" (kept in sync by `lib/billing.ts`) | `lib/billing.ts` |
 | `fluxion.credits` | credit balance (set during signup, topped up in Profile) | `lib/billing.ts` |
@@ -156,14 +157,42 @@ in `lib/prefs.ts`.
 `bg-name` / `text-name` / `border-name`. Full token list and inline comments are
 in `app/globals.css` itself.
 
+## Themes ("skins")
+
+On top of dark/light there are five swappable **skins**, compared live via the
+floating switcher (bottom-right; a temporary preview control). Each is its own
+palette + font pairing + shape language, and several pages render a genuinely
+different **layout** per skin (not just a recolor) while keeping identical
+functionality:
+
+| Skin | Palette | Display / Body fonts | Feel |
+| --- | --- | --- | --- |
+| **OG** | brand navy + orange (dark/light) | JetBrains Mono / Geist | the original |
+| **Editorial** | warm cream, black buttons, terracotta | Archivo Black / Fraunces (serif) | frosted-glass magazine |
+| **Luxury** | navy + champagne gold, sharp corners | Playfair / EB Garamond (serif) | private-bank elegance |
+| **Playful** | white + blocky pastels, yellow pills | Outfit / Quicksand | creative-studio sticker |
+| **Slideshow** | light lavender + violet | Space Grotesk / Manrope | sideways-scrolling deck |
+
+- **How it works:** a class on `<html>` (`skin-editorial` / `skin-luxury` / …)
+  overrides the `--c-*` tokens, `--font-*` vars, and radii; the boot script in
+  `app/layout.tsx` applies the saved skin before paint. Store: `lib/prefs.ts`
+  (`getSkin` / `applySkin`, key `fluxion.skin`); live React value: `lib/use-skin.ts`.
+- **Per-skin layouts** (branch on `useSkin()`): landing (`components/skins/landings.tsx`),
+  dashboard (`components/skins/dashboards.tsx`), model catalog, pricing page, and
+  the info page. Playground arrangement, settings-form style, and library grid are
+  tuned per skin via scoped CSS in `app/globals.css`.
+- **This is a preview mechanism** to compare directions. To ship one, keep its
+  branch and delete the switcher (`components/skins/skin-switcher.tsx` + its mount
+  in `app/layout.tsx`).
+
 ## Other things you can tune (settings, not placeholders)
 
 | What | File |
 | --- | --- |
-| Reel timing / order (which slot swipes when) | `components/hero-reels.tsx` (`SLOTS`, `order`, `GAP`) |
+| Reel timing / order (which slot swipes when) | `components/landing/hero-reels.tsx` (`SLOTS`, `order`, `GAP`) |
 | Color/font/shape tokens (dark + light), marquee keyframes, button font | `app/globals.css` |
-| Static glow-blob placement per page | `components/glow-blobs.tsx` (`VARIANTS`) |
-| Moving line-dot field (paths, speed, opacity) | `components/plans-dots.tsx` |
+| Static glow-blob placement per page | `components/decor/glow-blobs.tsx` (`VARIANTS`) |
+| Moving line-dot field (paths, speed, opacity) | `components/decor/plans-dots.tsx` |
 | Dashboard getting-started steps & quick links | `app/dashboard/page.tsx` (`STEPS`, `LINKS`) |
 | Docs sections / sidebar | `app/docs/page.tsx` (`NAV`) |
 
@@ -186,31 +215,19 @@ app/                     Next.js App Router pages
   info/page.tsx          Info + contact
   layout.tsx             Fonts, shared <body>
   globals.css            Theme + keyframes + button font
-components/              Reusable UI
-  site-header.tsx        Nav; public/dashboard mode switch; profile avatar dropdown
-  site-footer.tsx        Footer (links to fluxion-sys.ai)
-  hero-reels.tsx         3-slot vertical reels carousel
-  model-marquee.tsx      Auto-scrolling model row (landing)
-  model-card.tsx         Model thumbnail card + favorite heart
-  model-catalog.tsx      Catalog grid + search + tag filter + sort
-  model-pricing-table.tsx  Per-model rate table
-  cost-estimator.tsx     Pricing clip cost estimator
-  usage-chart.tsx        Daily usage/spend bar chart (axes)
-  api-docs.tsx           Per-model API reference (JS/Python/cURL)
-  glow-blobs.tsx         Static background glow orbs
-  plans-dots.tsx         Animated line-and-dot background field
-  stats.tsx              Landing stats row
-  reveal.tsx             Scroll-in animation wrapper
-  brand.tsx              Logo mark + wordmark
-  onboarding.tsx         Sign-up "slideshow" wizard (account → name → persona → payment → credits)
-  auth-form.tsx          Mock login form (used by /login)
-  spotlight.tsx          Cursor-following glow + OS-theme sync
-  avatar-editor.tsx      Profile-photo editor (crop/zoom/rotate + filters → PNG)
-  copy-button.tsx        Click-to-copy icon button (docs/API snippets)
-  toaster.tsx            Toast host (listens for lib/toast events)
-  docs-sidebar.tsx       Docs navigation sidebar
-  empty-state.tsx        Reusable "nothing here yet" placeholder (icon + action)
-  skeleton.tsx           Shimmering image placeholder shown until media loads
+components/              Reusable UI, grouped by domain
+  skins/                 The theme/skin system (see "Themes" below)
+    landings.tsx         Per-skin landing layouts (OG/Editorial/Luxury/Playful/Slideshow)
+    dashboards.tsx       Per-skin dashboard layouts
+    skin-switcher.tsx    Floating draggable theme switcher (temp preview control)
+    cosmos-backdrop.tsx  Slideshow skin's drifting light backdrop
+  site/                  site-header, site-footer, brand (logo mark + wordmark)
+  models/                model-card, model-catalog, model-marquee, model-pricing-table
+  landing/               hero-reels, stats, cost-estimator, pricing-charts, plans-interactive
+  decor/                 glow-blobs, plans-dots (ambient), spotlight, reveal
+  docs/                  api-docs (JS/Python/cURL), docs-sidebar, copy-button
+  auth/                  auth-form (mock login), onboarding (sign-up slideshow)
+  ui/                    button, empty-state, skeleton, toaster, usage-chart, avatar-editor
 lib/                     Backend seams (see BACKEND.md), swap mock bodies for real API calls
   api.ts                 Video generate/refine (the render-backend seam)
   billing.ts             Payment methods, credits, "can generate?" gate
@@ -220,6 +237,7 @@ lib/                     Backend seams (see BACKEND.md), swap mock bodies for re
   prefs.ts               Favorites, recents, library images, settings, theme (localStorage)
   toast.ts               Fire-a-toast helper
   use-escape-key.ts      Esc-to-close hook
+  use-skin.ts            Live-reactive active skin (drives per-skin layouts)
   utils.ts               className merge helper
 public/
   reels/slotN/           Hero reel videos (a/b/c.mp4)

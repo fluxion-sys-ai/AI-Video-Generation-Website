@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
-import { ModelCard } from "@/components/model-card";
+import { ModelCard } from "@/components/models/model-card";
 import type { Model } from "@/lib/models";
 import { isFavorite, toggleFavorite } from "@/lib/prefs";
 import { useSkin } from "@/lib/use-skin";

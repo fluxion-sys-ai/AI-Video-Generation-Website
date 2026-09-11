@@ -7,8 +7,8 @@
    ============================================================================ */
 
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
 import { getModel, type Model } from "@/lib/models";
 
 export type DashData = {

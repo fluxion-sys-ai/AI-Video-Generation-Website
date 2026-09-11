@@ -1,8 +1,8 @@
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { ModelCatalog } from "@/components/model-catalog";
-import { PlansDots } from "@/components/plans-dots";
-import { GlowBlobs } from "@/components/glow-blobs";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
+import { ModelCatalog } from "@/components/models/model-catalog";
+import { PlansDots } from "@/components/decor/plans-dots";
+import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { getModels } from "@/lib/models";
 
 export const metadata = { title: "Models" };

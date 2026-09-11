@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { GlowBlobs } from "@/components/glow-blobs";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
+import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
 import { getModels, getModel, type Model } from "@/lib/models";
 import { getGenerations, formatWhen, type Generation } from "@/lib/generations";
@@ -21,8 +21,8 @@ import {
 } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { Heart, ImageIcon, FolderOpen, Search, Clapperboard } from "lucide-react";
-import { EmptyState } from "@/components/empty-state";
-import { SkeletonImg } from "@/components/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SkeletonImg } from "@/components/ui/skeleton";
 
 // Video card: the poster is an <img> thumbnail that always loads; the actual
 // clip is only mounted (and plays) while hovering, so it never covers the

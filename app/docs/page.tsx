@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { DocsSidebar } from "@/components/docs-sidebar";
-import { CopyButton } from "@/components/copy-button";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
+import { DocsSidebar } from "@/components/docs/docs-sidebar";
+import { CopyButton } from "@/components/docs/copy-button";
 
 export const metadata = { title: "Documentation" };
 

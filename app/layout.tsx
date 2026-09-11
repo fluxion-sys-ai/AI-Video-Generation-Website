@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, JetBrains_Mono, Sora, Archivo_Black, Playfair_Display, Caveat, Inter, Space_Grotesk, Outfit, Orbitron, Fraunces, EB_Garamond, Quicksand, Manrope } from "next/font/google";
 import "./globals.css";
-import { Spotlight } from "@/components/spotlight";
-import { Toaster } from "@/components/toaster";
-import { SkinSwitcher } from "@/components/skin-switcher";
-import { CosmosBackdrop } from "@/components/cosmos-backdrop";
+import { Spotlight } from "@/components/decor/spotlight";
+import { Toaster } from "@/components/ui/toaster";
+import { SkinSwitcher } from "@/components/skins/skin-switcher";
+import { CosmosBackdrop } from "@/components/skins/cosmos-backdrop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

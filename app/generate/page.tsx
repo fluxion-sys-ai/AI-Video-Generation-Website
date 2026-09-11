@@ -3,9 +3,9 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Heart, GripHorizontal } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SiteHeader } from "@/components/site-header";
-import { ApiDocs } from "@/components/api-docs";
-import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site/site-header";
+import { ApiDocs } from "@/components/docs/api-docs";
+import { SiteFooter } from "@/components/site/site-footer";
 import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
 import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings } from "@/lib/prefs";
