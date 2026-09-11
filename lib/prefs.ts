@@ -196,6 +196,8 @@ export function applySkin(skin: Skin) {
   const el = document.documentElement;
   el.classList.remove("skin-editorial", "skin-expedition");
   if (skin !== "og") el.classList.add(`skin-${skin}`);
+  // Notify React components (useSkin) so layouts — not just CSS — re-render live.
+  window.dispatchEvent(new CustomEvent("fluxion-skin", { detail: skin }));
 }
 
 // Re-apply the effective look whenever the OS scheme flips, but only while the
