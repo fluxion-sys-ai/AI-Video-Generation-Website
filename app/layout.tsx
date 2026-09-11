@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, JetBrains_Mono, Sora, Archivo_Black, Playfair_Display, Caveat, Inter, Space_Grotesk } from "next/font/google";
+import { Geist, JetBrains_Mono, Sora, Archivo_Black, Playfair_Display, Caveat, Inter, Space_Grotesk, Fredoka } from "next/font/google";
 import "./globals.css";
 import { Spotlight } from "@/components/spotlight";
 import { Toaster } from "@/components/toaster";
@@ -30,6 +30,7 @@ const playfair = Playfair_Display({ variable: "--font-playfair", subsets: ["lati
 const caveat = Caveat({ variable: "--font-caveat", subsets: ["latin"], weight: ["700"] });
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["300", "400", "500", "600"] });
 const spaceGrotesk = Space_Grotesk({ variable: "--font-space", subsets: ["latin"], weight: ["400", "500", "700"] });
+const fredoka = Fredoka({ variable: "--font-fredoka", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
 const SITE = "Fluxion AI Video";
 const DESC = "AI video generator — choose a model, write a prompt, and generate.";
@@ -59,7 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${jetbrainsMono.variable} ${sora.variable} ${archivoBlack.variable} ${playfair.variable} ${caveat.variable} ${inter.variable} ${spaceGrotesk.variable} h-full scroll-smooth antialiased`}
+      className={`${geistSans.variable} ${jetbrainsMono.variable} ${sora.variable} ${archivoBlack.variable} ${playfair.variable} ${caveat.variable} ${inter.variable} ${spaceGrotesk.variable} ${fredoka.variable} h-full scroll-smooth antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-base text-fg font-[family-name:var(--font-geist-sans)]">
         {/* No-flash theme boot: runs before paint so the correct look is set
@@ -69,7 +70,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{var t=localStorage.getItem('fluxion.theme');if(t==='light'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.classList.add('light');var s=localStorage.getItem('fluxion.skin');if(s==='editorial'||s==='luxury')document.documentElement.classList.add('skin-'+s)}catch(e){}",
+              "try{var t=localStorage.getItem('fluxion.theme');if(t==='light'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.classList.add('light');var s=localStorage.getItem('fluxion.skin');if(s==='editorial'||s==='luxury'||s==='playful')document.documentElement.classList.add('skin-'+s)}catch(e){}",
           }}
         />
         <Spotlight />

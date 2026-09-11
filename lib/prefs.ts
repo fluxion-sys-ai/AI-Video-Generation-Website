@@ -178,14 +178,15 @@ export function applyTheme(t: Theme) {
 //   - "og"        → the original Fluxion look (dark/light theme still applies)
 //   - "editorial" → warm frosted-glass, chunky black headlines (its own palette)
 //   - "luxury"    → navy + gold, serif headlines, wave dividers (its own palette)
-// This is a preview mechanism so all three can be compared across the real site.
+//   - "playful"   → white + blocky pastels, rounded friendly type, yellow pills
+// This is a preview mechanism so all skins can be compared across the real site.
 const SKIN_KEY = "fluxion.skin";
-export type Skin = "og" | "editorial" | "luxury";
+export type Skin = "og" | "editorial" | "luxury" | "playful";
 
 export function getSkin(): Skin {
   if (typeof window === "undefined") return "og";
   const v = localStorage.getItem(SKIN_KEY);
-  return v === "editorial" || v === "luxury" ? v : "og";
+  return v === "editorial" || v === "luxury" || v === "playful" ? v : "og";
 }
 
 // Persist the skin and reflect it on <html> immediately (toggling the skin class
@@ -194,7 +195,7 @@ export function applySkin(skin: Skin) {
   if (typeof window === "undefined") return;
   localStorage.setItem(SKIN_KEY, skin);
   const el = document.documentElement;
-  el.classList.remove("skin-editorial", "skin-luxury");
+  el.classList.remove("skin-editorial", "skin-luxury", "skin-playful");
   if (skin !== "og") el.classList.add(`skin-${skin}`);
   // Notify React components (useSkin) so layouts — not just CSS — re-render live.
   window.dispatchEvent(new CustomEvent("fluxion-skin", { detail: skin }));

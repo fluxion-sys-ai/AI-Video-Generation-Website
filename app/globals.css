@@ -513,16 +513,83 @@ html.skin-luxury h2 {
   text-transform: none;
 }
 
-/* Both skins use the tokenized (recolorable) decor, not the fixed dark backdrop. */
+/* ---- Playful: white + blocky pastels, rounded friendly type, punchy yellow
+   CTAs, navy headline text. Creative-studio, youthful-but-chic. -------------- */
+html.skin-playful {
+  --c-base: #fffdf8;          /* warm white */
+  --c-base-2: #f7f1ff;        /* faint lavender */
+  --c-surface: #ffffff;
+  --c-panel: #fdfaff;
+  --c-raised: #f4eefb;
+  --c-track: #e5def0;
+  --c-ink: #1a1440;           /* navy text on the yellow accent fills */
+  --c-fg: #1a1440;            /* deep indigo/navy headline text */
+  --c-fg-strong: #0f0b2e;
+  --c-fg-soft: #4a4570;
+  --c-fg-soft-2: #5c5680;
+  --c-muted: #7a749a;
+  --c-dim: #9a94b4;
+  --c-line: #ece6f6;
+  --c-line-strong: #d8cfe8;
+  --c-hairline: rgba(120, 90, 200, 0.14);
+  --c-hairline-strong: rgba(120, 90, 200, 0.26);
+  --c-hover: rgba(120, 90, 200, 0.06);
+  --c-accent: #ffd23f;        /* punchy yellow CTAs */
+  --c-accent-hover: #ffdd6b;
+  --c-accent-ink: #7c3aed;    /* vivid purple for accent text/labels */
+  --c-accent-soft: rgba(124, 58, 237, 0.1);
+  --c-accent-border: rgba(124, 58, 237, 0.4);
+  --c-gold: #c2477f;          /* raspberry for eyebrows/taglines (reads on white) */
+  --c-gold-soft: #d15a90;
+  --c-gold-bright: #b83d75;
+  --c-gold-2: #c2477f;
+  --c-blue: #3d9be0;          /* sky */
+  --c-blue-chip: rgba(61, 155, 224, 0.12);
+  --c-blue-chip-border: rgba(61, 155, 224, 0.4);
+  --c-blue-line: rgba(61, 155, 224, 0.5);
+  --c-danger: #ef476f;
+  --c-danger-hover: #f56489;
+  --radius-card: 22px;
+  --radius-control: 999px;
+  --radius-chip: 999px;
+  --spotlight: radial-gradient(circle, rgba(255, 210, 63, 0.14), rgba(124, 58, 237, 0.06) 45%, transparent 72%);
+  --glow-o0: #ffd6e8;         /* pink */
+  --glow-o1: #ffe9a8;         /* yellow */
+  --glow-b0: #cde5ff;         /* sky */
+  --glow-b1: #d9c8ff;         /* lavender */
+  --dot-line: #d9c8ff;
+  --dot-glow-0: #ffd0e6;
+  --dot-glow-1: #cfe4ff;
+  --reel-shadow: 0 22px 50px -24px rgba(124, 58, 237, 0.35), 0 0 60px -12px rgba(255, 210, 63, 0.5);
+  --c-chart-bar: #ffd23f;
+  --c-heart-idle: #ffffff;
+  --c-skeleton: #f0eafa;
+  --c-skeleton-hi: #faf6ff;
+  /* fonts: rounded friendly UI + display (logo font left unchanged). */
+  --font-jetbrains: var(--font-fredoka);
+  --font-geist-sans: var(--font-inter);
+}
+html.skin-playful h1,
+html.skin-playful h2 {
+  font-family: var(--font-fredoka);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+/* Alt skins use the tokenized (recolorable) decor, not the fixed dark backdrop. */
 .skin-editorial .decor-dark,
-.skin-luxury .decor-dark {
+.skin-luxury .decor-dark,
+.skin-playful .decor-dark {
   display: none;
 }
 .skin-editorial .decor-light,
-.skin-luxury .decor-light {
+.skin-luxury .decor-light,
+.skin-playful .decor-light {
   display: block;
 }
-.skin-editorial .glow-blobs {
+.skin-editorial .glow-blobs,
+.skin-playful .glow-blobs {
   opacity: 0.5;
 }
 
@@ -578,6 +645,22 @@ html.skin-luxury a[class*="bg-accent"] { border-radius: 999px; }
 html.skin-luxury nav a,
 html.skin-luxury nav span,
 html.skin-luxury nav button { letter-spacing: 0.14em; }
+
+/* ==== Playful: chunky rounded corners, pill buttons, soft pastel-shadow cards. ==== */
+html.skin-playful .rounded-none { border-radius: 16px !important; }
+html.skin-playful .rounded-\[6px\],
+html.skin-playful .rounded-\[7px\],
+html.skin-playful .rounded-\[8px\] { border-radius: 14px !important; }
+html.skin-playful .rounded-\[10px\],
+html.skin-playful .rounded-lg { border-radius: 20px !important; }
+html.skin-playful .rounded-\[14px\] { border-radius: 24px !important; }
+html.skin-playful .bg-surface,
+html.skin-playful .bg-panel {
+  box-shadow: 0 20px 44px -28px rgba(124, 58, 237, 0.3);
+}
+/* Big friendly pill buttons. */
+html.skin-playful button:not(.hit):not([class*="rounded-full"]),
+html.skin-playful a[class*="bg-accent"] { border-radius: 999px; }
 
 /* Cursor spotlight fill — token-driven so light mode softens it. */
 .spotlight-glow {
@@ -687,6 +770,16 @@ mark.doc-hl {
 }
 @media (prefers-reduced-motion: reduce) {
   .ambient-blob { animation: none; }
+}
+
+/* Twinkling sparkle (Playful skin decor). */
+.glitter { animation: glitter-twinkle 2.6s ease-in-out infinite; transform-origin: center; }
+@keyframes glitter-twinkle {
+  0%, 100% { opacity: 0.55; transform: scale(0.85) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.1) rotate(15deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glitter { animation: none; }
 }
 
 /* Loading-skeleton shimmer. A placeholder block that pulses a highlight across

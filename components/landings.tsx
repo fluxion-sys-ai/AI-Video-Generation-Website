@@ -440,3 +440,124 @@ export function LandingLuxury() {
     </div>
   );
 }
+
+/* --------------------------------------------------------------- PLAYFUL ---- */
+const PASTELS = ["#d9f5e6", "#e9ddff", "#ffe3d1", "#d9ecff", "#fff2c2", "#ffd9ec"];
+const SERVICES = [
+  { emoji: "✨", bg: "#fff2c2", h: "Text to video", b: "Describe a scene and watch it render in seconds." },
+  { emoji: "🎬", bg: "#d9ecff", h: "Image to video", b: "Bring a still to life with natural motion." },
+  { emoji: "🎨", bg: "#ffd9ec", h: "Refine & remix", b: "Iterate with a friendly chat until it's just right." },
+  { emoji: "🚀", bg: "#d9f5e6", h: "Export anywhere", b: "Download MP4s ready to post and share." },
+  { emoji: "🎧", bg: "#e9ddff", h: "Sound on demand", b: "Add coherent audio to supported models." },
+  { emoji: "💎", bg: "#ffe3d1", h: "Pay as you go", b: "No subscriptions — only pay for what you make." },
+];
+
+// Little twinkling sparkle.
+function Sparkle({ className = "", size = 16 }: { className?: string; size?: number }) {
+  return (
+    <svg className={`glitter ${className}`} width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 0c1.2 6.5 4.5 9.8 12 12-7.5 2.2-10.8 5.5-12 12-1.2-6.5-4.5-9.8-12-12C7.5 9.8 10.8 6.5 12 0Z" />
+    </svg>
+  );
+}
+
+export function LandingPlayful() {
+  const models = getModels();
+  return (
+    <div className="min-h-screen bg-base">
+      <Backdrop />
+      <SiteHeader />
+
+      {/* Hero: bold rounded headline + floating pastel blocks & glitter. */}
+      <section className="relative overflow-hidden px-8 pb-8 pt-16">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.1fr_.9fr]">
+          <div className="relative">
+            <Sparkle className="absolute -left-4 -top-6 text-accent" size={22} />
+            <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink">Fluxion Studio ✦</span>
+            <h1 className="mt-5 text-[clamp(42px,7vw,84px)] font-bold leading-[0.98] text-fg-strong">
+              Make video that&apos;s <span className="text-accent-ink">seriously</span> fun.
+            </h1>
+            <p className="mt-5 max-w-md text-lg text-muted">Prompt it, play with it, ship it. A bright little studio where good ideas turn into motion.</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/signup" className="rounded-full bg-accent px-7 py-3.5 font-semibold text-ink transition-transform hover:-translate-y-0.5">Start creating →</Link>
+              <Link href="/models" className="rounded-full border-2 border-accent-border px-7 py-3.5 font-semibold text-accent-ink transition-colors hover:bg-accent-soft">See models</Link>
+            </div>
+          </div>
+          {/* Flat-illustration stand-in: asymmetric pastel blocks */}
+          <div className="relative hidden h-[340px] lg:block">
+            <div className="absolute left-4 top-2 h-40 w-56 rotate-[-6deg] rounded-[28px]" style={{ background: "linear-gradient(135deg,#ffe3d1,#ffd9ec)" }} />
+            <div className="absolute right-2 top-16 h-48 w-48 rotate-[8deg] rounded-[28px]" style={{ background: "linear-gradient(135deg,#d9ecff,#e9ddff)" }} />
+            <div className="absolute bottom-2 left-16 h-36 w-52 rotate-[3deg] rounded-[28px]" style={{ background: "linear-gradient(135deg,#d9f5e6,#fff2c2)" }} />
+            <Sparkle className="absolute right-8 top-6 text-accent" size={26} />
+            <Sparkle className="absolute bottom-8 left-6 text-accent-ink" size={18} />
+          </div>
+        </div>
+      </section>
+
+      <WaveEdge fill="var(--c-base-2)" />
+
+      {/* Services — 3-col pastel cards, each its own color + emoji. */}
+      <section className="bg-base-2 px-8 py-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex items-center gap-2">
+            <h2 className="text-3xl font-bold text-fg-strong">What you can make</h2>
+            <Sparkle className="text-accent" size={20} />
+          </div>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {SERVICES.map((s) => (
+              <div key={s.h} className="rounded-[24px] p-6" style={{ background: s.bg, color: "#1a1440" }}>
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/70 text-2xl">{s.emoji}</span>
+                <h3 className="mt-4 text-xl font-bold">{s.h}</h3>
+                <p className="mt-1 text-sm" style={{ color: "#4a4570" }}>{s.b}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <WaveEdge flip fill="var(--c-base-2)" />
+
+      {/* Models — asymmetric bento of colorful cards. */}
+      <section id="models" className="scroll-mt-24 px-8 py-16">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-3xl font-bold text-fg-strong">Meet the models</h2>
+          <div className="mt-8 grid auto-rows-[210px] grid-cols-2 gap-5 lg:grid-cols-4">
+            {models.map((m, i) => (
+              <Link
+                key={m.slug}
+                href={`/generate?model=${m.slug}`}
+                className={`group relative overflow-hidden rounded-[24px] p-5 transition-transform hover:-translate-y-1 ${i === 0 ? "col-span-2 row-span-2" : i === 3 ? "col-span-2" : ""}`}
+                style={{ background: PASTELS[i % PASTELS.length], color: "#1a1440" }}
+              >
+                <img src={m.poster} alt="" className="absolute inset-0 h-full w-full object-cover opacity-90 mix-blend-luminosity transition-opacity group-hover:opacity-100" />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 40%, ${PASTELS[i % PASTELS.length]}cc)` }} />
+                <div className="relative flex h-full flex-col justify-end">
+                  <h3 className="text-2xl font-bold">{m.name}</h3>
+                  <p className="text-sm" style={{ color: "#4a4570" }}>{m.tagline}</p>
+                </div>
+                <Sparkle className="absolute right-4 top-4 text-white" size={16} />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <WaveEdge fill="var(--c-base-2)" />
+
+      {/* Pricing on a pastel field. */}
+      <section className="bg-base-2 px-8 py-16">
+        <div className="mx-auto max-w-5xl rounded-[28px] bg-surface p-8">
+          <div className="flex items-center gap-2">
+            <h2 className="text-3xl font-bold text-fg-strong">Simple, sunny pricing</h2>
+            <Sparkle className="text-accent" size={20} />
+          </div>
+          <p className="mt-3 text-muted">No subscriptions — pay per second of video, priced per model.</p>
+          <div className="mt-7"><ModelPricingTable /></div>
+          <div className="mt-6"><Link href="/pricing" className="inline-block rounded-full bg-accent px-7 py-3.5 font-semibold text-ink transition-transform hover:-translate-y-0.5">See full pricing →</Link></div>
+        </div>
+      </section>
+
+      <SiteFooter />
+    </div>
+  );
+}

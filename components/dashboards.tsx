@@ -287,3 +287,80 @@ export function DashboardLuxury({ name, favs, recents, models }: DashData) {
     </div>
   );
 }
+
+/* --------------------------------------------------------------- PLAYFUL ---- */
+const PLAY_PASTELS = ["#fff2c2", "#d9ecff", "#ffd9ec", "#d9f5e6", "#e9ddff", "#ffe3d1"];
+const PLAY_EMOJI = ["🎬", "💳", "✨", "🔑"];
+
+function PlayChip({ slug, i }: { slug: string; i: number }) {
+  const m = getModel(slug);
+  if (!m) return null;
+  return (
+    <Link href={`/generate?model=${m.slug}`} className="group overflow-hidden rounded-[22px] transition-transform hover:-translate-y-1" style={{ background: PLAY_PASTELS[i % PLAY_PASTELS.length], color: "#1a1440" }}>
+      <img src={m.poster} alt="" className="aspect-[16/9] w-full object-cover" />
+      <div className="p-4">
+        <p className="text-lg font-bold">{m.name}</p>
+        <p className="text-sm" style={{ color: "#4a4570" }}>{m.tagline}</p>
+      </div>
+    </Link>
+  );
+}
+
+export function DashboardPlayful({ name, favs, recents, models }: DashData) {
+  return (
+    <div className="relative flex min-h-screen flex-col bg-base">
+      <SiteHeader />
+      <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-8 py-12">
+        <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink">Your studio ✦</span>
+        <h1 className="mt-4 text-[clamp(34px,5vw,56px)] font-bold leading-tight text-fg-strong">Hey {name}, let&apos;s make something ✨</h1>
+
+        {/* Getting started — pastel cards */}
+        <h2 className="mt-10 text-lg font-bold text-fg-strong">Getting started</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((s, i) => (
+            <Link key={s.title} href={s.href} className="rounded-[22px] p-5 transition-transform hover:-translate-y-1" style={{ background: PLAY_PASTELS[i % PLAY_PASTELS.length], color: "#1a1440" }}>
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 text-xl">{s.done ? "✅" : PLAY_EMOJI[i]}</span>
+              <p className="mt-3 font-bold">{s.title}</p>
+              <p className="mt-1 text-sm" style={{ color: "#4a4570" }}>{s.desc}</p>
+            </Link>
+          ))}
+        </div>
+
+        {/* Snapshot — pastel stat tiles */}
+        <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {SNAPSHOT(models).map(([t, v], i) => (
+            <div key={t} className="rounded-[22px] p-6 text-center" style={{ background: PLAY_PASTELS[(i + 2) % PLAY_PASTELS.length], color: "#1a1440" }}>
+              <p className="text-3xl font-bold">{v}</p>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.06em]" style={{ color: "#4a4570" }}>{t}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Quick actions — pastel cards */}
+        <h2 className="mt-12 text-lg font-bold text-fg-strong">Quick actions</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {LINKS.map((l, i) => (
+            <Link key={l.title} href={l.href} className="rounded-[22px] bg-surface p-6 shadow-lg transition-transform hover:-translate-y-1">
+              <p className="font-bold text-fg-strong">{l.title}</p>
+              <p className="mt-2 text-sm text-muted">{l.desc}</p>
+              <span className="mt-4 inline-block rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-ink">Open →</span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Models */}
+        <div id="models" className="mt-12 scroll-mt-24 grid gap-10 lg:grid-cols-2">
+          <div>
+            <h2 className="text-lg font-bold text-fg-strong">Recently used</h2>
+            {recents.length === 0 ? <p className="mt-4 rounded-[22px] bg-surface p-6 text-sm text-muted shadow-lg">Models you generate with show up here.</p> : <div className="mt-4 grid gap-4 sm:grid-cols-2">{recents.map((s, i) => <PlayChip key={s} slug={s} i={i} />)}</div>}
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-fg-strong">Favorite models</h2>
+            {favs.length === 0 ? <p className="mt-4 rounded-[22px] bg-surface p-6 text-sm text-muted shadow-lg">Heart a model in the catalog to save it here.</p> : <div className="mt-4 grid gap-4 sm:grid-cols-2">{favs.map((s, i) => <PlayChip key={s} slug={s} i={i} />)}</div>}
+          </div>
+        </div>
+      </main>
+      <div className="relative z-10"><SiteFooter /></div>
+    </div>
+  );
+}
