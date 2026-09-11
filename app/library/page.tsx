@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
@@ -56,8 +56,9 @@ function VideoThumb({ v }: { v: VideoItem }) {
   );
 }
 
-export default function LibraryPage() {
+function LibraryInner() {
   const router = useRouter();
+  const search = useSearchParams();
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<"videos" | "images">("images");
 
@@ -112,11 +113,12 @@ export default function LibraryPage() {
     setImgLightbox(null);
   });
 
-  // Open the tab named in ?tab= (from the header Library menu).
+  // Open the tab named in ?tab= (from the header Library menu). Reacts to query
+  // changes too, so navigating Videos → Images updates without a remount.
   useEffect(() => {
-    const t = new URLSearchParams(window.location.search).get("tab");
+    const t = search.get("tab");
     if (t === "images" || t === "videos") setTab(t);
-  }, []);
+  }, [search]);
 
   useEffect(() => {
     if (!isSignedIn()) {
@@ -798,5 +800,13 @@ export default function LibraryPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function LibraryPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <LibraryInner />
+    </Suspense>
   );
 }
