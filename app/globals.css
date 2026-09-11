@@ -674,6 +674,27 @@ html.skin-luxury .pg-prompt { max-width: 26rem; }
   html.skin-luxury .mc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+/* Per-skin SETTINGS tab layout. OG keeps the left sidebar; the alt skins move
+   the tabs to a horizontal bar on top, each styled to taste. */
+@media (min-width: 1024px) {
+  html.skin-editorial .settings-shell,
+  html.skin-luxury .settings-shell,
+  html.skin-playful .settings-shell { grid-template-columns: minmax(0, 1fr) !important; }
+  html.skin-editorial .settings-nav,
+  html.skin-luxury .settings-nav,
+  html.skin-playful .settings-nav { flex-direction: row !important; flex-wrap: wrap; }
+}
+/* Editorial: clean underline tabs (no boxed rail). */
+html.skin-editorial .settings-nav { border: 0; padding: 0; gap: 0.25rem 1.25rem; border-bottom: 1px solid var(--c-line); }
+html.skin-editorial .settings-nav > button { border-radius: 0; border-bottom: 2px solid transparent; padding-left: 0; padding-right: 0; }
+html.skin-editorial .settings-nav > button:hover { background: transparent; }
+/* Luxury: centered gold-accented top tabs. */
+html.skin-luxury .settings-nav { justify-content: center; border-color: var(--c-hairline); border-radius: 999px; }
+html.skin-luxury .settings-nav > button { border-radius: 999px; }
+/* Playful: chunky pill tabs. */
+html.skin-playful .settings-nav { border: 0; padding: 0; gap: 0.5rem; }
+html.skin-playful .settings-nav > button { border-radius: 999px; border: 2px solid var(--c-hairline-strong); }
+
 /* ==== Luxury: soft rounded corners, pill buttons, gold-edged navy cards. ==== */
 html.skin-luxury .rounded-none { border-radius: 12px !important; }
 html.skin-luxury .rounded-\[6px\],

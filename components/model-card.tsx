@@ -26,14 +26,22 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
     }
   }
 
+  const maxRes = model.resolutions[model.resolutions.length - 1];
+
   return (
-    <Link href={`/generate?model=${model.slug}`} onMouseEnter={play} onMouseLeave={stop} className="group block">
-      <div className="relative aspect-video overflow-hidden rounded-[10px] bg-black">
+    <Link
+      href={`/generate?model=${model.slug}`}
+      onMouseEnter={play}
+      onMouseLeave={stop}
+      className="group flex flex-col overflow-hidden rounded-[12px] border border-line bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.6)]"
+    >
+      {/* Media */}
+      <div className="relative aspect-video overflow-hidden bg-black">
         {!loaded && <span aria-hidden="true" className="skeleton absolute inset-0" />}
         <video
           ref={videoRef}
           onLoadedData={() => setLoaded(true)}
-          className="h-full w-full object-cover opacity-95 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-100"
+          className="h-full w-full object-cover opacity-95 transition duration-500 group-hover:scale-[1.04] group-hover:opacity-100"
           src={model.demoVideo}
           poster={model.poster}
           muted
@@ -41,6 +49,10 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
           playsInline
           preload="auto"
         />
+        {/* max-res chip */}
+        <span className="absolute left-2.5 top-2.5 rounded-full bg-black/50 px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-white/90 backdrop-blur">
+          {maxRes}
+        </span>
         <button
           type="button"
           aria-label={fav ? "Remove from favorites" : "Add to favorites"}
@@ -54,16 +66,20 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
           <Heart size={16} strokeWidth={2} fill={fav ? "var(--c-heart)" : "none"} color={fav ? "var(--c-heart)" : "var(--c-heart-idle)"} />
         </button>
       </div>
-      <div className="mt-4">
+
+      {/* Body */}
+      <div className="flex flex-1 flex-col p-4">
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em] text-fg-strong transition-colors group-hover:text-gold-soft">
+          <h3 className="font-[family-name:var(--font-jetbrains)] text-base font-medium uppercase tracking-[0.02em] text-fg-strong transition-colors group-hover:text-gold-soft">
             {model.name}
           </h3>
-          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-gold">
+          <span className="shrink-0 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-gold">
             {model.tagline}
           </span>
         </div>
-        <p className="mt-2 text-sm text-muted">{model.description}</p>
+        <p className="mt-2 line-clamp-2 text-sm text-muted">{model.description}</p>
+
+        {/* Capability chips */}
         <div className="mt-3 flex flex-wrap gap-1.5">
           {model.capabilities.map((c) => {
             const on = highlight?.has(c);
@@ -71,13 +87,21 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
               <span
                 key={c}
                 className={`rounded-full border px-2.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] transition-colors ${
-                  on ? "border-accent bg-accent-soft text-accent-ink" : "border-line-strong bg-raised text-fg-soft"
+                  on ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong bg-raised text-fg-soft"
                 }`}
               >
                 {c}
               </span>
             );
           })}
+        </div>
+
+        {/* Spec footer */}
+        <div className="mt-4 flex items-center justify-between border-t border-hairline pt-3 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.05em]">
+          <span className="text-dim">{model.durations[0]}–{model.durations[model.durations.length - 1]}s</span>
+          <span className="text-fg-soft">
+            <span className="text-gold-bright">{model.creditsPerSecond}</span> cr/s
+          </span>
         </div>
       </div>
     </Link>

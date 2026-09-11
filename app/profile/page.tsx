@@ -269,9 +269,9 @@ function ProfileInner() {
               </div>
             </div>
 
-            <div className="mt-8 grid gap-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:items-start">
-              {/* left sidebar nav */}
-              <aside className="flex flex-row flex-wrap gap-1 border border-line p-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col">
+            <div className="settings-shell mt-8 grid gap-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:items-start">
+              {/* tab nav — layout varies per skin (see globals.css) */}
+              <aside className="settings-nav flex flex-row flex-wrap gap-1 border border-line p-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col">
                 {TABS.map((t) => (
                   <button
                     key={t}
