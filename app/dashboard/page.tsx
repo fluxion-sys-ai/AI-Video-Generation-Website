@@ -6,7 +6,7 @@ import { isSignedIn, getUser } from "@/lib/auth";
 import { getModels } from "@/lib/models";
 import { getFavorites, getRecents } from "@/lib/prefs";
 import { useSkin } from "@/lib/use-skin";
-import { DashboardOG, DashboardEditorial, DashboardLuxury, DashboardPlayful } from "@/components/dashboards";
+import { DashboardOG, DashboardEditorial, DashboardLuxury, DashboardPlayful, DashboardCosmos } from "@/components/dashboards";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -33,5 +33,6 @@ export default function DashboardPage() {
   if (skin === "editorial") return <DashboardEditorial {...data} />;
   if (skin === "luxury") return <DashboardLuxury {...data} />;
   if (skin === "playful") return <DashboardPlayful {...data} />;
+  if (skin === "cosmos") return <DashboardCosmos {...data} />;
   return <DashboardOG {...data} />;
 }

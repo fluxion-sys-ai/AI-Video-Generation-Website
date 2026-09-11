@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, JetBrains_Mono, Sora, Archivo_Black, Playfair_Display, Caveat, Inter, Space_Grotesk, Outfit } from "next/font/google";
+import { Geist, JetBrains_Mono, Sora, Archivo_Black, Playfair_Display, Caveat, Inter, Space_Grotesk, Outfit, Orbitron } from "next/font/google";
 import "./globals.css";
 import { Spotlight } from "@/components/spotlight";
 import { Toaster } from "@/components/toaster";
 import { SkinSwitcher } from "@/components/skin-switcher";
+import { CosmosBackdrop } from "@/components/cosmos-backdrop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ const caveat = Caveat({ variable: "--font-caveat", subsets: ["latin"], weight: [
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["300", "400", "500", "600"] });
 const spaceGrotesk = Space_Grotesk({ variable: "--font-space", subsets: ["latin"], weight: ["400", "500", "700"] });
 const outfit = Outfit({ variable: "--font-outfit", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
+const orbitron = Orbitron({ variable: "--font-orbitron", subsets: ["latin"], weight: ["500", "600", "700", "800"] });
 
 const SITE = "Fluxion AI Video";
 const DESC = "AI video generator, choose a model, write a prompt, and generate.";
@@ -60,7 +62,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${jetbrainsMono.variable} ${sora.variable} ${archivoBlack.variable} ${playfair.variable} ${caveat.variable} ${inter.variable} ${spaceGrotesk.variable} ${outfit.variable} h-full scroll-smooth antialiased`}
+      className={`${geistSans.variable} ${jetbrainsMono.variable} ${sora.variable} ${archivoBlack.variable} ${playfair.variable} ${caveat.variable} ${inter.variable} ${spaceGrotesk.variable} ${outfit.variable} ${orbitron.variable} h-full scroll-smooth antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-base text-fg font-[family-name:var(--font-geist-sans)]">
         {/* No-flash theme boot: runs before paint so the correct look is set
@@ -70,10 +72,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{var t=localStorage.getItem('fluxion.theme');if(t==='light'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.classList.add('light');var s=localStorage.getItem('fluxion.skin');if(s==='editorial'||s==='luxury'||s==='playful')document.documentElement.classList.add('skin-'+s)}catch(e){}",
+              "try{var t=localStorage.getItem('fluxion.theme');if(t==='light'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.classList.add('light');var s=localStorage.getItem('fluxion.skin');if(s==='editorial'||s==='luxury'||s==='playful'||s==='cosmos')document.documentElement.classList.add('skin-'+s)}catch(e){}",
           }}
         />
         <Spotlight />
+        <CosmosBackdrop />
         {children}
         <SkinSwitcher />
         <Toaster />

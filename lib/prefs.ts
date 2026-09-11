@@ -179,14 +179,15 @@ export function applyTheme(t: Theme) {
 //   - "editorial" → warm frosted-glass, chunky black headlines (its own palette)
 //   - "luxury"    → navy + gold, serif headlines, wave dividers (its own palette)
 //   - "playful"   → white + blocky pastels, rounded friendly type, yellow pills
+//   - "cosmos"    → deep-space neon, horizontal slideshow, starfield backdrop
 // This is a preview mechanism so all skins can be compared across the real site.
 const SKIN_KEY = "fluxion.skin";
-export type Skin = "og" | "editorial" | "luxury" | "playful";
+export type Skin = "og" | "editorial" | "luxury" | "playful" | "cosmos";
 
 export function getSkin(): Skin {
   if (typeof window === "undefined") return "og";
   const v = localStorage.getItem(SKIN_KEY);
-  return v === "editorial" || v === "luxury" || v === "playful" ? v : "og";
+  return v === "editorial" || v === "luxury" || v === "playful" || v === "cosmos" ? v : "og";
 }
 
 // Persist the skin and reflect it on <html> immediately (toggling the skin class
@@ -195,7 +196,7 @@ export function applySkin(skin: Skin) {
   if (typeof window === "undefined") return;
   localStorage.setItem(SKIN_KEY, skin);
   const el = document.documentElement;
-  el.classList.remove("skin-editorial", "skin-luxury", "skin-playful");
+  el.classList.remove("skin-editorial", "skin-luxury", "skin-playful", "skin-cosmos");
   if (skin !== "og") el.classList.add(`skin-${skin}`);
   // Notify React components (useSkin) so layouts, not just CSS, re-render live.
   window.dispatchEvent(new CustomEvent("fluxion-skin", { detail: skin }));

@@ -195,6 +195,40 @@ export function ModelCatalog({ models }: { models: Model[] }) {
     );
   }
 
+  // ===== COSMOS, futuristic header + a sideways-scrolling neon carousel. =====
+  if (skin === "cosmos") {
+    return (
+      <div className="relative">
+        <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">Star catalog</p>
+        <h1 className="mt-2 font-[family-name:var(--font-orbitron)] text-[clamp(30px,4.5vw,52px)] text-fg-strong">The fleet</h1>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <SearchBox q={q} setQ={setQ} className="w-full max-w-md" placeholder="Search the fleet" />
+          <SortSelect sort={sort} setSort={setSort} />
+        </div>
+        <div className="mt-4"><TagChips allTags={allTags} tags={tags} toggleTag={toggleTag} clear={() => setTags(new Set())} /></div>
+        {list.length === 0 ? empty : (
+          <div className="mt-8 flex gap-6 overflow-x-auto pb-4" style={{ scrollSnapType: "x mandatory" }}>
+            {list.map((m, i) => (
+              <Link key={m.slug} href={`/generate?model=${m.slug}`} style={{ scrollSnapAlign: "start" }} className="group w-[300px] shrink-0 overflow-hidden rounded-[12px] border border-hairline bg-surface transition-transform hover:-translate-y-1">
+                <div className="relative aspect-video overflow-hidden bg-black">
+                  <img src={m.poster} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <span className="absolute left-2.5 top-2.5 rounded-full bg-black/50 px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-accent-ink backdrop-blur">0{i + 1}</span>
+                  <div className="absolute right-2.5 top-2.5"><FavHeart slug={m.slug} light /></div>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-[family-name:var(--font-orbitron)] text-lg text-fg-strong">{m.name}</h3>
+                  <p className="mt-1 text-sm text-muted">{m.tagline}</p>
+                  <p className="mt-3 line-clamp-2 text-sm text-fg-soft">{m.description}</p>
+                  <p className="mt-4 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-accent-ink">{m.creditsPerSecond} cr/s · {m.resolutions[m.resolutions.length - 1]} →</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // ===== OG, the original catalog. =====
   return (
     <div className="relative">

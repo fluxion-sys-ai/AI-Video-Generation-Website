@@ -595,3 +595,83 @@ export function LandingPlayful() {
     </div>
   );
 }
+
+/* ---------------------------------------------------------------- COSMOS ---- */
+// A sideways-scrolling "slideshow" landing. Full-viewport panels laid out
+// horizontally with scroll-snap; the wheel is mapped to horizontal motion so a
+// mouse can drive it too. The starfield backdrop (CosmosBackdrop) sits behind.
+export function LandingCosmos() {
+  const models = getModels();
+  const deck = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = deck.current;
+    if (!el) return;
+    function onWheel(e: WheelEvent) {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // already horizontal
+      e.preventDefault();
+      el!.scrollLeft += e.deltaY;
+    }
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
+  const panel = "flex h-full w-screen shrink-0 flex-col justify-center px-[8vw]";
+
+  return (
+    <div className="flex h-screen flex-col overflow-hidden bg-base text-fg">
+      <SiteHeader />
+      <div ref={deck} className="cosmos-deck flex flex-1 overflow-x-auto overflow-y-hidden">
+        {/* Panel 1: hero */}
+        <section className={panel}>
+          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.4em] text-accent-ink">Fluxion / Deep space studio</p>
+          <h1 className="mt-6 max-w-3xl text-[clamp(44px,8vw,104px)] font-bold leading-[0.95] text-fg-strong">Generate at the speed of light.</h1>
+          <p className="mt-6 max-w-md text-lg text-fg-soft">Prompt a scene, pick a model, and launch. A studio built for motion, wrapped in a quiet galaxy.</p>
+          <div className="mt-9 flex flex-wrap gap-4">
+            <Link href="/signup" className="rounded-[8px] bg-accent px-7 py-3.5 font-semibold text-ink shadow-[0_0_30px_-6px_var(--c-accent)] transition-transform hover:-translate-y-0.5">Launch the studio →</Link>
+            <Link href="/models" className="rounded-[8px] border border-accent-border px-7 py-3.5 font-semibold text-accent-ink transition-colors hover:bg-accent-soft">Browse models</Link>
+          </div>
+          <p className="mt-12 flex items-center gap-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.2em] text-dim">Scroll sideways <span className="text-accent-ink">→</span></p>
+        </section>
+
+        {/* Panel 2: models */}
+        <section className={panel}>
+          <h2 className="font-[family-name:var(--font-orbitron)] text-[clamp(26px,4vw,44px)] text-fg-strong">The fleet</h2>
+          <div className="mt-8 flex gap-6 overflow-visible">
+            {models.map((m, i) => (
+              <Link key={m.slug} href={`/generate?model=${m.slug}`} className="group w-[240px] shrink-0 overflow-hidden rounded-[12px] border border-hairline bg-surface transition-transform hover:-translate-y-1">
+                <div className="relative aspect-video overflow-hidden bg-black">
+                  <img src={m.poster} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <span className="absolute left-2 top-2 rounded-full bg-black/50 px-2 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] text-accent-ink backdrop-blur">0{i + 1}</span>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-[family-name:var(--font-orbitron)] text-base text-fg-strong">{m.name}</h3>
+                  <p className="mt-1 text-xs text-muted">{m.tagline}</p>
+                  <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-xs text-accent-ink">{m.creditsPerSecond} cr/s →</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Panel 3: pricing + CTA */}
+        <section className={panel}>
+          <h2 className="font-[family-name:var(--font-orbitron)] text-[clamp(26px,4vw,44px)] text-fg-strong">Pay as you fly</h2>
+          <p className="mt-4 max-w-md text-fg-soft">No subscriptions. Pay per second, priced per model.</p>
+          <div className="mt-8 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
+            {models.map((m) => (
+              <div key={m.slug} className="rounded-[12px] border border-hairline bg-surface p-5">
+                <p className="font-[family-name:var(--font-orbitron)] text-sm text-fg-strong">{m.name}</p>
+                <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl text-accent-ink">${(m.creditsPerSecond * 5 * 0.01).toFixed(2)}</p>
+                <p className="text-xs text-muted">/ 5s clip</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-9">
+            <Link href="/signup" className="rounded-[8px] bg-accent px-8 py-3.5 font-semibold text-ink shadow-[0_0_30px_-6px_var(--c-accent)] transition-transform hover:-translate-y-0.5">Start generating →</Link>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

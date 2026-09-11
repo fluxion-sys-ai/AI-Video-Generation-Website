@@ -124,7 +124,7 @@ function GenerateInner() {
   const [status, setStatus] = useState<Status>("idle");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<"examples" | "change">("examples");
-  const [view, setView] = useState<"playground" | "api">("playground");
+  const [view, setView] = useState<"playground" | "examples" | "api">("playground");
   const skin = useSkin();
   const [panelOpen, setPanelOpen] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -367,7 +367,7 @@ function GenerateInner() {
           OG keeps its original left rail (rendered inside the body below). */}
       {skin !== "og" && (
         <nav className="pg-viewnav flex gap-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
-          {(["playground", "api"] as const).map((v) => (
+          {(skin === "luxury" ? (["playground", "examples", "api"] as const) : (["playground", "api"] as const)).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
@@ -375,7 +375,7 @@ function GenerateInner() {
                 view === v ? "bg-accent-soft text-accent-ink" : "text-muted hover:bg-hover hover:text-fg"
               }`}
             >
-              {v === "playground" ? "Playground" : "API"}
+              {v === "playground" ? "Playground" : v === "examples" ? "Examples" : "API"}
             </button>
           ))}
         </nav>
@@ -403,6 +403,16 @@ function GenerateInner() {
       {view === "api" ? (
         <div className="min-h-0 lg:overflow-y-auto">
           <ApiDocs model={model} />
+        </div>
+      ) : view === "examples" ? (
+        <div className="min-h-0 lg:overflow-y-auto">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="font-[family-name:var(--font-playfair)] text-2xl text-fg-strong">Sample outputs</h2>
+            <p className="mt-1 text-sm text-muted">A sample generation from {model.name}.</p>
+            <div className="mt-4 overflow-hidden rounded-[10px] bg-black">
+              <video className="aspect-video w-full object-cover" src={model.demoVideo} poster={model.poster} autoPlay muted loop controls playsInline />
+            </div>
+          </div>
         </div>
       ) : (
       <div

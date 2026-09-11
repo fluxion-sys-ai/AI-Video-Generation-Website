@@ -363,3 +363,84 @@ export function DashboardPlayful({ name, favs, recents, models }: DashData) {
     </div>
   );
 }
+
+/* ---------------------------------------------------------------- COSMOS ---- */
+function CosmosChip({ slug }: { slug: string }) {
+  const m = getModel(slug);
+  if (!m) return null;
+  return (
+    <Link href={`/generate?model=${m.slug}`} className="group flex items-center gap-4 rounded-[10px] border border-hairline bg-surface p-3 transition-transform hover:-translate-y-0.5">
+      <img src={m.poster} alt="" className="h-12 w-20 shrink-0 rounded-[6px] bg-black object-cover" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-[family-name:var(--font-orbitron)] text-sm text-fg-strong">{m.name}</p>
+        <p className="truncate text-xs text-muted">{m.tagline}</p>
+      </div>
+      <span className="text-accent-ink transition-transform group-hover:translate-x-1">→</span>
+    </Link>
+  );
+}
+
+export function DashboardCosmos({ name, favs, recents, models }: DashData) {
+  return (
+    <div className="relative flex min-h-screen flex-col">
+      <SiteHeader />
+      <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-8 py-12">
+        <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.32em] text-accent-ink">Mission control</p>
+        <h1 className="mt-3 font-[family-name:var(--font-orbitron)] text-[clamp(30px,5vw,52px)] leading-tight text-fg-strong">Welcome aboard, {name}.</h1>
+
+        {/* Readouts */}
+        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {SNAPSHOT(models).map(([t, v]) => (
+            <div key={t} className="rounded-[10px] border border-hairline bg-surface p-5">
+              <p className="font-[family-name:var(--font-orbitron)] text-2xl text-accent-ink">{v}</p>
+              <p className="mt-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.14em] text-muted">{t}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-start">
+          {/* Systems check (getting started) */}
+          <div>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Systems check</h2>
+            <div className="mt-4 space-y-2">
+              {STEPS.map((s, i) => (
+                <Link key={s.title} href={s.href} className="group flex items-center gap-4 rounded-[10px] border border-hairline bg-surface px-4 py-3 hover:-translate-y-0.5 transition-transform">
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full font-[family-name:var(--font-jetbrains)] text-xs ${s.done ? "bg-accent text-ink" : "border border-line-strong text-muted"}`}>{s.done ? "✓" : i + 1}</span>
+                  <div className="flex-1">
+                    <span className="block text-sm text-fg-strong">{s.title}</span>
+                    <span className="text-xs text-muted">{s.desc}</span>
+                  </div>
+                  <span className="text-accent-ink">→</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+          {/* Launch pads (quick actions) */}
+          <div>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Launch pads</h2>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {LINKS.map((l) => (
+                <Link key={l.title} href={l.href} className="rounded-[10px] border border-hairline bg-surface p-4 transition-transform hover:-translate-y-0.5">
+                  <p className="font-[family-name:var(--font-orbitron)] text-sm text-fg-strong">{l.title}</p>
+                  <p className="mt-1 text-xs text-muted">{l.desc}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div id="models" className="mt-12 scroll-mt-24 grid gap-10 lg:grid-cols-2">
+          <div>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Recent flights</h2>
+            {recents.length === 0 ? <p className="mt-4 rounded-[10px] border border-hairline bg-surface p-4 text-sm text-muted">Models you generate with show up here.</p> : <div className="mt-4 space-y-3">{recents.map((s) => <CosmosChip key={s} slug={s} />)}</div>}
+          </div>
+          <div>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Favorites</h2>
+            {favs.length === 0 ? <p className="mt-4 rounded-[10px] border border-hairline bg-surface p-4 text-sm text-muted">Heart a model to save it here.</p> : <div className="mt-4 space-y-3">{favs.map((s) => <CosmosChip key={s} slug={s} />)}</div>}
+          </div>
+        </div>
+      </main>
+      <div className="relative z-10"><SiteFooter /></div>
+    </div>
+  );
+}
