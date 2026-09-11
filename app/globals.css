@@ -811,6 +811,66 @@ html.skin-luxury .settings-nav > button { border-radius: 0; }
 /* Playful: chunky pill tabs. */
 html.skin-playful .settings-nav { border: 0; padding: 0; gap: 0.5rem; }
 html.skin-playful .settings-nav > button { border-radius: 999px; border: 2px solid var(--c-hairline-strong); }
+/* Slideshow: top pill tabs too. */
+@media (min-width: 1024px) {
+  html.skin-cosmos .settings-shell { grid-template-columns: minmax(0, 1fr) !important; }
+  html.skin-cosmos .settings-nav { flex-direction: row !important; flex-wrap: wrap; }
+}
+html.skin-cosmos .settings-nav > button { border-radius: 999px; }
+
+/* ---- Per-skin SETTINGS form styling: each theme gets a distinct form feel
+   (not the same clean boxes everywhere). ---- */
+/* Editorial: an airy underline form, no input boxes, narrower measure. */
+html.skin-editorial .settings-content { max-width: 46rem; }
+html.skin-editorial .settings-content input:not([type="checkbox"]):not([type="file"]),
+html.skin-editorial .settings-content select,
+html.skin-editorial .settings-content textarea {
+  border: 0 !important;
+  border-bottom: 1px solid var(--c-line-strong) !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* Luxury: the whole form sits in one shaded, sharp panel; shaded inputs. */
+html.skin-luxury .settings-content {
+  background: var(--c-panel);
+  border: 1px solid var(--c-hairline);
+  padding: 2rem;
+}
+html.skin-luxury .settings-content input:not([type="checkbox"]):not([type="file"]),
+html.skin-luxury .settings-content select,
+html.skin-luxury .settings-content textarea { background: var(--c-raised) !important; }
+
+/* Playful: a pastel shaded card with rounded pastel inputs. */
+html.skin-playful .settings-content {
+  background: var(--c-panel);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 6px 6px 0 rgba(26, 20, 64, 0.12);
+}
+html.skin-playful .settings-content input:not([type="checkbox"]):not([type="file"]),
+html.skin-playful .settings-content select,
+html.skin-playful .settings-content textarea {
+  border-radius: 12px !important;
+  background: #f4eefb !important;
+  border: 2px solid var(--c-hairline-strong) !important;
+}
+
+/* Slideshow: a soft violet card with rounded, airy inputs. */
+html.skin-cosmos .settings-content {
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  border-radius: 16px;
+  padding: 2rem;
+}
+html.skin-cosmos .settings-content input:not([type="checkbox"]):not([type="file"]),
+html.skin-cosmos .settings-content select,
+html.skin-cosmos .settings-content textarea {
+  border-radius: 10px !important;
+  background: var(--c-raised) !important;
+  border-color: var(--c-hairline-strong) !important;
+}
 
 /* ---- Per-skin IMAGES LIBRARY treatments (same functionality, new look). ---- */
 /* Editorial: Finder-like dense small thumbnails; quiet header. */

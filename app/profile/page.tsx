@@ -286,7 +286,7 @@ function ProfileInner() {
               </aside>
 
               {/* content column */}
-              <div className="min-w-0">
+              <div className="settings-content min-w-0">
 
             {/* ACCOUNT */}
             {tab === "account" && (
