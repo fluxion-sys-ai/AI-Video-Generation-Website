@@ -1,5 +1,10 @@
+"use client";
+
 // Daily usage bar chart (mock standin values). Responsive full-width HTML/CSS
-// so axis labels stay crisp. X axis = day, Y axis = dollars.
+// so axis labels stay crisp. X axis = day, Y axis = dollars. Hovering a bar
+// shows a tooltip with that day's date + amount.
+
+import { useState } from "react";
 
 const DEFAULT = [2, 1, 0, 3, 5, 2, 4, 3, 6, 4, 2, 7, 5, 8, 6, 3, 5, 9, 7, 4];
 
@@ -29,6 +34,7 @@ export function UsageChart({
   data?: number[];
   plotHeight?: number;
 }) {
+  const [hover, setHover] = useState<number | null>(null);
   const labels = dayLabels(data.length);
   const top = niceTop(Math.max(...data, 1));
   const ticks = [top, (top * 3) / 4, top / 2, top / 4, 0];
@@ -53,6 +59,7 @@ export function UsageChart({
         <div
           className="relative flex items-end gap-[3px] border-b border-l border-line"
           style={{ height: plotHeight }}
+          onMouseLeave={() => setHover(null)}
         >
           {ticks.slice(0, -1).map((t) => (
             <span
@@ -64,20 +71,34 @@ export function UsageChart({
           {data.map((v, i) => (
             <div
               key={i}
-              title={`${labels[i]} · $${v}`}
-              className="relative flex-1 rounded-t-[2px]"
+              onMouseEnter={() => setHover(i)}
+              className="relative flex-1 cursor-default rounded-t-[2px] transition-colors"
               style={{
                 height: `${Math.max((v / top) * 100, 1.5)}%`,
-                background: "#FFB020",
+                background: hover === i ? "var(--c-accent)" : "#FFB020",
               }}
             />
           ))}
+
+          {/* hover tooltip */}
+          {hover !== null && (
+            <div
+              className="pointer-events-none absolute z-10 whitespace-nowrap border border-line bg-panel px-2 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] text-fg shadow-lg shadow-black/30"
+              style={{
+                left: `${Math.min(Math.max(((hover + 0.5) / data.length) * 100, 10), 90)}%`,
+                bottom: `${Math.max((data[hover] / top) * 100, 1.5)}%`,
+                transform: "translate(-50%, -6px)",
+              }}
+            >
+              {labels[hover]} · <span className="text-gold">${data[hover]}</span>
+            </div>
+          )}
         </div>
         {/* X axis — sparse labels (every `step` days + the last), no wrapping */}
         <div className="mt-1.5 flex gap-[3px] font-[family-name:var(--font-jetbrains)] text-[9px] text-dim">
           {labels.map((l, i) => (
             <span key={i} className="min-w-0 flex-1 overflow-visible whitespace-nowrap text-center">
-              {i % step === 0 || i === labels.length - 1 ? l : " "}
+              {i % step === 0 || i === labels.length - 1 ? l : " "}
             </span>
           ))}
         </div>
