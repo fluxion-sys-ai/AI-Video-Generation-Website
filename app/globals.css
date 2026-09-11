@@ -734,6 +734,18 @@ html.skin-editorial .pg-examples > div {
 /* Give the preview stage a soft framed card feel. */
 html.skin-editorial .pg-preview { padding: 0.25rem; }
 
+/* OG playground: mirror the 3-pane grid so the examples panel sits on the RIGHT
+   (like editorial), moving the divider to its inner edge. Scoped to OG only
+   (no skin- class); the alt skins define their own grid arrangements. */
+html:not([class*="skin-"]) .pg-grid { direction: rtl; }
+html:not([class*="skin-"]) .pg-grid > * { direction: ltr; }
+html:not([class*="skin-"]) .pg-examples > div {
+  border-right: 0;
+  padding-right: 0;
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--c-line);
+}
+
 /* Luxury playground: examples live in their own top tab (not a rail), so the
    playground itself is just controls (left) + a large preview (right). */
 html.skin-luxury .pg-examples { display: none; }
