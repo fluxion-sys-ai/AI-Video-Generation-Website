@@ -347,9 +347,11 @@ function LibraryInner() {
       <SiteHeader />
 
       <main className="relative z-10 w-full flex-1 px-10 py-10">
-        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">Library</span>
-        <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">Your library</h1>
-        <p className="mt-2 text-sm text-muted">Everything you&apos;ve generated and uploaded.</p>
+        <div className="lib-head">
+          <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">Library</span>
+          <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">Your library</h1>
+          <p className="mt-2 text-sm text-muted">Everything you&apos;ve generated and uploaded.</p>
+        </div>
 
         <div className="mt-8 flex gap-6 border-b border-hairline font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
           {(["images", "videos"] as const).map((t) => (
@@ -391,7 +393,7 @@ function LibraryInner() {
             <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={onUploadFiles} />
 
             {/* search — matches by name across all images (results show their folder) */}
-            <div className="relative mt-6 max-w-md">
+            <div className="lib-search relative mt-6 max-w-md">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-dim">
                 <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
                 <path d="M11 11 L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
@@ -406,7 +408,7 @@ function LibraryInner() {
             </div>
 
             {/* toolbar row: folder tabs (left) on the same line as the actions (right) */}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
+            <div className="lib-toolbar mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
               {/* left: All + folder tabs (drop targets) */}
               <div className="flex flex-wrap items-center gap-2">
                 <button
@@ -546,7 +548,7 @@ function LibraryInner() {
 
 
             {/* image grid */}
-            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+            <div className="lib-grid mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
               {shownImages.length === 0 ? (
                 <div className="col-span-full">
                   {searching ? (

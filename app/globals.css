@@ -695,6 +695,26 @@ html.skin-luxury .settings-nav > button { border-radius: 999px; }
 html.skin-playful .settings-nav { border: 0; padding: 0; gap: 0.5rem; }
 html.skin-playful .settings-nav > button { border-radius: 999px; border: 2px solid var(--c-hairline-strong); }
 
+/* ---- Per-skin IMAGES LIBRARY treatments (same functionality, new look). ---- */
+/* Editorial: Finder-like dense small thumbnails; quiet header. */
+html.skin-editorial .lib-head p { display: none; }
+@media (min-width: 640px) { html.skin-editorial .lib-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { html.skin-editorial .lib-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0.75rem; } }
+
+/* Luxury: spacious gallery; drop the subtitle; folder tabs become gold pills. */
+html.skin-luxury .lib-head p { display: none; }
+html.skin-luxury .lib-toolbar button { border-radius: 999px; }
+@media (min-width: 1024px) { html.skin-luxury .lib-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1.5rem; } }
+
+/* Playful: desktop vibe — no title, centered pill search, big rounded tiles,
+   folder chips as chunky pastel pills. */
+html.skin-playful .lib-head { display: none; }
+html.skin-playful .lib-search { margin-left: auto; margin-right: auto; max-width: 30rem; }
+html.skin-playful .lib-search input { border-radius: 999px; text-align: center; border-width: 2px; }
+html.skin-playful .lib-toolbar button { border-radius: 999px; border-width: 2px; }
+@media (min-width: 1024px) { html.skin-playful .lib-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; } }
+html.skin-playful .lib-grid > * { border-radius: 20px; overflow: hidden; }
+
 /* ==== Luxury: soft rounded corners, pill buttons, gold-edged navy cards. ==== */
 html.skin-luxury .rounded-none { border-radius: 12px !important; }
 html.skin-luxury .rounded-\[6px\],
