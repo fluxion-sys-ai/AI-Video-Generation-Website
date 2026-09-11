@@ -651,12 +651,27 @@ html.skin-editorial .pg-preview { padding: 0.25rem; }
   html.skin-luxury .pg-examples > div { border-right: 0; border-left: 1px solid var(--c-line); padding-right: 0; padding-left: 1.25rem; }
 }
 
-/* Per-skin model catalog: each skin lays the grid out differently. */
+/* Luxury: shrink the (over-long) prompt box right down. */
+html.skin-luxury .pg-prompt { max-width: 26rem; }
+
+/* Playful playground: a different arrangement — the preview sits big on top,
+   with the controls and examples side-by-side beneath it. */
 @media (min-width: 1024px) {
-  html.skin-editorial .mc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; }
+  html.skin-playful .pg-grid {
+    grid-template-columns: minmax(0, 1fr) 300px !important;
+    grid-template-areas: "preview preview" "form examples" !important;
+    grid-template-rows: minmax(0, 48vh) minmax(0, 1fr);
+    gap: 2rem;
+  }
+  html.skin-playful .pg-preview { grid-area: preview; }
+  html.skin-playful .pg-form { grid-area: form; }
+  html.skin-playful .pg-examples { grid-area: examples; }
+  html.skin-playful .pg-examples > div { border-right: 0; border-left: 1px solid var(--c-line); padding-left: 1.25rem; padding-right: 0; }
+}
+
+/* Per-skin model catalog grid density (further per-skin styling in JSX). */
+@media (min-width: 1024px) {
   html.skin-luxury .mc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  html.skin-playful .mc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.75rem; }
-  html.skin-playful .mc-grid > *:first-child { grid-column: span 2; }
 }
 
 /* ==== Luxury: soft rounded corners, pill buttons, gold-edged navy cards. ==== */

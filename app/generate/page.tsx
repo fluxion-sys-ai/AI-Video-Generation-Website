@@ -298,9 +298,9 @@ function GenerateInner() {
 
   return (
     <div className="px-6 py-6">
-      {/* Model picker — kept narrow so the layout stays aligned whether or not
-          the Examples panel is open. */}
-      <div className="relative mb-4 w-full max-w-[210px]">
+      {/* Top bar: model picker + Playground/API tabs, side by side. */}
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="pg-modelpick relative w-full max-w-[210px]">
           <button
             onClick={() => setPickerOpen((o) => !o)}
             aria-expanded={pickerOpen}
@@ -361,10 +361,8 @@ function GenerateInner() {
             </div>
           )}
       </div>
-
-      <div className="grid gap-6 lg:h-[calc(100vh-7rem)] lg:grid-cols-[150px_1fr]">
-      {/* Left rail: Playground / API */}
-      <nav className="flex gap-2 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col lg:gap-1">
+      {/* Playground / API tabs — top bar beside the model picker. */}
+      <nav className="pg-viewnav flex gap-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
         {(["playground", "api"] as const).map((v) => (
           <button
             key={v}
@@ -377,7 +375,9 @@ function GenerateInner() {
           </button>
         ))}
       </nav>
+      </div>
 
+      <div className="pg-body lg:h-[calc(100vh-7rem)]">
       {view === "api" ? (
         <div className="min-h-0 lg:overflow-y-auto">
           <ApiDocs model={model} />
@@ -462,7 +462,7 @@ function GenerateInner() {
               onChange={(e) => setPrompt(e.target.value)}
               rows={3}
               placeholder="Describe the shot: subject, motion, camera, lighting."
-              className={`${selectClass} resize-none`}
+              className={`${selectClass} resize-none pg-prompt`}
             />
           </Field>
 
