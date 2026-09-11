@@ -222,16 +222,55 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
   );
 }
 
+/* ---- mobile menu (tap-friendly; shown below md) --------------------------- */
+function MobileLink({ href, onNavigate, children }: { href: string; onNavigate: () => void; children: React.ReactNode }) {
+  return (
+    <Link href={href} onClick={onNavigate} className="block px-5 py-3 text-sm uppercase tracking-[0.06em] text-fg-soft-2 transition-colors hover:bg-hover hover:text-fg">
+      {children}
+    </Link>
+  );
+}
+
+// A collapsible section. Tapping the header expands/collapses its links.
+function MobileGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-hairline last:border-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-5 py-3 text-sm uppercase tracking-[0.06em] text-fg-soft-2 transition-colors hover:bg-hover hover:text-fg"
+      >
+        {label}
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className={`opacity-70 transition-transform ${open ? "rotate-180" : ""}`}>
+          <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        </svg>
+      </button>
+      {open && <div className="bg-base/40 pb-1">{children}</div>}
+    </div>
+  );
+}
+
+function SubLink({ href, onNavigate, children }: { href: string; onNavigate: () => void; children: React.ReactNode }) {
+  return (
+    <Link href={href} onClick={onNavigate} className="block py-2 pl-9 pr-5 text-sm normal-case tracking-normal text-muted transition-colors hover:bg-hover hover:text-fg">
+      {children}
+    </Link>
+  );
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [mode, setMode] = useState<"public" | "dashboard">("public");
   const [ready, setReady] = useState(false);
   const [favSlugs, setFavSlugs] = useState<string[]>([]);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     setUser(isSignedIn() ? getUser() : null);
     setFavSlugs(getFavorites());
+    setMobileOpen(false); // close the mobile menu on navigation
     let m = (localStorage.getItem(MODE_KEY) as "public" | "dashboard") || "public";
     if (ALWAYS_PUBLIC.includes(pathname)) m = "public";
     else if (ALWAYS_DASH.some((p) => pathname.startsWith(p))) m = "dashboard";
@@ -241,6 +280,7 @@ export function SiteHeader() {
   }, [pathname]);
 
   const dashMode = ready && !!user && mode === "dashboard";
+  const closeMobile = () => setMobileOpen(false);
 
   // Clear/transparent top bar: no solid fill — the page (and its decorative
   // background) shows straight through. A light backdrop-blur keeps the nav
@@ -379,8 +419,74 @@ export function SiteHeader() {
               </Link>
             </>
           )}
+          {/* hamburger — only below md, where the inline nav is hidden */}
+          <button
+            type="button"
+            aria-label="Menu"
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center text-fg-soft-2 transition-colors hover:text-fg md:hidden"
+          >
+            {mobileOpen ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M5 5 L19 19 M19 5 L5 19" strokeLinecap="round" /></svg>
+            ) : (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" /></svg>
+            )}
+          </button>
         </div>
       </nav>
+
+      {/* Mobile menu panel (tap-friendly). Hidden at md+ (inline nav shows). */}
+      {mobileOpen && (
+        <div className="border-t border-hairline bg-panel/95 backdrop-blur md:hidden">
+          <nav className="flex flex-col py-1 font-[family-name:var(--font-jetbrains)]">
+            {dashMode ? (
+              <>
+                <MobileGroup label="Dashboard">
+                  <SubLink href="/dashboard" onNavigate={closeMobile}>Main</SubLink>
+                  <SubLink href="/dashboard#models" onNavigate={closeMobile}>My models</SubLink>
+                </MobileGroup>
+                <MobileGroup label="Generate">
+                  <SubLink href="/models" onNavigate={closeMobile}>All models</SubLink>
+                  {models.map((m) => (
+                    <SubLink key={m.slug} href={`/generate?model=${m.slug}`} onNavigate={closeMobile}>{m.name}</SubLink>
+                  ))}
+                </MobileGroup>
+                <MobileGroup label="Library">
+                  <SubLink href="/library?tab=images" onNavigate={closeMobile}>Images</SubLink>
+                  <SubLink href="/library?tab=videos" onNavigate={closeMobile}>Videos</SubLink>
+                </MobileGroup>
+                <MobileLink href="/docs" onNavigate={closeMobile}>Docs</MobileLink>
+                <MobileGroup label="Settings">
+                  {PROFILE_TABS.map((t) => (
+                    <SubLink key={t.key} href={`/profile?tab=${t.key}`} onNavigate={closeMobile}>{t.title}</SubLink>
+                  ))}
+                </MobileGroup>
+                <MobileLink href="/info" onNavigate={closeMobile}>Info</MobileLink>
+              </>
+            ) : (
+              <>
+                <MobileGroup label="Models">
+                  <SubLink href="/models" onNavigate={closeMobile}>All models</SubLink>
+                  {models.map((m) => (
+                    <SubLink key={m.slug} href={`/generate?model=${m.slug}`} onNavigate={closeMobile}>{m.name}</SubLink>
+                  ))}
+                </MobileGroup>
+                <MobileLink href="/pricing" onNavigate={closeMobile}>Pricing</MobileLink>
+                <MobileLink href="/docs" onNavigate={closeMobile}>Docs</MobileLink>
+                <MobileLink href="/info" onNavigate={closeMobile}>Info</MobileLink>
+                {ready && user && <MobileLink href="/dashboard" onNavigate={closeMobile}>Create</MobileLink>}
+                {ready && !user && (
+                  <>
+                    <MobileLink href="/login" onNavigate={closeMobile}>Login</MobileLink>
+                    <MobileLink href="/signup" onNavigate={closeMobile}>Sign up</MobileLink>
+                  </>
+                )}
+              </>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
