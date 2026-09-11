@@ -340,22 +340,23 @@ export function LandingLuxury() {
       <Backdrop />
       <SiteHeader />
 
-      {/* Immersive twilight-skyline hero (CSS gradient stand-in for the photo). */}
+      {/* Immersive cinematic hero — a horizontal model clip plays behind the copy. */}
       <section className="relative overflow-hidden">
-        <div aria-hidden="true" className="absolute inset-0" style={{ background: "linear-gradient(180deg, #1a1230 0%, #2a2350 30%, #6d4a63 62%, #c98a6a 82%, #e7b482 100%)" }} />
-        {/* skyline silhouette */}
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-0">
-          <svg viewBox="0 0 1440 340" preserveAspectRatio="xMidYMax slice" className="h-[340px] w-full">
-            <g fill="#0a1024" opacity="0.92">
-              <rect x="60" y="180" width="70" height="160" /><rect x="150" y="120" width="52" height="220" /><rect x="220" y="210" width="64" height="130" />
-              <rect x="300" y="90" width="46" height="250" /><rect x="360" y="160" width="80" height="180" /><rect x="460" y="200" width="58" height="140" />
-              <rect x="540" y="60" width="60" height="280" /><rect x="620" y="150" width="70" height="190" /><rect x="710" y="210" width="54" height="130" />
-              <rect x="784" y="110" width="86" height="230" /><rect x="890" y="170" width="60" height="170" /><rect x="970" y="120" width="48" height="220" />
-              <rect x="1040" y="200" width="72" height="140" /><rect x="1130" y="90" width="56" height="250" /><rect x="1206" y="180" width="80" height="160" /><rect x="1310" y="150" width="64" height="190" />
-            </g>
-          </svg>
-        </div>
-        <div className="relative z-10 mx-auto max-w-5xl px-8 pb-40 pt-28">
+        <video
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover"
+          src={models[3]?.demoVideo ?? models[0].demoVideo}
+          poster={models[3]?.poster ?? models[0].poster}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        />
+        {/* navy → gold wash so the copy stays legible over the footage */}
+        <div aria-hidden="true" className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(10,16,36,0.82) 0%, rgba(10,16,36,0.55) 45%, rgba(10,16,36,0.85) 100%)" }} />
+        <div aria-hidden="true" className="absolute inset-0" style={{ background: "linear-gradient(100deg, rgba(10,16,36,0.9) 0%, transparent 65%)" }} />
+        <div className="relative z-10 mx-auto max-w-5xl px-8 pb-40 pt-32">
           <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">Fluxion · Private Studio</p>
           <h1 className="mt-6 max-w-3xl text-[clamp(44px,8vw,96px)] leading-[0.98] text-fg-strong">Your words, in motion.</h1>
           <p className="mt-6 max-w-lg text-lg font-light text-fg-soft">An address for ambitious ideas. Choose a model, compose your prompt, and commission cinematic video with the polish of a five-star production.</p>
@@ -470,55 +471,77 @@ function Sparkle({ className = "", size = 16 }: { className?: string; size?: num
   );
 }
 
+// Chunky cartoon "sticker" shadow used across the Playful landing.
+const POP = "6px 6px 0 rgba(26,20,64,0.16)";
+
+// Layered wave divider with a soft cast-shadow above it (adds depth).
+function PlayWave({ flip = false, fill = "var(--c-base-2)" }: { flip?: boolean; fill?: string }) {
+  return (
+    <svg viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true" className="-mb-px block h-[74px] w-full" style={{ transform: flip ? "rotate(180deg)" : undefined, fill, filter: "drop-shadow(0 -6px 8px rgba(124,58,237,0.14))" }}>
+      <path d="M0,48 C240,96 480,96 720,60 C960,24 1200,24 1440,60 L1440,90 L0,90 Z" />
+    </svg>
+  );
+}
+
+// A rounded pastel block that peeks in from a page edge (asymmetric decor).
+function EdgeBlock({ style }: { style: React.CSSProperties }) {
+  return <div aria-hidden="true" className="pointer-events-none absolute rounded-[28px]" style={{ boxShadow: POP, ...style }} />;
+}
+
 export function LandingPlayful() {
   const models = getModels();
   return (
-    <div className="min-h-screen bg-base">
+    <div className="min-h-screen overflow-x-clip bg-base">
       <Backdrop />
       <SiteHeader />
 
       {/* Hero: bold rounded headline + floating pastel blocks & glitter. */}
-      <section className="relative overflow-hidden px-8 pb-8 pt-16">
+      <section className="relative overflow-hidden px-8 pb-10 pt-16">
+        {/* asymmetric blocks peeking from the edges */}
+        <EdgeBlock style={{ left: -70, top: 40, width: 150, height: 150, rotate: "-10deg", background: "linear-gradient(135deg,#ffe3d1,#ffd9ec)" }} />
+        <EdgeBlock style={{ right: -80, bottom: -30, width: 190, height: 130, rotate: "8deg", background: "linear-gradient(135deg,#d9ecff,#e9ddff)" }} />
         <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.1fr_.9fr]">
           <div className="relative">
             <Sparkle className="absolute -left-4 -top-6 text-accent" size={22} />
-            <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink">Fluxion Studio</span>
-            <h1 className="mt-5 text-[clamp(42px,7vw,84px)] font-bold leading-[0.98] text-fg-strong">
-              Make video that&apos;s <span className="text-accent-ink">seriously</span> fun.
+            <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink" style={{ boxShadow: POP }}>Fluxion Studio</span>
+            <h1 className="mt-5 text-[clamp(42px,7vw,84px)] font-extrabold leading-[0.98] text-fg-strong">
+              Bright ideas, <span className="text-accent-ink">set in motion</span>.
             </h1>
             <p className="mt-5 max-w-md text-lg text-muted">Prompt it, play with it, ship it. A bright little studio where good ideas turn into motion.</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/signup" className="rounded-full bg-accent px-7 py-3.5 font-semibold text-ink transition-transform hover:-translate-y-0.5">Start creating →</Link>
+              <Link href="/signup" className="rounded-full bg-accent px-7 py-3.5 font-semibold text-ink transition-transform hover:-translate-y-0.5" style={{ boxShadow: POP }}>Start creating →</Link>
               <Link href="/models" className="rounded-full border-2 border-accent-border px-7 py-3.5 font-semibold text-accent-ink transition-colors hover:bg-accent-soft">See models</Link>
             </div>
           </div>
-          {/* Flat-illustration stand-in: asymmetric pastel blocks */}
+          {/* Flat-illustration stand-in: asymmetric pastel blocks w/ depth */}
           <div className="relative hidden h-[340px] lg:block">
-            <div className="absolute left-4 top-2 h-40 w-56 rotate-[-6deg] rounded-[28px]" style={{ background: "linear-gradient(135deg,#ffe3d1,#ffd9ec)" }} />
-            <div className="absolute right-2 top-16 h-48 w-48 rotate-[8deg] rounded-[28px]" style={{ background: "linear-gradient(135deg,#d9ecff,#e9ddff)" }} />
-            <div className="absolute bottom-2 left-16 h-36 w-52 rotate-[3deg] rounded-[28px]" style={{ background: "linear-gradient(135deg,#d9f5e6,#fff2c2)" }} />
+            <div className="absolute left-4 top-2 h-40 w-56 rotate-[-6deg] rounded-[28px]" style={{ background: "linear-gradient(135deg,#ffe3d1,#ffd9ec)", boxShadow: POP }} />
+            <div className="absolute right-2 top-16 h-48 w-48 rotate-[8deg] rounded-[28px]" style={{ background: "linear-gradient(135deg,#d9ecff,#e9ddff)", boxShadow: POP }} />
+            <div className="absolute bottom-2 left-16 h-36 w-52 rotate-[3deg] rounded-[28px]" style={{ background: "linear-gradient(135deg,#d9f5e6,#fff2c2)", boxShadow: POP }} />
             <Sparkle className="absolute right-8 top-6 text-accent" size={26} />
             <Sparkle className="absolute bottom-8 left-6 text-accent-ink" size={18} />
           </div>
         </div>
       </section>
 
-      <WaveEdge fill="var(--c-base-2)" />
+      <PlayWave fill="var(--c-base-2)" />
 
-      {/* Services — 3-col pastel cards, each its own color + minimal icon. */}
-      <section className="bg-base-2 px-8 py-16">
-        <div className="mx-auto max-w-6xl">
+      {/* Services — 3-col pastel sticker cards over a faint pixel grid. */}
+      <section className="relative overflow-hidden bg-base-2 px-8 py-16">
+        <div className="play-pixels pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
+        <EdgeBlock style={{ right: -60, top: 30, width: 140, height: 140, rotate: "12deg", background: "linear-gradient(135deg,#fff2c2,#d9f5e6)" }} />
+        <div className="relative mx-auto max-w-6xl">
           <div className="flex items-center gap-2">
-            <h2 className="text-3xl font-bold text-fg-strong">What you can make</h2>
+            <h2 className="text-3xl font-extrabold text-fg-strong">What you can make</h2>
             <Sparkle className="text-accent" size={20} />
           </div>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {SERVICES.map((s) => (
-              <div key={s.h} className="rounded-[24px] p-6" style={{ background: s.bg, color: "#1a1440" }}>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/70">
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {SERVICES.map((s, i) => (
+              <div key={s.h} className="rounded-[24px] p-6" style={{ background: s.bg, color: "#1a1440", boxShadow: POP, transform: `rotate(${(i % 3) - 1 ? (i % 2 ? "0.6deg" : "-0.6deg") : "0deg"})` }}>
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80" style={{ boxShadow: "3px 3px 0 rgba(26,20,64,0.14)" }}>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{SVC_ICONS[s.icon]}</svg>
                 </span>
-                <h3 className="mt-4 text-xl font-bold">{s.h}</h3>
+                <h3 className="mt-4 text-xl font-extrabold">{s.h}</h3>
                 <p className="mt-1 text-sm" style={{ color: "#4a4570" }}>{s.b}</p>
               </div>
             ))}
@@ -526,45 +549,46 @@ export function LandingPlayful() {
         </div>
       </section>
 
-      <WaveEdge flip fill="var(--c-base-2)" />
+      <PlayWave flip fill="var(--c-base-2)" />
 
-      {/* Models — asymmetric bento of colorful cards. */}
-      <section id="models" className="scroll-mt-24 px-8 py-16">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-fg-strong">Meet the models</h2>
-          <div className="mt-8 grid auto-rows-[210px] grid-cols-2 gap-5 lg:grid-cols-4">
+      {/* Models — asymmetric bento of colorful sticker cards. */}
+      <section id="models" className="relative scroll-mt-24 overflow-hidden px-8 py-16">
+        <EdgeBlock style={{ left: -70, bottom: 40, width: 160, height: 120, rotate: "-8deg", background: "linear-gradient(135deg,#e9ddff,#d9ecff)" }} />
+        <div className="relative mx-auto max-w-6xl">
+          <h2 className="text-3xl font-extrabold text-fg-strong">Meet the models</h2>
+          <div className="mt-8 grid auto-rows-[210px] grid-cols-2 gap-6 lg:grid-cols-4">
             {models.map((m, i) => (
               <Link
                 key={m.slug}
                 href={`/generate?model=${m.slug}`}
                 className={`group relative overflow-hidden rounded-[24px] p-5 transition-transform hover:-translate-y-1 ${i === 0 ? "col-span-2 row-span-2" : i === 3 ? "col-span-2" : ""}`}
-                style={{ background: PASTELS[i % PASTELS.length], color: "#1a1440" }}
+                style={{ background: PASTELS[i % PASTELS.length], color: "#1a1440", boxShadow: POP }}
               >
                 <img src={m.poster} alt="" className="absolute inset-0 h-full w-full object-cover opacity-90 mix-blend-luminosity transition-opacity group-hover:opacity-100" />
                 <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 40%, ${PASTELS[i % PASTELS.length]}cc)` }} />
                 <div className="relative flex h-full flex-col justify-end">
-                  <h3 className="text-2xl font-bold">{m.name}</h3>
+                  <h3 className="text-2xl font-extrabold">{m.name}</h3>
                   <p className="text-sm" style={{ color: "#4a4570" }}>{m.tagline}</p>
                 </div>
-                <Sparkle className="absolute right-4 top-4 text-white" size={16} />
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <WaveEdge fill="var(--c-base-2)" />
+      <PlayWave fill="var(--c-base-2)" />
 
       {/* Pricing on a pastel field. */}
-      <section className="bg-base-2 px-8 py-16">
-        <div className="mx-auto max-w-5xl rounded-[28px] bg-surface p-8">
+      <section className="relative overflow-hidden bg-base-2 px-8 py-16">
+        <div className="play-pixels pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
+        <div className="relative mx-auto max-w-5xl rounded-[28px] bg-surface p-8" style={{ boxShadow: POP }}>
           <div className="flex items-center gap-2">
-            <h2 className="text-3xl font-bold text-fg-strong">Simple, sunny pricing</h2>
+            <h2 className="text-3xl font-extrabold text-fg-strong">Simple, sunny pricing</h2>
             <Sparkle className="text-accent" size={20} />
           </div>
           <p className="mt-3 text-muted">No subscriptions — pay per second of video, priced per model.</p>
           <div className="mt-7"><ModelPricingTable /></div>
-          <div className="mt-6"><Link href="/pricing" className="inline-block rounded-full bg-accent px-7 py-3.5 font-semibold text-ink transition-transform hover:-translate-y-0.5">See full pricing →</Link></div>
+          <div className="mt-6"><Link href="/pricing" className="inline-block rounded-full bg-accent px-7 py-3.5 font-semibold text-ink transition-transform hover:-translate-y-0.5" style={{ boxShadow: POP }}>See full pricing →</Link></div>
         </div>
       </section>
 

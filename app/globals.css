@@ -807,6 +807,14 @@ mark.doc-hl {
   .ambient-blob { animation: none; }
 }
 
+/* Faint pixel/graph-paper grid (Playful decor depth). */
+.play-pixels {
+  background-image:
+    linear-gradient(rgba(124, 58, 237, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 58, 237, 0.06) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
 /* Twinkling sparkle (Playful skin decor). */
 .glitter { animation: glitter-twinkle 2.6s ease-in-out infinite; transform-origin: center; }
 @keyframes glitter-twinkle {
