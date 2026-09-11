@@ -565,15 +565,15 @@ html.skin-playful {
   --c-heart-idle: #ffffff;
   --c-skeleton: #f0eafa;
   --c-skeleton-hi: #faf6ff;
-  /* fonts: rounded friendly UI + display (logo font left unchanged). */
-  --font-jetbrains: var(--font-fredoka);
+  /* fonts: clean modern geometric UI + display (logo font left unchanged). */
+  --font-jetbrains: var(--font-outfit);
   --font-geist-sans: var(--font-inter);
 }
 html.skin-playful h1,
 html.skin-playful h2 {
-  font-family: var(--font-fredoka);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--font-outfit);
+  font-weight: 800;
+  letter-spacing: -0.02em;
   text-transform: none;
 }
 
@@ -636,6 +636,28 @@ html.skin-editorial .pg-examples > div {
 }
 /* Give the preview stage a soft framed card feel. */
 html.skin-editorial .pg-preview { padding: 0.25rem; }
+
+/* Luxury playground: a different arrangement entirely — controls + preview
+   stacked on the left, the examples panel becomes a tall rail on the right. */
+@media (min-width: 1024px) {
+  html.skin-luxury .pg-grid {
+    grid-template-columns: minmax(0, 1fr) 320px !important;
+    grid-template-areas: "form examples" "preview examples" !important;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  html.skin-luxury .pg-form { grid-area: form; }
+  html.skin-luxury .pg-preview { grid-area: preview; }
+  html.skin-luxury .pg-examples { grid-area: examples; }
+  html.skin-luxury .pg-examples > div { border-right: 0; border-left: 1px solid var(--c-line); padding-right: 0; padding-left: 1.25rem; }
+}
+
+/* Per-skin model catalog: each skin lays the grid out differently. */
+@media (min-width: 1024px) {
+  html.skin-editorial .mc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; }
+  html.skin-luxury .mc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  html.skin-playful .mc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.75rem; }
+  html.skin-playful .mc-grid > *:first-child { grid-column: span 2; }
+}
 
 /* ==== Luxury: soft rounded corners, pill buttons, gold-edged navy cards. ==== */
 html.skin-luxury .rounded-none { border-radius: 12px !important; }

@@ -290,7 +290,6 @@ export function DashboardLuxury({ name, favs, recents, models }: DashData) {
 
 /* --------------------------------------------------------------- PLAYFUL ---- */
 const PLAY_PASTELS = ["#fff2c2", "#d9ecff", "#ffd9ec", "#d9f5e6", "#e9ddff", "#ffe3d1"];
-const PLAY_EMOJI = ["🎬", "💳", "✨", "🔑"];
 
 function PlayChip({ slug, i }: { slug: string; i: number }) {
   const m = getModel(slug);
@@ -311,15 +310,15 @@ export function DashboardPlayful({ name, favs, recents, models }: DashData) {
     <div className="relative flex min-h-screen flex-col bg-base">
       <SiteHeader />
       <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-8 py-12">
-        <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink">Your studio ✦</span>
-        <h1 className="mt-4 text-[clamp(34px,5vw,56px)] font-bold leading-tight text-fg-strong">Hey {name}, let&apos;s make something ✨</h1>
+        <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink">Your studio</span>
+        <h1 className="mt-4 text-[clamp(34px,5vw,56px)] font-bold leading-tight text-fg-strong">Hey {name}, let&apos;s make something.</h1>
 
         {/* Getting started — pastel cards */}
         <h2 className="mt-10 text-lg font-bold text-fg-strong">Getting started</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((s, i) => (
             <Link key={s.title} href={s.href} className="rounded-[22px] p-5 transition-transform hover:-translate-y-1" style={{ background: PLAY_PASTELS[i % PLAY_PASTELS.length], color: "#1a1440" }}>
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 text-xl">{s.done ? "✅" : PLAY_EMOJI[i]}</span>
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 text-lg font-bold" style={{ color: "#7c3aed" }}>{s.done ? "✓" : i + 1}</span>
               <p className="mt-3 font-bold">{s.title}</p>
               <p className="mt-1 text-sm" style={{ color: "#4a4570" }}>{s.desc}</p>
             </Link>

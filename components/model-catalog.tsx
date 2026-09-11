@@ -101,7 +101,7 @@ export function ModelCatalog({ models }: { models: Model[] }) {
         {list.length === 0 ? (
           <p className="text-sm text-dim">No models match your filters.</p>
         ) : (
-          <div className="relative grid grid-cols-2 gap-8 lg:grid-cols-4">
+          <div className="mc-grid relative grid grid-cols-2 gap-8 lg:grid-cols-4">
             {list.map((m) => (
               <ModelCard key={m.slug} model={m} highlight={tags} />
             ))}

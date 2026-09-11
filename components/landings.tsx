@@ -443,13 +443,22 @@ export function LandingLuxury() {
 
 /* --------------------------------------------------------------- PLAYFUL ---- */
 const PASTELS = ["#d9f5e6", "#e9ddff", "#ffe3d1", "#d9ecff", "#fff2c2", "#ffd9ec"];
+// Minimal line-icon paths (24x24, stroke) — no emoji.
+const SVC_ICONS: Record<string, React.ReactNode> = {
+  text: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M10 9l5 3-5 3z" /></>,
+  image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9.5" r="1.5" /><path d="M4 18l5-5 4 4 3-3 4 4" /></>,
+  refine: <><path d="M4 7h16M4 12h16M4 17h16" /><circle cx="9" cy="7" r="2" /><circle cx="15" cy="12" r="2" /><circle cx="7" cy="17" r="2" /></>,
+  export: <><path d="M12 3v12M8 11l4 4 4-4M4 19h16" /></>,
+  sound: <><path d="M4 9v6h4l5 4V5L8 9H4z" /><path d="M17 8a5 5 0 0 1 0 8" /></>,
+  gem: <><path d="M6 3h12l3 6-9 12L3 9z" /><path d="M3 9h18" /></>,
+};
 const SERVICES = [
-  { emoji: "✨", bg: "#fff2c2", h: "Text to video", b: "Describe a scene and watch it render in seconds." },
-  { emoji: "🎬", bg: "#d9ecff", h: "Image to video", b: "Bring a still to life with natural motion." },
-  { emoji: "🎨", bg: "#ffd9ec", h: "Refine & remix", b: "Iterate with a friendly chat until it's just right." },
-  { emoji: "🚀", bg: "#d9f5e6", h: "Export anywhere", b: "Download MP4s ready to post and share." },
-  { emoji: "🎧", bg: "#e9ddff", h: "Sound on demand", b: "Add coherent audio to supported models." },
-  { emoji: "💎", bg: "#ffe3d1", h: "Pay as you go", b: "No subscriptions — only pay for what you make." },
+  { icon: "text", bg: "#fff2c2", h: "Text to video", b: "Describe a scene and watch it render in seconds." },
+  { icon: "image", bg: "#d9ecff", h: "Image to video", b: "Bring a still to life with natural motion." },
+  { icon: "refine", bg: "#ffd9ec", h: "Refine & remix", b: "Iterate with a friendly chat until it's just right." },
+  { icon: "export", bg: "#d9f5e6", h: "Export anywhere", b: "Download MP4s ready to post and share." },
+  { icon: "sound", bg: "#e9ddff", h: "Sound on demand", b: "Add coherent audio to supported models." },
+  { icon: "gem", bg: "#ffe3d1", h: "Pay as you go", b: "No subscriptions — only pay for what you make." },
 ];
 
 // Little twinkling sparkle.
@@ -473,7 +482,7 @@ export function LandingPlayful() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.1fr_.9fr]">
           <div className="relative">
             <Sparkle className="absolute -left-4 -top-6 text-accent" size={22} />
-            <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink">Fluxion Studio ✦</span>
+            <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink">Fluxion Studio</span>
             <h1 className="mt-5 text-[clamp(42px,7vw,84px)] font-bold leading-[0.98] text-fg-strong">
               Make video that&apos;s <span className="text-accent-ink">seriously</span> fun.
             </h1>
@@ -496,7 +505,7 @@ export function LandingPlayful() {
 
       <WaveEdge fill="var(--c-base-2)" />
 
-      {/* Services — 3-col pastel cards, each its own color + emoji. */}
+      {/* Services — 3-col pastel cards, each its own color + minimal icon. */}
       <section className="bg-base-2 px-8 py-16">
         <div className="mx-auto max-w-6xl">
           <div className="flex items-center gap-2">
@@ -506,7 +515,9 @@ export function LandingPlayful() {
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {SERVICES.map((s) => (
               <div key={s.h} className="rounded-[24px] p-6" style={{ background: s.bg, color: "#1a1440" }}>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/70 text-2xl">{s.emoji}</span>
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/70">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{SVC_ICONS[s.icon]}</svg>
+                </span>
                 <h3 className="mt-4 text-xl font-bold">{s.h}</h3>
                 <p className="mt-1 text-sm" style={{ color: "#4a4570" }}>{s.b}</p>
               </div>
