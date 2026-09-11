@@ -228,7 +228,7 @@ export function Onboarding() {
         {/* ---- Slide 3: payment + billing address ------------------------- */}
         {current.key === "payment" && (
           <div className="mt-8 space-y-6">
-            <p className="text-sm text-muted">Optional — add it now or later in Settings. Mock entry only.</p>
+            <p className="text-sm text-muted">Optional. Add a card now or later from Settings.</p>
             <div className="space-y-4">
               <div>
                 <label htmlFor="ob-card" className={labelClass}>Card number</label>
@@ -272,7 +272,7 @@ export function Onboarding() {
         {/* ---- Slide 4: add credits --------------------------------------- */}
         {current.key === "credits" && (
           <div className="mt-8 space-y-5">
-            <p className="text-sm text-muted">Optional — credits are pay-as-you-go. You can top up any time.</p>
+            <p className="text-sm text-muted">Optional. Credits are pay as you go, so you can top up any time.</p>
             <div className="grid grid-cols-4 gap-2">
               {CREDIT_PRESETS.map((a) => (
                 <button
