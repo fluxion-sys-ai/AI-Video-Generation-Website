@@ -643,7 +643,7 @@ function GenerateInner() {
           {chat.length > 0 && (
             <div className="mb-2 max-h-32 space-y-2 overflow-y-auto px-1">
               {chat.map((m, i) => (
-                <div key={i} className="ml-auto max-w-[85%] rounded-[8px] bg-[rgba(124,189,242,0.12)] px-3 py-1.5 text-sm text-fg">
+                <div key={i} className="ml-auto max-w-[85%] rounded-[8px] bg-blue-chip px-3 py-1.5 text-sm text-fg">
                   {m}
                 </div>
               ))}

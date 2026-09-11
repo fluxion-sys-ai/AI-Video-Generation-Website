@@ -203,6 +203,10 @@
   --c-gold-bright: #ffb020;
   --c-gold-2: #ffc15e;
   --c-blue: #7cbdf2;
+  /* Translucent blue chip fill / border / hover-border (dark). */
+  --c-blue-chip: rgba(124, 189, 242, 0.1);
+  --c-blue-chip-border: rgba(124, 189, 242, 0.35);
+  --c-blue-line: rgba(124, 189, 242, 0.5);
   --c-danger: #ff6b6b;
   --c-danger-hover: #ff8f8f;
   /* Shapes */
@@ -260,6 +264,10 @@
   --c-gold-bright: #96600f;
   --c-gold-2: #8f5c10;
   --c-blue: #1f6fb5;
+  /* Blue chips/borders darken too so they hold up on the pale canvas. */
+  --c-blue-chip: rgba(31, 111, 181, 0.12);
+  --c-blue-chip-border: rgba(31, 111, 181, 0.5);
+  --c-blue-line: rgba(31, 111, 181, 0.55);
   /* Cursor spotlight: much lighter/softer in light mode so it doesn't smear
      over the bright canvas. */
   --spotlight: radial-gradient(circle, rgba(255, 138, 30, 0.08), rgba(124, 189, 242, 0.05) 42%, transparent 70%);
@@ -306,6 +314,9 @@
   --color-gold-bright: var(--c-gold-bright);
   --color-gold-2: var(--c-gold-2);
   --color-blue: var(--c-blue);
+  --color-blue-chip: var(--c-blue-chip);
+  --color-blue-chip-border: var(--c-blue-chip-border);
+  --color-blue-line: var(--c-blue-line);
   --color-danger: var(--c-danger);
   --color-danger-hover: var(--c-danger-hover);
 }

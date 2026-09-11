@@ -33,7 +33,7 @@ function VideoThumb({ v }: { v: VideoItem }) {
       href={`/generate?model=${v.model.slug}`}
       onMouseEnter={() => { if (isAutoplay()) setHover(true); }}
       onMouseLeave={() => setHover(false)}
-      className="group border border-line p-3 transition-colors hover:border-[rgba(124,189,242,0.5)]"
+      className="group border border-line p-3 transition-colors hover:border-blue-line"
     >
       <div className="relative aspect-video w-full overflow-hidden bg-black">
         {/* eslint-disable-next-line @next/next/no-img-element */}

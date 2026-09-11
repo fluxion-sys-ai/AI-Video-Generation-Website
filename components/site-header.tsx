@@ -13,7 +13,7 @@ const models = getModels();
 
 /* Hover/click dropdown - no extra deps, keyboard + outside-click aware.
    With `href`, clicking the label navigates (hover still opens the menu). */
-function NavMenu({ label, href, align = "left", children }: { label: React.ReactNode; href?: string; align?: "left" | "right"; children: React.ReactNode }) {
+function NavMenu({ label, href, align = "left", hideCaret = false, children }: { label: React.ReactNode; href?: string; align?: "left" | "right"; hideCaret?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -39,9 +39,11 @@ function NavMenu({ label, href, align = "left", children }: { label: React.React
           className="flex items-center gap-1 text-sm uppercase tracking-[0.06em] text-fg-soft-2 transition-colors hover:text-gold-soft"
         >
           {label}
-          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="mt-0.5 opacity-70">
-            <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-          </svg>
+          {!hideCaret && (
+            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="mt-0.5 opacity-70">
+              <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+            </svg>
+          )}
         </Link>
       ) : (
         <button
@@ -51,9 +53,11 @@ function NavMenu({ label, href, align = "left", children }: { label: React.React
           className="flex items-center gap-1 text-sm uppercase tracking-[0.06em] text-fg-soft-2 transition-colors hover:text-gold-soft"
         >
           {label}
-          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="mt-0.5 opacity-70">
-            <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-          </svg>
+          {!hideCaret && (
+            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="mt-0.5 opacity-70">
+              <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+            </svg>
+          )}
         </button>
       )}
       {open && (
@@ -94,7 +98,7 @@ function ModelIcon({ letter }: { letter: string }) {
 // blue icon chip for the profile tab menu
 function TabChip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(124,189,242,0.35)] bg-[rgba(124,189,242,0.1)] text-blue">
+    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-blue-chip-border bg-blue-chip text-blue">
       {children}
     </span>
   );
@@ -338,7 +342,7 @@ export function SiteHeader() {
                 title="All models"
                 sub="Browse the full catalog"
                 icon={
-                  <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(124,189,242,0.35)] bg-[rgba(124,189,242,0.1)] text-blue">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-blue-chip-border bg-blue-chip text-blue">
                     <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" fill="currentColor">
                       <rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" />
                       <rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" />
@@ -397,6 +401,7 @@ export function SiteHeader() {
                   <NavMenu
                     align="right"
                     href="/profile"
+                    hideCaret
                     label={
                       <span aria-label="Settings" title="Settings" className="flex h-6 w-6 items-center justify-center">
                         <Settings size={17} strokeWidth={1.6} />

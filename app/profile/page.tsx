@@ -619,7 +619,7 @@ function ProfileInner() {
                     </div>
                     <Toggle on={emailUpdates} onClick={() => setEmailUpdates((v) => !v)} />
                   </div>
-                  <Link href="/docs" className="flex items-center justify-between gap-4 border border-line p-3 transition-colors hover:border-[rgba(124,189,242,0.5)]">
+                  <Link href="/docs" className="flex items-center justify-between gap-4 border border-line p-3 transition-colors hover:border-blue-line">
                     <div>
                       <p className="text-sm text-fg">Documentation</p>
                       <p className="text-xs text-dim">Guides, quickstart, API.</p>

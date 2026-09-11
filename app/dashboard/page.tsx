@@ -17,10 +17,10 @@ const STEPS = [
 ];
 
 const LINKS = [
-  { title: "New generation", desc: "Pick a model and prompt.", href: "/generate", color: "#FF8A1E" },
-  { title: "Browse models", desc: "Compare the catalog.", href: "/models", color: "#7CBDF2" },
-  { title: "Library", desc: "Your videos and uploads.", href: "/library", color: "#7CBDF2" },
-  { title: "Documentation", desc: "Guides and API reference.", href: "/docs", color: "#E0A24E" },
+  { title: "New generation", desc: "Pick a model and prompt.", href: "/generate" },
+  { title: "Browse models", desc: "Compare the catalog.", href: "/models" },
+  { title: "Library", desc: "Your videos and uploads.", href: "/library" },
+  { title: "Documentation", desc: "Guides and API reference.", href: "/docs" },
 ];
 
 function ModelChip({ slug }: { slug: string }) {
@@ -99,7 +99,7 @@ export default function DashboardPage() {
             <div className="mt-3 grid grid-cols-2 border-b border-r border-line">
               {LINKS.map((l) => (
                 <Link key={l.title} href={l.href} className="group border-l border-t border-line p-5 transition-colors hover:bg-hover">
-                  <p className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]" style={{ color: l.color }}>{l.title}</p>
+                  <p className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] text-fg transition-colors group-hover:text-gold-soft">{l.title}</p>
                   <p className="mt-2 text-sm text-muted">{l.desc}</p>
                 </Link>
               ))}
