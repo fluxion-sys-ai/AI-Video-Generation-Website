@@ -502,9 +502,9 @@ html.skin-luxury {
   --c-heart-idle: #f1ecdd;
   --c-skeleton: #121c3c;
   --c-skeleton-hi: #1c2a54;
-  /* fonts: elegant serif display (Playfair) over a refined geometric sans (Jost). */
-  --font-jetbrains: var(--font-jost);
-  --font-geist-sans: var(--font-jost);
+  /* fonts: Playfair display over a classic serif body/UI (EB Garamond). */
+  --font-jetbrains: var(--font-garamond);
+  --font-geist-sans: var(--font-garamond);
 }
 html.skin-luxury h1,
 html.skin-luxury h2 {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, JetBrains_Mono, Sora, Archivo_Black, Playfair_Display, Caveat, Inter, Space_Grotesk, Outfit, Orbitron, Fraunces, Jost, Quicksand, Manrope } from "next/font/google";
+import { Geist, JetBrains_Mono, Sora, Archivo_Black, Playfair_Display, Caveat, Inter, Space_Grotesk, Outfit, Orbitron, Fraunces, EB_Garamond, Quicksand, Manrope } from "next/font/google";
 import "./globals.css";
 import { Spotlight } from "@/components/spotlight";
 import { Toaster } from "@/components/toaster";
@@ -35,7 +35,7 @@ const outfit = Outfit({ variable: "--font-outfit", subsets: ["latin"], weight: [
 const orbitron = Orbitron({ variable: "--font-orbitron", subsets: ["latin"], weight: ["500", "600", "700", "800"] });
 // Distinct body/UI faces so each theme has its own type identity (no repeats).
 const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], weight: ["400", "500", "600"] });
-const jost = Jost({ variable: "--font-jost", subsets: ["latin"], weight: ["300", "400", "500", "600"] });
+const ebGaramond = EB_Garamond({ variable: "--font-garamond", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const quicksand = Quicksand({ variable: "--font-quicksand", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
@@ -67,7 +67,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${jetbrainsMono.variable} ${sora.variable} ${archivoBlack.variable} ${playfair.variable} ${caveat.variable} ${inter.variable} ${spaceGrotesk.variable} ${outfit.variable} ${orbitron.variable} ${fraunces.variable} ${jost.variable} ${quicksand.variable} ${manrope.variable} h-full scroll-smooth antialiased`}
+      className={`${geistSans.variable} ${jetbrainsMono.variable} ${sora.variable} ${archivoBlack.variable} ${playfair.variable} ${caveat.variable} ${inter.variable} ${spaceGrotesk.variable} ${outfit.variable} ${orbitron.variable} ${fraunces.variable} ${ebGaramond.variable} ${quicksand.variable} ${manrope.variable} h-full scroll-smooth antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-base text-fg font-[family-name:var(--font-geist-sans)]">
         {/* No-flash theme boot: runs before paint so the correct look is set
