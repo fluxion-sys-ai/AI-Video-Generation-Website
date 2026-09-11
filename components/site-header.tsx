@@ -321,19 +321,6 @@ export function SiteHeader() {
                   <MenuItem href="/library?tab=videos" title="Videos" icon={<TabChip><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="3.5" width="9" height="9" rx="1.5" /><path d="M11 7 L14 5.2 V10.8 L11 9" strokeLinecap="round" strokeLinejoin="round" /></svg></TabChip>} />
                 </NavMenu>
                 <NavLink href="/docs" label="Docs" active={pathname.startsWith("/docs")} />
-                <NavMenu
-                  align="right"
-                  href="/profile"
-                  label={
-                    <span aria-label="Settings" title="Settings" className="flex h-6 w-6 items-center justify-center">
-                      <Settings size={17} strokeWidth={1.6} />
-                    </span>
-                  }
-                >
-                  {PROFILE_TABS.map((t) => (
-                    <MenuItem key={t.key} href={`/profile?tab=${t.key}`} title={t.title} icon={t.icon} />
-                  ))}
-                </NavMenu>
                 <Link
                   href="/info"
                   aria-label="Info"
@@ -403,6 +390,24 @@ export function SiteHeader() {
                 >
                   Create
                 </Link>
+              )}
+              {/* Settings gear — sits just left of the profile avatar (dashboard). */}
+              {dashMode && (
+                <div className="hidden md:block">
+                  <NavMenu
+                    align="right"
+                    href="/profile"
+                    label={
+                      <span aria-label="Settings" title="Settings" className="flex h-6 w-6 items-center justify-center">
+                        <Settings size={17} strokeWidth={1.6} />
+                      </span>
+                    }
+                  >
+                    {PROFILE_TABS.map((t) => (
+                      <MenuItem key={t.key} href={`/profile?tab=${t.key}`} title={t.title} icon={t.icon} />
+                    ))}
+                  </NavMenu>
+                </div>
               )}
               <ProfileMenu user={user} />
             </>
