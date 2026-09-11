@@ -45,10 +45,12 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
 
 function Code({ children }: { children: string }) {
   return (
-    <pre className="relative mt-3 overflow-x-auto border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+    <div className="relative mt-3">
       <CopyButton text={children} />
-      <code>{children}</code>
-    </pre>
+      <pre className="overflow-x-auto border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+        <code>{children}</code>
+      </pre>
+    </div>
   );
 }
 

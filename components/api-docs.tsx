@@ -93,10 +93,12 @@ print(result["video"]["url"])`,
         <p className="mt-2 text-sm text-muted">
           Create a key in your dashboard and set it as an environment variable:
         </p>
-        <pre className="relative mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
+        <div className="relative mt-3">
           <CopyButton text={'export FLUXION_API_KEY="sk-fluxion-xxxxxxxxxxxx"'} />
-          <code>export FLUXION_API_KEY=&quot;sk-fluxion-xxxxxxxxxxxx&quot;</code>
-        </pre>
+          <pre className="overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
+            <code>export FLUXION_API_KEY=&quot;sk-fluxion-xxxxxxxxxxxx&quot;</code>
+          </pre>
+        </div>
       </section>
 
       {/* request */}
@@ -113,10 +115,12 @@ print(result["video"]["url"])`,
             </button>
           ))}
         </div>
-        <pre className="relative mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+        <div className="relative mt-3">
           <CopyButton text={snippets[lang]} />
-          <code>{snippets[lang]}</code>
-        </pre>
+          <pre className="overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+            <code>{snippets[lang]}</code>
+          </pre>
+        </div>
       </section>
 
       {/* input schema */}
@@ -150,10 +154,12 @@ print(result["video"]["url"])`,
       {/* response */}
       <section className="mt-8">
         <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">Response</h2>
-        <pre className="relative mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
+        <div className="relative mt-3">
           <CopyButton text={response} />
-          <code>{response}</code>
-        </pre>
+          <pre className="overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
+            <code>{response}</code>
+          </pre>
+        </div>
         <p className="mt-3 text-xs text-dim">Illustrative only. No live API here.</p>
       </section>
     </div>
