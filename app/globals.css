@@ -252,6 +252,14 @@
   --c-hover: rgba(46, 70, 107, 0.05);
   /* Darker orange for accent *text* on the light canvas (~4.7:1 on #eef2f8). */
   --c-accent-ink: #b8500a;
+  /* Gold + blue are light by design (great on near-black) but wash out on the
+     pale canvas — darken them here so gold eyebrows/hover text and blue links
+     stay legible (all ≥4.5:1 on #eef2f8). */
+  --c-gold: #8f5c10;
+  --c-gold-soft: #98620f;
+  --c-gold-bright: #96600f;
+  --c-gold-2: #8f5c10;
+  --c-blue: #1f6fb5;
   /* Cursor spotlight: much lighter/softer in light mode so it doesn't smear
      over the bright canvas. */
   --spotlight: radial-gradient(circle, rgba(255, 138, 30, 0.08), rgba(124, 189, 242, 0.05) 42%, transparent 70%);
