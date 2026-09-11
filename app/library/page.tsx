@@ -361,7 +361,7 @@ export default function LibraryPage() {
               key={t}
               onClick={() => { setTab(t); exitSelect(); }}
               className={`-mb-px border-b-2 pb-3 transition-colors ${
-                tab === t ? "border-accent text-accent" : "border-transparent text-muted hover:text-fg"
+                tab === t ? "border-accent text-accent-ink" : "border-transparent text-muted hover:text-fg"
               }`}
             >
               {t}
@@ -406,7 +406,7 @@ export default function LibraryPage() {
                 <button
                   onClick={() => setActiveFolder(null)}
                   className={`rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
-                    activeFolder === null ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                    activeFolder === null ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                   }`}
                 >
                   All ({libImages.length})
@@ -416,7 +416,7 @@ export default function LibraryPage() {
                   <button
                     onClick={() => setActiveFolder("favorites")}
                     className={`flex items-center gap-1.5 rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
-                      activeFolder === "favorites" ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                      activeFolder === "favorites" ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                     }`}
                   >
                     <Heart size={12} fill="currentColor" />
@@ -434,9 +434,9 @@ export default function LibraryPage() {
                     title="Click to view · right-click for options"
                     className={`flex items-center gap-1.5 rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
                       dragOverFolder === f.id
-                        ? "border-accent bg-accent-soft text-accent"
+                        ? "border-accent bg-accent-soft text-accent-ink"
                         : activeFolder === f.id
-                          ? "border-accent text-accent"
+                          ? "border-accent text-accent-ink"
                           : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                     }`}
                   >
@@ -497,7 +497,7 @@ export default function LibraryPage() {
                         <button onClick={() => { setCreatingFolder(false); setNewFolderName(""); }} className="text-sm text-muted transition-colors hover:text-fg">Cancel</button>
                       </>
                     ) : (
-                      <button onClick={() => setCreatingFolder(true)} className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:border-accent hover:text-accent">
+                      <button onClick={() => setCreatingFolder(true)} className="rounded-none border border-hairline-strong px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg transition-colors hover:border-accent hover:text-accent-ink">
                         New folder +
                       </button>
                     )}
@@ -521,7 +521,7 @@ export default function LibraryPage() {
                 id="img-sort"
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as SortKey)}
-                className="pg-select rounded-none border border-accent bg-accent-soft px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs text-accent outline-none"
+                className="pg-select rounded-none border border-accent bg-accent-soft px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs text-accent-ink outline-none"
               >
                 <option value="custom">Custom order</option>
                 <option value="name">Name A–Z</option>
@@ -587,7 +587,7 @@ export default function LibraryPage() {
                             onClick={(e) => { e.stopPropagation(); toggleImgFav(img.id); }}
                             aria-label={img.fav ? "Remove from favorites" : "Add to favorites"}
                             title={img.fav ? "Unfavorite" : "Favorite"}
-                            className={`absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/45 backdrop-blur transition-opacity hover:bg-black/70 ${
+                            className={`hit absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/45 backdrop-blur transition-opacity hover:bg-black/70 ${
                               img.fav ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                             }`}
                           >
@@ -746,7 +746,7 @@ export default function LibraryPage() {
                   key={f}
                   onClick={() => setModelFilter(f)}
                   className={`rounded-none border px-3 py-1.5 transition-colors ${
-                    modelFilter === f ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                    modelFilter === f ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                   }`}
                 >
                   {f}
@@ -780,7 +780,7 @@ export default function LibraryPage() {
                     onClick={() => uploadTo(m)}
                     className={`flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-hover ${i > 0 ? "border-t border-line" : ""}`}
                   >
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-accent-soft font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-accent-soft font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent-ink">
                       {m.name.charAt(0)}
                     </span>
                     <span className="min-w-0 flex-1">

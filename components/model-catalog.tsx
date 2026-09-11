@@ -83,7 +83,7 @@ export function ModelCatalog({ models }: { models: Model[] }) {
               key={t}
               onClick={() => toggleTag(t)}
               className={`rounded-none border px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
-                on ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                on ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
               }`}
             >
               {t}

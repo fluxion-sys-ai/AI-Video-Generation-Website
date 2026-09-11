@@ -46,7 +46,7 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
             e.stopPropagation();
             setFav(toggleFavorite(model.slug));
           }}
-          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 backdrop-blur transition-colors hover:bg-black/70"
+          className="hit absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 backdrop-blur transition-colors hover:bg-black/70"
         >
           <Heart size={16} strokeWidth={2} fill={fav ? "#FF8A1E" : "none"} color={fav ? "#FF8A1E" : "#E9F1FB"} />
         </button>
@@ -68,7 +68,7 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
               <span
                 key={c}
                 className={`rounded-full border px-2.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] transition-colors ${
-                  on ? "border-accent bg-accent-soft text-accent" : "border-line-strong bg-raised text-fg-soft"
+                  on ? "border-accent bg-accent-soft text-accent-ink" : "border-line-strong bg-raised text-fg-soft"
                 }`}
               >
                 {c}

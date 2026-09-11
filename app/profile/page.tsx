@@ -301,7 +301,7 @@ function ProfileInner() {
                     key={t}
                     onClick={() => setTab(t)}
                     className={`px-4 py-2.5 text-left transition-colors ${
-                      tab === t ? "bg-accent-soft text-accent" : "text-muted hover:bg-hover hover:text-fg"
+                      tab === t ? "bg-accent-soft text-accent-ink" : "text-muted hover:bg-hover hover:text-fg"
                     }`}
                   >
                     {t}
@@ -349,7 +349,7 @@ function ProfileInner() {
                 <div className="col-span-4 row-span-2 flex flex-col justify-between border-l border-t border-line p-6 sm:col-span-2">
                   <div>
                     <p className="text-xs uppercase tracking-[0.06em] text-muted">Current balance</p>
-                    <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold text-accent">$0.00</p>
+                    <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold text-accent-ink">$0.00</p>
                     <p className="mt-2 text-xs text-dim">Balance may lag recent usage by up to an hour.</p>
                   </div>
                   <div className="mt-5">
@@ -463,7 +463,7 @@ function ProfileInner() {
                             <p className="text-xs text-dim">Expires {c.exp}</p>
                           </div>
                           {c.primary ? (
-                            <span className="font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-accent">
+                            <span className="font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-accent-ink">
                               Default
                             </span>
                           ) : (
@@ -677,8 +677,8 @@ function ProfileInner() {
                   onClick={() => setAddAmount(a)}
                   className={`rounded-[10px] border py-3 font-[family-name:var(--font-jetbrains)] text-sm transition-colors ${
                     addAmount === a
-                      ? "border-accent text-accent"
-                      : "border-hairline-strong hover:border-accent hover:text-accent"
+                      ? "border-accent text-accent-ink"
+                      : "border-hairline-strong hover:border-accent hover:text-accent-ink"
                   }`}
                 >
                   ${a}
@@ -745,7 +745,7 @@ function ProfileInner() {
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-4">
                 <dt className="text-muted">Threshold</dt>
-                <dd className="font-[family-name:var(--font-jetbrains)] text-accent">${alertThreshold}</dd>
+                <dd className="font-[family-name:var(--font-jetbrains)] text-accent-ink">${alertThreshold}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
                 <dt className="text-muted">Email</dt>

@@ -143,7 +143,7 @@ export function AvatarEditor({ src, onCancel, onSave }: { src: string; onCancel:
               key={f.key}
               onClick={() => setFilter(f.css)}
               className={`rounded-none border px-2.5 py-1 text-xs transition-colors ${
-                filter === f.css ? "border-accent bg-accent-soft text-accent" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                filter === f.css ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
               }`}
             >
               {f.key}

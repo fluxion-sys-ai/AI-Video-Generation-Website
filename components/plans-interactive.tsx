@@ -34,8 +34,8 @@ function Bar({
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className="cursor-default">
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span className={active ? "text-accent" : "text-fg-soft"}>{label}</span>
-        <span className={`font-[family-name:var(--font-jetbrains)] ${active ? "text-accent" : "text-muted"}`}>
+        <span className={active ? "text-accent-ink" : "text-fg-soft"}>{label}</span>
+        <span className={`font-[family-name:var(--font-jetbrains)] ${active ? "text-accent-ink" : "text-muted"}`}>
           {display}
         </span>
       </div>

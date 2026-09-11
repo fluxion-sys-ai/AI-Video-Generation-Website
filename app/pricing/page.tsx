@@ -42,7 +42,7 @@ export default function PricingPage() {
           {/* left: rate + features + CTA */}
           <div className="flex flex-col justify-center p-6">
             <div className="flex items-baseline gap-1">
-              <span className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-accent">{PAYG.price}</span>
+              <span className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-accent-ink">{PAYG.price}</span>
               <span className="text-sm text-dim">{PAYG.note}</span>
             </div>
             <ul className="mt-4 space-y-1.5 text-sm text-fg-soft-2">

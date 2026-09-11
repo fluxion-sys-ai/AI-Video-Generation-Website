@@ -214,7 +214,7 @@ export function Onboarding() {
                       on ? "border-accent bg-accent-soft" : "border-line hover:bg-hover"
                     }`}
                   >
-                    <span className={`block font-[family-name:var(--font-jetbrains)] text-sm ${on ? "text-accent" : "text-fg"}`}>
+                    <span className={`block font-[family-name:var(--font-jetbrains)] text-sm ${on ? "text-accent-ink" : "text-fg"}`}>
                       {p.label}
                     </span>
                     <span className="mt-1 block text-xs text-dim">{p.desc}</span>
@@ -280,7 +280,7 @@ export function Onboarding() {
                   type="button"
                   onClick={() => setCredits(a)}
                   className={`rounded-[10px] border py-3 font-[family-name:var(--font-jetbrains)] text-sm transition-colors ${
-                    credits === a ? "border-accent text-accent" : "border-hairline-strong hover:border-accent hover:text-accent"
+                    credits === a ? "border-accent text-accent-ink" : "border-hairline-strong hover:border-accent hover:text-accent-ink"
                   }`}
                 >
                   ${a}

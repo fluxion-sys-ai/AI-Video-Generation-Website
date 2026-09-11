@@ -85,7 +85,7 @@ function MenuItem({ href, title, sub, icon }: { href: string; title: string; sub
 // small square icon chip with the model initial
 function ModelIcon({ letter }: { letter: string }) {
   return (
-    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-accent-soft font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent">
+    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-accent-soft font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent-ink">
       {letter}
     </span>
   );
@@ -178,7 +178,7 @@ function ProfileMenu({ user }: { user: User }) {
   return (
     <div ref={ref} className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
       <Link href="/profile" aria-expanded={open} className="group flex items-center gap-2" title="Your profile">
-        <span className="hidden max-w-[160px] truncate normal-case text-fg transition-colors group-hover:text-accent sm:block">
+        <span className="hidden max-w-[160px] truncate normal-case text-fg transition-colors group-hover:text-accent-ink sm:block">
           {user.name}
         </span>
         <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-accent font-medium text-ink">
@@ -214,7 +214,7 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
     <Link
       href={href}
       className={`text-sm uppercase tracking-[0.06em] transition-colors ${
-        active ? "text-accent" : "text-fg-soft-2 hover:text-gold-soft"
+        active ? "text-accent-ink" : "text-fg-soft-2 hover:text-gold-soft"
       }`}
     >
       {label}
@@ -338,7 +338,7 @@ export function SiteHeader() {
                   href="/info"
                   aria-label="Info"
                   title="Info and contact"
-                  className="flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(148,170,200,0.4)] text-[11px] text-fg-soft-2 transition-colors hover:border-gold-soft hover:text-gold-soft"
+                  className="hit flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(148,170,200,0.4)] text-[11px] text-fg-soft-2 transition-colors hover:border-gold-soft hover:text-gold-soft"
                 >
                   i
                 </Link>
@@ -385,7 +385,7 @@ export function SiteHeader() {
               href="/info"
               aria-label="Info"
               title="Info and contact"
-              className="flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(148,170,200,0.4)] text-[11px] text-fg-soft-2 transition-colors hover:border-gold-soft hover:text-gold-soft"
+              className="hit flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(148,170,200,0.4)] text-[11px] text-fg-soft-2 transition-colors hover:border-gold-soft hover:text-gold-soft"
             >
               i
             </Link>
@@ -399,7 +399,7 @@ export function SiteHeader() {
               {!dashMode && (
                 <Link
                   href="/dashboard"
-                  className="hidden items-center border border-accent-border px-3 py-1.5 text-xs uppercase tracking-[0.08em] text-accent transition-colors hover:bg-accent-soft sm:flex"
+                  className="hidden items-center border border-accent-border px-3 py-1.5 text-xs uppercase tracking-[0.08em] text-accent-ink transition-colors hover:bg-accent-soft sm:flex"
                 >
                   Create
                 </Link>
@@ -425,7 +425,7 @@ export function SiteHeader() {
             aria-label="Menu"
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((v) => !v)}
-            className="flex h-9 w-9 items-center justify-center text-fg-soft-2 transition-colors hover:text-fg md:hidden"
+            className="hit flex h-9 w-9 items-center justify-center text-fg-soft-2 transition-colors hover:text-fg md:hidden"
           >
             {mobileOpen ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M5 5 L19 19 M19 5 L5 19" strokeLinecap="round" /></svg>

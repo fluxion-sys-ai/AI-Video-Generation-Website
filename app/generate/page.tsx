@@ -319,14 +319,14 @@ function GenerateInner() {
                       }}
                       className={`flex w-full items-center gap-3 p-2 text-left transition-colors hover:bg-hover ${m.slug === slug ? "bg-[rgba(255,138,30,0.08)]" : ""}`}
                     >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-accent-soft font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[rgba(255,138,30,0.35)] bg-accent-soft font-[family-name:var(--font-jetbrains)] text-xs font-semibold text-accent-ink">
                         {m.name.charAt(0)}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-fg">{m.name}</span>
                         <span className="block truncate text-xs text-dim">{m.tagline}</span>
                       </span>
-                      {m.slug === slug && <span className="shrink-0 text-xs text-accent">✓</span>}
+                      {m.slug === slug && <span className="shrink-0 text-xs text-accent-ink">✓</span>}
                     </button>
                   ));
                 })()}
@@ -343,7 +343,7 @@ function GenerateInner() {
             key={v}
             onClick={() => setView(v)}
             className={`rounded-[8px] px-3 py-2 text-left transition-colors ${
-              view === v ? "bg-accent-soft text-accent" : "text-muted hover:bg-hover hover:text-fg"
+              view === v ? "bg-accent-soft text-accent-ink" : "text-muted hover:bg-hover hover:text-fg"
             }`}
           >
             {v === "playground" ? "Playground" : "API"}
@@ -375,7 +375,7 @@ function GenerateInner() {
                     Examples
                   </button>
                 </div>
-                <button onClick={() => setPanelOpen(false)} aria-label="Collapse panel" className="shrink-0 text-muted hover:text-accent">
+                <button onClick={() => setPanelOpen(false)} aria-label="Collapse panel" className="shrink-0 text-muted hover:text-accent-ink">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3 L5 8 L10 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
               </div>
@@ -402,7 +402,7 @@ function GenerateInner() {
             onClick={() => setPanelOpen(true)}
             aria-label="Show examples"
             title="Examples"
-            className="group flex h-full flex-col items-center gap-2 pt-1 text-muted transition-colors hover:text-accent"
+            className="group flex h-full flex-col items-center gap-2 pt-1 text-muted transition-colors hover:text-accent-ink"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M6 3 L11 8 L6 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />

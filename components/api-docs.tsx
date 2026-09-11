@@ -107,7 +107,7 @@ print(result["video"]["url"])`,
             <button
               key={l}
               onClick={() => setLang(l)}
-              className={`pb-1 transition-colors ${lang === l ? "border-b border-accent text-accent" : "text-muted hover:text-fg"}`}
+              className={`pb-1 transition-colors ${lang === l ? "border-b border-accent text-accent-ink" : "text-muted hover:text-fg"}`}
             >
               {langLabel[l]}
             </button>
