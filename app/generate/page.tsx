@@ -384,12 +384,12 @@ function GenerateInner() {
         </div>
       ) : (
       <div
-        className={`grid gap-8 transition-[grid-template-columns] duration-300 lg:h-full ${
+        className={`pg-grid grid gap-8 transition-[grid-template-columns] duration-300 lg:h-full ${
           panelOpen ? "lg:grid-cols-[280px_minmax(0,1fr)_minmax(0,40%)]" : "lg:grid-cols-[40px_minmax(0,1fr)_minmax(0,40%)]"
         }`}
       >
       {/* Collapsible left panel */}
-      <aside className="min-h-0">
+      <aside className="pg-examples min-h-0">
         {panelOpen ? (
           <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto border-r border-line pr-5">
             <div>
@@ -397,7 +397,7 @@ function GenerateInner() {
                 <div className="flex gap-5 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
                   <button
                     onClick={() => setTab("examples")}
-                    className={`pb-1 transition-colors ${tab === "examples" ? "border-b border-gold-soft text-gold-soft" : "text-muted hover:text-fg"}`}
+                    className={`pb-1 transition-colors ${tab === "examples" ? "text-gold-soft" : "text-muted hover:text-fg"}`}
                   >
                     Examples
                   </button>
@@ -440,7 +440,7 @@ function GenerateInner() {
       </aside>
 
       {/* Main form (borderless, compact) */}
-      <main className="min-h-0 lg:overflow-y-auto">
+      <main className="pg-form min-h-0 lg:overflow-y-auto">
         <div className="flex items-center gap-2.5">
           <h1 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
           <button
@@ -588,7 +588,7 @@ function GenerateInner() {
       </main>
 
       {/* Preview stage (right): the chosen aspect shape; the video generates here */}
-      <section className="flex min-h-0 flex-col gap-3">
+      <section className="pg-preview flex min-h-0 flex-col gap-3">
         <div className="flex flex-1 flex-col items-center justify-start gap-2">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">
           Preview

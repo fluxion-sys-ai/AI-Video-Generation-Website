@@ -623,6 +623,19 @@ html.skin-editorial .bg-panel {
 }
 /* Buttons feel like tactile pills. */
 html.skin-editorial button:not(.hit):not([class*="rounded-full"]) { border-radius: 12px; }
+/* Editorial playground: mirror the 3-pane layout (preview moves to the left,
+   examples to the right) and drop the hard sidebar divider so it reads like a
+   magazine spread rather than the same left-rail app view. */
+html.skin-editorial .pg-grid { direction: rtl; gap: 2.5rem; }
+html.skin-editorial .pg-grid > * { direction: ltr; }
+html.skin-editorial .pg-examples > div {
+  border-right: 0 !important;
+  padding-right: 0 !important;
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--c-line);
+}
+/* Give the preview stage a soft framed card feel. */
+html.skin-editorial .pg-preview { padding: 0.25rem; }
 
 /* ==== Luxury: soft rounded corners, pill buttons, gold-edged navy cards. ==== */
 html.skin-luxury .rounded-none { border-radius: 12px !important; }
