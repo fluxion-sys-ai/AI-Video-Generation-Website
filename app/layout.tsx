@@ -23,7 +23,7 @@ const sora = Sora({
   weight: ["500"],
 });
 
-// Alternate-skin fonts (only take effect under .skin-editorial / .skin-expedition
+// Alternate-skin fonts (only take effect under .skin-editorial / .skin-luxury
 // via globals.css; see the skin token blocks there).
 const archivoBlack = Archivo_Black({ variable: "--font-archivo", subsets: ["latin"], weight: ["400"] });
 const playfair = Playfair_Display({ variable: "--font-playfair", subsets: ["latin"], weight: ["600", "800"] });
@@ -69,7 +69,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{var t=localStorage.getItem('fluxion.theme');if(t==='light'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.classList.add('light');var s=localStorage.getItem('fluxion.skin');if(s==='editorial'||s==='expedition')document.documentElement.classList.add('skin-'+s)}catch(e){}",
+              "try{var t=localStorage.getItem('fluxion.theme');if(t==='light'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.classList.add('light');var s=localStorage.getItem('fluxion.skin');if(s==='editorial'||s==='luxury')document.documentElement.classList.add('skin-'+s)}catch(e){}",
           }}
         />
         <Spotlight />

@@ -1,80 +1,46 @@
-// Decorative animated line-and-dot field. Each line is a single continuous
-// path that runs fully off-screen left to off-screen right, so a dot never
-// stops or vanishes mid-view - it glides in from the left edge, across, and
-// out the right edge, then loops off-screen. Kept faint so it never distracts.
+// Decorative ambient background — soft, slowly-drifting blurred light "auras"
+// (replaces the old animated dot-on-line field). Elegant and calm; reads its
+// colors from theme tokens so it recolors per skin. Export name + props are
+// unchanged so existing pages don't need edits. Respects reduced motion.
 
-type Line = { id: string; d: string; dur: number; begin: number };
+type Blob = { top: string; left: string; size: string; dur: number; delay: number; dir: "x" | "y" | "xy" };
 
-// A: default (pricing) - gentle full-width flows.
-const A: Line[] = [
-  { id: "a1", d: "M-160 150 C 320 110, 780 250, 1600 230", dur: 16, begin: 0 },
-  { id: "a2", d: "M-160 300 C 360 300, 900 330, 1600 320", dur: 19, begin: 2.5 },
-  { id: "a3", d: "M-160 460 C 340 500, 820 360, 1600 410", dur: 17, begin: 1.2 },
-  { id: "a4", d: "M-160 580 C 420 560, 980 470, 1600 540", dur: 21, begin: 4 },
+const A: Blob[] = [
+  { top: "8%", left: "12%", size: "42vw", dur: 26, delay: 0, dir: "xy" },
+  { top: "44%", left: "62%", size: "36vw", dur: 32, delay: 3, dir: "y" },
+  { top: "68%", left: "20%", size: "30vw", dur: 29, delay: 1.5, dir: "x" },
+];
+const B: Blob[] = [
+  { top: "-4%", left: "58%", size: "40vw", dur: 30, delay: 0, dir: "xy" },
+  { top: "50%", left: "8%", size: "34vw", dur: 27, delay: 2, dir: "x" },
+  { top: "72%", left: "66%", size: "28vw", dur: 34, delay: 4, dir: "y" },
+];
+const C: Blob[] = [
+  { top: "6%", left: "70%", size: "38vw", dur: 33, delay: 1, dir: "y" },
+  { top: "38%", left: "30%", size: "44vw", dur: 28, delay: 0, dir: "xy" },
+  { top: "78%", left: "50%", size: "26vw", dur: 31, delay: 2.5, dir: "x" },
 ];
 
-// B: different offsets/curves.
-const B: Line[] = [
-  { id: "b1", d: "M-160 120 C 380 160, 820 300, 1600 210", dur: 18, begin: 0.5 },
-  { id: "b2", d: "M-160 330 C 360 300, 900 360, 1600 300", dur: 20, begin: 2 },
-  { id: "b3", d: "M-160 520 C 400 560, 980 400, 1600 470", dur: 17, begin: 3.2 },
-];
-
-// C: asymmetric, overlapping, twirling curves that cross each other. Still
-// enters off-screen left and exits off-screen right so dots never stall.
-const C: Line[] = [
-  { id: "c1", d: "M-160 520 C 220 80, 520 720, 720 360 C 880 100, 980 660, 1600 250", dur: 23, begin: 0 },
-  { id: "c2", d: "M-160 150 C 320 540, 640 40, 840 400 C 1020 700, 1220 100, 1600 470", dur: 26, begin: 1.5 },
-  { id: "c3", d: "M-160 360 C 260 -60, 700 520, 900 200 C 1140 -80, 1320 580, 1600 300", dur: 21, begin: 3 },
-  { id: "c4", d: "M-160 640 C 420 280, 660 740, 1000 440 C 1260 200, 1440 640, 1600 540", dur: 28, begin: 0.8 },
-];
-
-const VARIANTS: Record<string, Line[]> = { a: A, b: B, c: C };
+const VARIANTS: Record<string, Blob[]> = { a: A, b: B, c: C };
 
 export function PlansDots({ className = "", variant = "a" }: { className?: string; variant?: "a" | "b" | "c" }) {
-  const lines = VARIANTS[variant] ?? A;
-
+  const blobs = VARIANTS[variant] ?? A;
   return (
-    <svg
-      className={className}
-      viewBox="0 0 1440 640"
-      preserveAspectRatio="xMidYMid slice"
-      fill="none"
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-      xmlnsXlink="http://www.w3.org/1999/xlink"
-    >
-      <defs>
-        <radialGradient id="pdFill" cx="50%" cy="50%" r="50%">
-          <stop offset="0" style={{ stopColor: "var(--dot-glow-0)" }} />
-          <stop offset="0.4" style={{ stopColor: "var(--dot-glow-1)" }} />
-          <stop offset="1" style={{ stopColor: "var(--dot-glow-1)" }} stopOpacity="0" />
-        </radialGradient>
-      </defs>
-
-      <g style={{ stroke: "var(--dot-line)" }} strokeWidth="1.5" opacity="0.2">
-        {lines.map((l) => (
-          <path key={l.id} id={l.id} d={l.d} />
-        ))}
-      </g>
-
-      <g fill="url(#pdFill)" opacity="0.7">
-        {lines.map((l) => (
-          <g key={`d-${l.id}`}>
-            <circle r="8" />
-            <animateMotion
-              dur={`${l.dur}s`}
-              begin={`${l.begin}s`}
-              repeatCount="indefinite"
-              keyPoints="0;1"
-              keyTimes="0;1"
-              calcMode="linear"
-            >
-              <mpath xlinkHref={`#${l.id}`} />
-            </animateMotion>
-          </g>
-        ))}
-      </g>
-    </svg>
+    <div className={`${className} overflow-hidden`} aria-hidden="true">
+      {blobs.map((b, i) => (
+        <span
+          key={i}
+          className={`ambient-blob ambient-${b.dir}`}
+          style={{
+            top: b.top,
+            left: b.left,
+            width: b.size,
+            height: b.size,
+            animationDuration: `${b.dur}s`,
+            animationDelay: `${b.delay}s`,
+          }}
+        />
+      ))}
+    </div>
   );
 }

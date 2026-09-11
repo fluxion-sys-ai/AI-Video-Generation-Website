@@ -5,7 +5,7 @@
    genuinely different structure/arrangement per skin (not just recolored):
      - LandingOG          the original layout (hero reels, marquee, sections)
      - LandingEditorial   frosted-glass, zigzag editorial rhythm, model grid
-     - LandingExpedition  full-bleed cinematic hero, brush edges, numbered routes
+     - LandingLuxury      twilight-skyline hero, wave dividers, navy/gold, cream beat
    app/page.tsx picks one via useSkin(). Shared chrome (header/footer) is reused.
    ============================================================================ */
 
@@ -314,78 +314,127 @@ export function LandingEditorial() {
   );
 }
 
-/* ------------------------------------------------------------ EXPEDITION ---- */
-function BrushEdge({ flip = false, fill = "var(--c-base)" }: { flip?: boolean; fill?: string }) {
+/* ---------------------------------------------------------------- LUXURY ---- */
+// Smooth wave-shaped section divider (the luxury signature — organic, upscale).
+export function WaveEdge({ flip = false, fill = "var(--c-base)", className = "" }: { flip?: boolean; fill?: string; className?: string }) {
   return (
-    <svg viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" className="block h-[52px] w-full" style={{ transform: flip ? "rotate(180deg)" : undefined, fill }}>
-      <path d="M0,40 C120,10 240,55 360,38 C500,18 560,52 700,44 C840,36 900,8 1040,26 C1180,44 1280,20 1440,36 L1440,60 L0,60 Z" />
+    <svg viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true" className={`block h-[70px] w-full ${className}`} style={{ transform: flip ? "rotate(180deg)" : undefined, fill }}>
+      <path d="M0,48 C240,96 480,96 720,60 C960,24 1200,24 1440,60 L1440,90 L0,90 Z" />
     </svg>
   );
 }
 
-export function LandingExpedition() {
+// Champagne-gold pill button.
+function GoldPill({ href, children, ghost = false }: { href: string; children: React.ReactNode; ghost?: boolean }) {
+  return (
+    <Link href={href} className={`inline-block rounded-full px-7 py-3 font-medium tracking-[0.02em] transition-colors ${ghost ? "border border-accent-border text-accent-ink hover:bg-accent-soft" : "bg-accent text-ink hover:bg-accent-hover"}`}>
+      {children}
+    </Link>
+  );
+}
+
+export function LandingLuxury() {
   const models = getModels();
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-base">
       <Backdrop />
       <SiteHeader />
 
-      {/* Full-bleed cinematic hero with a layered mountain + brush edge. */}
+      {/* Immersive twilight-skyline hero (CSS gradient stand-in for the photo). */}
       <section className="relative overflow-hidden">
-        <div aria-hidden="true" className="absolute inset-0">
-          <svg viewBox="0 0 1440 620" preserveAspectRatio="xMidYMax slice" className="h-full w-full">
-            <defs>
-              <linearGradient id="xpsky2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="var(--c-base)" />
-                <stop offset="1" stopColor="var(--c-base-2)" />
-              </linearGradient>
-            </defs>
-            <rect width="1440" height="620" fill="url(#xpsky2)" />
-            <polygon points="0,620 300,270 560,620" fill="var(--c-surface)" opacity="0.7" />
-            <polygon points="360,620 740,190 1120,620" fill="var(--c-panel)" />
-            <polygon points="860,620 1180,300 1440,620" fill="var(--c-surface)" opacity="0.7" />
-            <polygon points="740,190 800,250 758,286 826,356 720,344 654,398 606,320" fill="var(--c-fg-strong)" opacity="0.85" />
+        <div aria-hidden="true" className="absolute inset-0" style={{ background: "linear-gradient(180deg, #1a1230 0%, #2a2350 30%, #6d4a63 62%, #c98a6a 82%, #e7b482 100%)" }} />
+        {/* skyline silhouette */}
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-0">
+          <svg viewBox="0 0 1440 340" preserveAspectRatio="xMidYMax slice" className="h-[340px] w-full">
+            <g fill="#0a1024" opacity="0.92">
+              <rect x="60" y="180" width="70" height="160" /><rect x="150" y="120" width="52" height="220" /><rect x="220" y="210" width="64" height="130" />
+              <rect x="300" y="90" width="46" height="250" /><rect x="360" y="160" width="80" height="180" /><rect x="460" y="200" width="58" height="140" />
+              <rect x="540" y="60" width="60" height="280" /><rect x="620" y="150" width="70" height="190" /><rect x="710" y="210" width="54" height="130" />
+              <rect x="784" y="110" width="86" height="230" /><rect x="890" y="170" width="60" height="170" /><rect x="970" y="120" width="48" height="220" />
+              <rect x="1040" y="200" width="72" height="140" /><rect x="1130" y="90" width="56" height="250" /><rect x="1206" y="180" width="80" height="160" /><rect x="1310" y="150" width="64" height="190" />
+            </g>
           </svg>
         </div>
-        <div className="relative z-10 mx-auto max-w-5xl px-8 pb-32 pt-24">
-          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.28em] text-accent-ink">Est. 2026 — Motion Expeditions</p>
-          <h1 className="mt-6 text-[clamp(48px,9vw,110px)] leading-[0.92] text-fg-strong">Into the wild render.</h1>
-          <p className="mt-6 max-w-lg text-lg font-light text-fg-soft">Chart a course from prompt to picture. Epic models, honest controls, and a playground built for the long haul.</p>
-          <Link href="/signup" className="mt-8 inline-block border-b border-accent pb-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.12em] text-fg-strong transition-colors hover:text-accent-ink">Plan your first generation →</Link>
+        <div className="relative z-10 mx-auto max-w-5xl px-8 pb-40 pt-28">
+          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">Fluxion · Private Studio</p>
+          <h1 className="mt-6 max-w-3xl text-[clamp(44px,8vw,96px)] leading-[0.98] text-fg-strong">Your words, in motion.</h1>
+          <p className="mt-6 max-w-lg text-lg font-light text-fg-soft">An address for ambitious ideas. Choose a model, compose your prompt, and commission cinematic video with the polish of a five-star production.</p>
+          <div className="mt-9 flex flex-wrap gap-4">
+            <GoldPill href="/signup">Begin your commission →</GoldPill>
+            <GoldPill href="/models" ghost>View the collection</GoldPill>
+          </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 z-10"><BrushEdge /></div>
+        <div className="absolute bottom-0 left-0 right-0 z-10"><WaveEdge /></div>
       </section>
 
-      {/* Numbered "routes" (models) — two-column bold-number list. */}
-      <section id="models" className="mx-auto max-w-4xl scroll-mt-24 px-8 py-20">
-        <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.28em] text-dim">Destinations</p>
-        <h2 className="mt-3 text-4xl text-fg-strong">Choose your route</h2>
-        <div className="mt-8">
-          {models.map((m, i) => (
-            <Link key={m.slug} href={`/generate?model=${m.slug}`} className="group flex items-center gap-6 border-t border-line py-6 transition-colors last:border-b hover:bg-hover">
-              <b className="min-w-[56px] text-3xl text-accent-ink">{String(i + 1).padStart(2, "0")}</b>
-              <div className="flex-1">
-                <span className="block text-xl text-fg-strong">{m.name}</span>
-                <span className="text-sm text-muted">{m.tagline}</span>
+      {/* Trust stats — dark semi-transparent cards with circular gold badges. */}
+      <section className="mx-auto -mt-2 max-w-6xl px-8 py-14">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["◆", "4K", "Cinematic models"],
+            ["▲", "60s", "Prompt to picture"],
+            ["◉", "1080p", "Finishing quality"],
+            ["✦", "0", "Subscriptions"],
+          ].map(([badge, big, label]) => (
+            <div key={label} className="rounded-[16px] border border-hairline bg-surface/70 p-6 text-center backdrop-blur">
+              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-accent-border text-accent-ink">{badge}</span>
+              <p className="mt-3 font-[family-name:var(--font-playfair)] text-3xl text-fg-strong">{big}</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.1em] text-muted">{label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Cream trust-building section (the calmer beat in the rhythm). */}
+      <div style={{ background: "#f3ece0", color: "#1c1710" }}>
+        <WaveEdge flip fill="#f3ece0" />
+        <section className="mx-auto max-w-5xl px-8 py-16 text-center">
+          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em]" style={{ color: "#9a6a2e" }}>The Fluxion standard</p>
+          <h2 className="mt-3 font-[family-name:var(--font-playfair)] text-[clamp(28px,4vw,44px)]" style={{ color: "#1c1710" }}>Crafted for those who expect more.</h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg font-light" style={{ color: "#5a4a38" }}>
+            Every model in the collection is selected for its motion, coherence, and finish. No noise, no filler — only the tools worth putting your name on.
+          </p>
+        </section>
+        <WaveEdge fill="#f3ece0" />
+      </div>
+
+      {/* The collection (models) — organic soft-clipped photo cards. */}
+      <section id="models" className="mx-auto max-w-6xl scroll-mt-24 px-8 py-16">
+        <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">The collection</p>
+        <h2 className="mt-2 font-[family-name:var(--font-playfair)] text-[clamp(28px,4vw,44px)] text-fg-strong">Choose your model</h2>
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {models.map((m) => (
+            <Link key={m.slug} href={`/generate?model=${m.slug}`} className="group overflow-hidden rounded-[20px] border border-hairline bg-surface/70 backdrop-blur transition-transform hover:-translate-y-1">
+              <div className="relative aspect-[4/3] overflow-hidden bg-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={m.poster} alt={m.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <span className="absolute right-3 top-3 rounded-full bg-black/45 px-3 py-1 text-xs text-accent-ink backdrop-blur">{m.creditsPerSecond} cr/s</span>
               </div>
-              <span className="text-xl text-accent-ink transition-transform group-hover:translate-x-1">→</span>
+              <div className="p-5">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="font-[family-name:var(--font-playfair)] text-xl text-fg-strong">{m.name}</h3>
+                  <span className="text-xs uppercase tracking-[0.08em] text-accent-ink">{m.tagline}</span>
+                </div>
+                <p className="mt-2 text-sm font-light text-muted">{m.description}</p>
+                <span className="mt-4 inline-block text-xs uppercase tracking-[0.1em] text-accent-ink transition-transform group-hover:translate-x-1">Enquire →</span>
+              </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Pricing over a dark field, framed by brush edges. */}
-      <section className="relative bg-base-2 py-4">
-        <BrushEdge flip fill="var(--c-base)" />
-        <div className="mx-auto max-w-5xl px-8 py-14">
-          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.28em] text-dim">Provisions</p>
-          <h2 className="mt-3 text-4xl text-fg-strong">Pay as you go</h2>
-          <p className="mt-4 max-w-xl font-light text-fg-soft">No subscriptions. Pay per second of video, priced per model.</p>
+      {/* Pricing over an immersive dark field, framed by waves. */}
+      <div className="relative bg-base-2">
+        <WaveEdge flip fill="var(--c-base)" />
+        <section className="mx-auto max-w-5xl px-8 py-16">
+          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">Investment</p>
+          <h2 className="mt-2 font-[family-name:var(--font-playfair)] text-[clamp(28px,4vw,44px)] text-fg-strong">Pay as you go</h2>
+          <p className="mt-4 max-w-xl font-light text-fg-soft">No subscriptions. Commission by the second, priced per model.</p>
           <div className="mt-8"><ModelPricingTable /></div>
-          <Link href="/pricing" className="mt-6 inline-block border-b border-accent pb-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.12em] text-fg-strong hover:text-accent-ink">See full pricing →</Link>
-        </div>
-        <BrushEdge fill="var(--c-base)" />
-      </section>
+          <div className="mt-7"><GoldPill href="/pricing" ghost>See full pricing →</GoldPill></div>
+        </section>
+        <WaveEdge fill="var(--c-base)" />
+      </div>
 
       <SiteFooter />
     </div>

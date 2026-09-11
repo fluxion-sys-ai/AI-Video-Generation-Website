@@ -450,64 +450,64 @@ html.skin-editorial h2 {
   letter-spacing: -0.02em;
 }
 
-/* ---- Expedition: rugged cinematic. Charcoal canvas, rust accents, serif
-   headers (Playfair), brush-script logo (Caveat), squared-off controls. ------ */
-html.skin-expedition {
-  --c-base: #20262b;
-  --c-base-2: #252c31;
-  --c-surface: #272f34;
-  --c-panel: #2b343a;
-  --c-raised: #2f393f;
-  --c-track: #45525a;
-  --c-ink: #201712;          /* dark text on the rust accent fills */
-  --c-fg: #e8ece6;
-  --c-fg-strong: #f5f8f3;
-  --c-fg-soft: #c3ccc2;
-  --c-fg-soft-2: #a7b2a8;
-  --c-muted: #8b968c;
-  --c-dim: #6d776e;
-  --c-line: #3a464a;
-  --c-line-strong: #47555b;
-  --c-hairline: rgba(200, 210, 200, 0.12);
-  --c-hairline-strong: rgba(200, 210, 200, 0.2);
-  --c-hover: rgba(200, 210, 200, 0.06);
-  --c-accent: #d0793c;       /* rust */
-  --c-accent-hover: #e08c4f;
-  --c-accent-ink: #e59a5f;   /* rust text on charcoal */
-  --c-accent-soft: rgba(208, 121, 60, 0.15);
-  --c-accent-border: rgba(208, 121, 60, 0.55);
-  --c-gold: #d8944f;
-  --c-gold-soft: #e0a566;
-  --c-gold-bright: #e6a95f;
-  --c-gold-2: #d8944f;
-  --c-blue: #7fa89b;         /* muted stone-teal instead of cold blue */
-  --c-blue-chip: rgba(127, 168, 155, 0.12);
-  --c-blue-chip-border: rgba(127, 168, 155, 0.4);
-  --c-blue-line: rgba(127, 168, 155, 0.5);
-  --c-danger: #d9604f;
-  --c-danger-hover: #e8776a;
-  --radius-card: 4px;
-  --radius-control: 3px;
-  --radius-chip: 3px;
-  --spotlight: radial-gradient(circle, rgba(208, 121, 60, 0.12), rgba(127, 168, 155, 0.05) 45%, transparent 70%);
-  --glow-o0: #d8944f;
-  --glow-o1: #b5652c;
-  --glow-b0: #7fa89b;
-  --glow-b1: #d8944f;
-  --dot-line: #7f8a6f;
-  --dot-glow-0: #d8a45f;
-  --dot-glow-1: #b5652c;
-  --reel-shadow: 0 24px 55px rgba(0, 0, 0, 0.5), 0 0 60px -10px rgba(216, 148, 79, 0.4);
-  --c-chart-bar: #d8944f;
-  --c-heart-idle: #f2ede4;
-  --c-skeleton: #2b343a;
-  --c-skeleton-hi: #364149;
-  /* fonts: clean UI, serif headers (logo font is left unchanged on purpose). */
+/* ---- Luxury: navy + champagne gold, twilight-skyline mood. Elegant serif
+   headlines, dark semi-transparent cards, soft rounded/pill controls. -------- */
+html.skin-luxury {
+  --c-base: #0a1024;          /* deep twilight navy */
+  --c-base-2: #0d1530;
+  --c-surface: #121c3c;       /* navy card */
+  --c-panel: #0f1834;
+  --c-raised: #17224a;
+  --c-track: #2a3866;
+  --c-ink: #0a1024;           /* dark text on the gold accent fills */
+  --c-fg: #f1ecdd;            /* warm cream text */
+  --c-fg-strong: #fbf6ea;
+  --c-fg-soft: #cfd6ea;
+  --c-fg-soft-2: #aab4d2;
+  --c-muted: #8b97ba;
+  --c-dim: #6a769c;
+  --c-line: #26315c;
+  --c-line-strong: #334072;
+  --c-hairline: rgba(212, 175, 90, 0.16);   /* gold-tinted hairlines */
+  --c-hairline-strong: rgba(212, 175, 90, 0.28);
+  --c-hover: rgba(212, 175, 90, 0.07);
+  --c-accent: #d4af5a;        /* champagne gold */
+  --c-accent-hover: #e2c477;
+  --c-accent-ink: #e6c877;    /* gold text on navy */
+  --c-accent-soft: rgba(212, 175, 90, 0.14);
+  --c-accent-border: rgba(212, 175, 90, 0.5);
+  --c-gold: #d4af5a;
+  --c-gold-soft: #e2c477;
+  --c-gold-bright: #e6c877;
+  --c-gold-2: #cfa64f;
+  --c-blue: #7fa8d8;          /* soft twilight sky blue for links */
+  --c-blue-chip: rgba(127, 168, 216, 0.12);
+  --c-blue-chip-border: rgba(127, 168, 216, 0.4);
+  --c-blue-line: rgba(127, 168, 216, 0.5);
+  --c-danger: #e06a6a;
+  --c-danger-hover: #ec8383;
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --radius-chip: 999px;
+  --spotlight: radial-gradient(circle, rgba(212, 175, 90, 0.12), rgba(127, 168, 216, 0.06) 45%, transparent 72%);
+  --glow-o0: #e6c877;
+  --glow-o1: #b98b3e;
+  --glow-b0: #7fa8d8;
+  --glow-b1: #3a5aa0;
+  --dot-line: #d4af5a;
+  --dot-glow-0: #e6c877;
+  --dot-glow-1: #4a6bb0;      /* gold → twilight blue */
+  --reel-shadow: 0 26px 60px rgba(0, 0, 0, 0.55), 0 0 70px -10px rgba(212, 175, 90, 0.45);
+  --c-chart-bar: #d4af5a;
+  --c-heart-idle: #f1ecdd;
+  --c-skeleton: #121c3c;
+  --c-skeleton-hi: #1c2a54;
+  /* fonts: clean UI, elegant serif headers (logo font left unchanged). */
   --font-jetbrains: var(--font-space);
   --font-geist-sans: var(--font-inter);
 }
-html.skin-expedition h1,
-html.skin-expedition h2 {
+html.skin-luxury h1,
+html.skin-luxury h2 {
   font-family: var(--font-playfair);
   letter-spacing: 0;
   text-transform: none;
@@ -515,11 +515,11 @@ html.skin-expedition h2 {
 
 /* Both skins use the tokenized (recolorable) decor, not the fixed dark backdrop. */
 .skin-editorial .decor-dark,
-.skin-expedition .decor-dark {
+.skin-luxury .decor-dark {
   display: none;
 }
 .skin-editorial .decor-light,
-.skin-expedition .decor-light {
+.skin-luxury .decor-light {
   display: block;
 }
 .skin-editorial .glow-blobs {
@@ -557,23 +557,27 @@ html.skin-editorial .bg-panel {
 /* Buttons feel like tactile pills. */
 html.skin-editorial button:not(.hit):not([class*="rounded-full"]) { border-radius: 12px; }
 
-/* ==== Expedition: hard-edged, flat, rugged. Kill soft corners. ==== */
-html.skin-expedition .rounded-\[4px\],
-html.skin-expedition .rounded-\[6px\],
-html.skin-expedition .rounded-\[7px\],
-html.skin-expedition .rounded-\[8px\],
-html.skin-expedition .rounded-\[10px\],
-html.skin-expedition .rounded-\[14px\],
-html.skin-expedition .rounded-lg { border-radius: 0 !important; }
-/* Panels read like field cards: flat, with a thin rust rule along the top. */
-html.skin-expedition .bg-panel,
-html.skin-expedition .bg-surface {
-  border-top: 2px solid var(--c-accent-border);
+/* ==== Luxury: soft rounded corners, pill buttons, gold-edged navy cards. ==== */
+html.skin-luxury .rounded-none { border-radius: 12px !important; }
+html.skin-luxury .rounded-\[6px\],
+html.skin-luxury .rounded-\[7px\],
+html.skin-luxury .rounded-\[8px\] { border-radius: 12px !important; }
+html.skin-luxury .rounded-\[10px\],
+html.skin-luxury .rounded-lg { border-radius: 16px !important; }
+html.skin-luxury .rounded-\[14px\] { border-radius: 20px !important; }
+/* Cards: subtle gold hairline + soft depth on the navy canvas. */
+html.skin-luxury .bg-surface,
+html.skin-luxury .bg-panel {
+  border: 1px solid var(--c-hairline);
+  box-shadow: 0 24px 50px -32px rgba(0, 0, 0, 0.6);
 }
-/* Letter-spaced, upper-tracked navigation/labels for the expedition-journal feel. */
-html.skin-expedition nav a,
-html.skin-expedition nav span,
-html.skin-expedition nav button { letter-spacing: 0.14em; }
+/* Gold pill buttons — the luxury signature. */
+html.skin-luxury button:not(.hit):not([class*="rounded-full"]),
+html.skin-luxury a[class*="bg-accent"] { border-radius: 999px; }
+/* Small-caps, letter-spaced navigation for the refined brochure feel. */
+html.skin-luxury nav a,
+html.skin-luxury nav span,
+html.skin-luxury nav button { letter-spacing: 0.14em; }
 
 /* Cursor spotlight fill — token-driven so light mode softens it. */
 .spotlight-glow {
@@ -648,6 +652,41 @@ mark.doc-hl {
 }
 .marquee-pause:hover .animate-marquee {
   animation-play-state: paused;
+}
+
+/* Ambient drifting light "auras" (components/plans-dots.tsx). Big, blurred,
+   theme-colored radial glows that slowly float — a calm premium backdrop. */
+.ambient-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(70px);
+  opacity: 0.4;
+  background: radial-gradient(circle at 50% 50%, var(--dot-glow-0), var(--dot-glow-1) 45%, transparent 72%);
+  animation-name: ambient-xy;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  will-change: transform;
+}
+.light .ambient-blob { opacity: 0.5; }
+.ambient-x { animation-name: ambient-x; }
+.ambient-y { animation-name: ambient-y; }
+.ambient-xy { animation-name: ambient-xy; }
+@keyframes ambient-x {
+  from { transform: translate3d(-4%, 0, 0) scale(1); }
+  to { transform: translate3d(6%, 2%, 0) scale(1.12); }
+}
+@keyframes ambient-y {
+  from { transform: translate3d(0, -4%, 0) scale(1.05); }
+  to { transform: translate3d(2%, 5%, 0) scale(0.95); }
+}
+@keyframes ambient-xy {
+  from { transform: translate3d(-3%, -3%, 0) scale(1); }
+  to { transform: translate3d(5%, 4%, 0) scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ambient-blob { animation: none; }
 }
 
 /* Loading-skeleton shimmer. A placeholder block that pulses a highlight across

@@ -11,7 +11,7 @@ import { getSkin, applySkin, type Skin } from "@/lib/prefs";
 const OPTIONS: { key: Skin; label: string }[] = [
   { key: "og", label: "OG" },
   { key: "editorial", label: "Editorial" },
-  { key: "expedition", label: "Expedition" },
+  { key: "luxury", label: "Luxury" },
 ];
 
 export function SkinSwitcher() {

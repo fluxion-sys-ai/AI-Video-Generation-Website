@@ -214,25 +214,25 @@ function XpRow({ slug, index }: { slug: string; index: number }) {
   );
 }
 
-export function DashboardExpedition({ name, favs, recents, models }: DashData) {
+export function DashboardLuxury({ name, favs, recents, models }: DashData) {
   return (
     <div className="relative flex min-h-screen flex-col bg-base">
       <SiteHeader />
       <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-8 py-12">
-        <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.28em] text-dim">Base camp</p>
-        <h1 className="mt-3 text-[clamp(34px,5vw,56px)] leading-tight text-fg-strong">Let&apos;s create something, {name}.</h1>
+        <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">Your studio</p>
+        <h1 className="mt-3 text-[clamp(34px,5vw,56px)] leading-tight text-fg-strong">Welcome back, {name}.</h1>
 
-        {/* Getting started — expedition checklist (numbered rows) */}
+        {/* Getting started — refined checklist + overview card */}
         <div className="mt-10 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:items-start">
           <div>
             <div className="flex items-center justify-between">
-              <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">The route ahead</h2>
+              <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Getting started</h2>
               <span className="font-[family-name:var(--font-jetbrains)] text-xs text-dim">1 / 4</span>
             </div>
             <div className="mt-4">
               {STEPS.map((s, i) => (
                 <Link key={s.title} href={s.href} className="group flex items-center gap-4 border-t border-line py-4 last:border-b hover:bg-hover">
-                  <span className={`flex h-8 w-8 items-center justify-center text-sm ${s.done ? "bg-accent text-ink" : "border border-line-strong text-muted"}`}>{s.done ? "✓" : i + 1}</span>
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${s.done ? "bg-accent text-ink" : "border border-line-strong text-muted"}`}>{s.done ? "✓" : i + 1}</span>
                   <div className="flex-1">
                     <span className="block text-lg text-fg-strong">{s.title}</span>
                     <span className="text-sm text-muted">{s.desc}</span>
@@ -243,22 +243,22 @@ export function DashboardExpedition({ name, favs, recents, models }: DashData) {
             </div>
           </div>
 
-          {/* Snapshot — big-number field readout */}
-          <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Field log</h2>
-            <div className="mt-4 divide-y divide-line border-y border-line">
+          {/* Overview — dark semi-transparent stat card */}
+          <div className="rounded-[16px] border border-hairline bg-surface/70 p-6 backdrop-blur">
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Overview</h2>
+            <div className="mt-3 divide-y divide-line">
               {SNAPSHOT(models).map(([t, v]) => (
                 <div key={t} className="flex items-baseline justify-between py-3">
                   <span className="text-sm text-muted">{t}</span>
-                  <span className="text-2xl text-fg-strong">{v}</span>
+                  <span className="font-[family-name:var(--font-playfair)] text-2xl text-fg-strong">{v}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Quick actions — thin-underline route links */}
-        <h2 className="mt-12 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Provisions</h2>
+        {/* Quick actions — thin-underline links */}
+        <h2 className="mt-12 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Quick actions</h2>
         <div className="mt-4 grid gap-x-10 sm:grid-cols-2">
           {LINKS.map((l) => (
             <Link key={l.title} href={l.href} className="group flex items-center justify-between border-t border-line py-4 hover:bg-hover">
@@ -271,15 +271,15 @@ export function DashboardExpedition({ name, favs, recents, models }: DashData) {
           ))}
         </div>
 
-        {/* Models as numbered route rows */}
+        {/* Models as refined rows */}
         <div id="models" className="mt-12 scroll-mt-24 grid gap-10 lg:grid-cols-2">
           <div>
             <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Recently used</h2>
-            {recents.length === 0 ? <p className="mt-4 border border-line p-4 text-sm text-muted">Models you generate with show up here.</p> : <div className="mt-2">{recents.map((s, i) => <XpRow key={s} slug={s} index={i} />)}</div>}
+            {recents.length === 0 ? <p className="mt-4 rounded-[16px] border border-hairline bg-surface/70 p-4 text-sm text-muted backdrop-blur">Models you generate with show up here.</p> : <div className="mt-2">{recents.map((s, i) => <XpRow key={s} slug={s} index={i} />)}</div>}
           </div>
           <div>
             <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Favorite models</h2>
-            {favs.length === 0 ? <p className="mt-4 border border-line p-4 text-sm text-muted">Heart a model in the catalog to save it here.</p> : <div className="mt-2">{favs.map((s, i) => <XpRow key={s} slug={s} index={i} />)}</div>}
+            {favs.length === 0 ? <p className="mt-4 rounded-[16px] border border-hairline bg-surface/70 p-4 text-sm text-muted backdrop-blur">Heart a model in the catalog to save it here.</p> : <div className="mt-2">{favs.map((s, i) => <XpRow key={s} slug={s} index={i} />)}</div>}
           </div>
         </div>
       </main>
