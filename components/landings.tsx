@@ -10,6 +10,8 @@
    ============================================================================ */
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { Heart } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ModelMarquee } from "@/components/model-marquee";
@@ -20,7 +22,8 @@ import { Stats } from "@/components/stats";
 import { ModelPricingTable } from "@/components/model-pricing-table";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { PlansDots } from "@/components/plans-dots";
-import { getModels } from "@/lib/models";
+import { getModels, type Model } from "@/lib/models";
+import { isFavorite, toggleFavorite, isAutoplay } from "@/lib/prefs";
 
 const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
 
@@ -122,6 +125,102 @@ export function LandingOG() {
   );
 }
 
+/* An Instagram-style "post" card for a model: avatar + handle header, square
+   media that plays on hover, a like/comment/share action row (the like heart is
+   wired to the real favorites store), likes count, and a caption with hashtags. */
+function IgPost({ model }: { model: Model }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [fav, setFav] = useState(false);
+  const [hover, setHover] = useState(false);
+  useEffect(() => setFav(isFavorite(model.slug)), [model.slug]);
+
+  // Deterministic "likes" so it's stable across SSR/hydration.
+  const likes = 800 + ([...model.slug].reduce((a, c) => a + c.charCodeAt(0), 0) % 900) * 3;
+  const handle = model.name.toLowerCase();
+  const tags = model.capabilities.map((c) => "#" + c.replace(/[^a-z0-9]+/gi, "").toLowerCase());
+
+  function play() {
+    if (isAutoplay()) { setHover(true); videoRef.current?.play().catch(() => {}); }
+  }
+  function stop() {
+    setHover(false);
+    const v = videoRef.current;
+    if (v) { v.pause(); v.currentTime = 0; }
+  }
+
+  return (
+    <article className="overflow-hidden rounded-[18px] bg-surface shadow-lg">
+      {/* header */}
+      <div className="flex items-center gap-3 px-4 py-3">
+        <span
+          aria-hidden="true"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-ink"
+          style={{ background: "linear-gradient(135deg, var(--c-accent-ink), var(--c-gold))" }}
+        >
+          {model.name[0]}
+        </span>
+        <div className="min-w-0 flex-1 leading-tight">
+          <Link href={`/generate?model=${model.slug}`} className="block truncate text-sm font-semibold text-fg-strong hover:underline">
+            {handle}
+          </Link>
+          <p className="truncate text-xs text-muted">{model.tagline}</p>
+        </div>
+        <span className="text-fg-soft" aria-hidden="true">•••</span>
+      </div>
+
+      {/* media (square, plays on hover) */}
+      <Link
+        href={`/generate?model=${model.slug}`}
+        onMouseEnter={play}
+        onMouseLeave={stop}
+        onDoubleClick={(e) => { e.preventDefault(); setFav(toggleFavorite(model.slug)); }}
+        className="relative block aspect-square bg-black"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={model.poster} alt={model.name} className={`h-full w-full object-cover transition-opacity ${hover ? "opacity-0" : "opacity-100"}`} />
+        <video ref={videoRef} src={model.demoVideo} poster={model.poster} muted loop playsInline preload="none" className={`absolute inset-0 h-full w-full object-cover transition-opacity ${hover ? "opacity-100" : "opacity-0"}`} />
+      </Link>
+
+      {/* action row */}
+      <div className="flex items-center gap-4 px-4 pt-3 text-fg-strong">
+        <button
+          type="button"
+          aria-label={fav ? "Unlike" : "Like"}
+          onClick={() => setFav(toggleFavorite(model.slug))}
+          className="hit transition-transform active:scale-90"
+        >
+          <Heart size={22} strokeWidth={1.8} fill={fav ? "var(--c-heart)" : "none"} color={fav ? "var(--c-heart)" : "currentColor"} />
+        </button>
+        {/* comment */}
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.9-5.6A8.5 8.5 0 1 1 21 11.5Z" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {/* share */}
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <span className="flex-1" />
+        {/* bookmark */}
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <path d="M6 3h12v18l-6-4-6 4V3Z" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+
+      {/* likes + caption */}
+      <div className="px-4 pb-4 pt-2">
+        <p className="text-sm font-semibold text-fg-strong">{(likes + (fav ? 1 : 0)).toLocaleString()} likes</p>
+        <p className="mt-1 text-sm text-fg">
+          <span className="font-semibold">{handle}</span> {model.description}
+        </p>
+        <p className="mt-1 text-sm text-accent-ink">{tags.join(" ")}</p>
+        <Link href={`/generate?model=${model.slug}`} className="mt-2 inline-block text-xs uppercase tracking-[0.08em] text-muted hover:text-accent-ink">
+          Open in playground →
+        </Link>
+      </div>
+    </article>
+  );
+}
+
 /* ------------------------------------------------------------- EDITORIAL ---- */
 export function LandingEditorial() {
   const models = getModels();
@@ -195,8 +294,8 @@ export function LandingEditorial() {
           </div>
           <Link href="/models" className="text-sm text-muted hover:text-accent-ink">View all →</Link>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {models.map((m) => <ModelCard key={m.slug} model={m} />)}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {models.map((m) => <IgPost key={m.slug} model={m} />)}
         </div>
       </section>
 
