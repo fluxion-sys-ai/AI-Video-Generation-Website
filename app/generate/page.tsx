@@ -10,6 +10,9 @@ import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
 import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
+import { generateVideo, refineVideo } from "@/lib/api";
+import { hasPaymentMethod } from "@/lib/billing";
+import { toast } from "@/lib/toast";
 
 type Status = "idle" | "generating" | "complete" | "failed";
 
@@ -123,7 +126,9 @@ function GenerateInner() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Bumped on every run/reset so a stale in-flight generation can't overwrite
+  // state after the user has moved on (replaces the old setTimeout handle).
+  const genId = useRef(0);
 
   // Refine session: appears automatically after the first generation.
   const [session, setSession] = useState(false);
@@ -194,38 +199,57 @@ function GenerateInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  // Ignore any in-flight generation once the component unmounts.
+  useEffect(() => () => { genId.current++; }, []);
 
   function draft(): Draft {
     return { slug, aspect, resolution, duration, audio, prompt };
   }
 
   function onGenerate() {
+    // Gate 1: must be signed in (save the form so sign-in doesn't lose it).
     if (!isSignedIn()) {
       saveDraft(draft());
       router.push(`/login?next=${encodeURIComponent(`/generate?model=${slug}`)}`);
       return;
     }
+    // Gate 2: must have a payment method on file.
+    if (!hasPaymentMethod()) {
+      toast("Add a payment method to start generating.");
+      router.push("/profile?tab=payment");
+      return;
+    }
+    const id = ++genId.current;
     setResultUrl(null);
     setStatus("generating");
-    // Mock: always "succeeds" after a short delay by replaying the model clip.
-    timer.current = setTimeout(() => {
-      setResultUrl(model.demoVideo);
-      setStatus("complete");
-      setSession(true);
-    }, 3500 + Math.random() * 3000);
+    generateVideo({ slug, prompt, aspect, resolution, duration, audio, images: images.map((i) => i.url) })
+      .then((r) => {
+        if (id !== genId.current) return; // superseded — drop the result
+        setResultUrl(r.videoUrl);
+        setStatus("complete");
+        setSession(true);
+      })
+      .catch(() => {
+        if (id === genId.current) setStatus("failed");
+      });
   }
 
-  // Re-generate from the current prompt + all refinements (mock: reuses the model
-  // to re-render, i.e. the latest edits applied on top of the last result).
+  // Re-generate from the current prompt + all refinements (the latest edits
+  // applied on top of the last result).
   function regen() {
+    const id = ++genId.current;
     setResultUrl(null);
     setStatus("generating");
-    timer.current = setTimeout(() => {
-      setResultUrl(model.demoVideo);
-      setStatus("complete");
-      setSession(true);
-    }, 2000 + Math.random() * 2000);
+    refineVideo({ slug, prompt, aspect, resolution, duration, audio, images: images.map((i) => i.url) }, chat)
+      .then((r) => {
+        if (id !== genId.current) return;
+        setResultUrl(r.videoUrl);
+        setStatus("complete");
+        setSession(true);
+      })
+      .catch(() => {
+        if (id === genId.current) setStatus("failed");
+      });
   }
   function sendRefine() {
     const text = refineInput.trim();

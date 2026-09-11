@@ -11,6 +11,7 @@ import { AvatarEditor } from "@/components/avatar-editor";
 import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
 import { getModels } from "@/lib/models";
 import { getTheme, applyTheme, getSettings, saveSettings, type Theme } from "@/lib/prefs";
+import { getCards, addCard as billAddCard, removeCard as billRemoveCard, saveCards } from "@/lib/billing";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { toast } from "@/lib/toast";
 
@@ -123,9 +124,8 @@ function ProfileInner() {
 
   // payment methods (mock)
   type Card = { id: number; brand: string; last4: string; exp: string; primary: boolean };
-  const [cards, setCards] = useState<Card[]>([
-    { id: 1, brand: "Visa", last4: "4242", exp: "08/28", primary: true },
-  ]);
+  // Payment methods live in lib/billing (persisted). Hydrated on mount below.
+  const [cards, setCards] = useState<Card[]>([]);
   const [cardOpen, setCardOpen] = useState(false);
   const [cardName, setCardName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
@@ -177,6 +177,7 @@ function ProfileInner() {
       setEmail(u.email);
       setAvatar(u.avatar);
     }
+    setCards(getCards());
     setReady(true);
   }, [router]);
 
@@ -230,22 +231,19 @@ function ProfileInner() {
   function addCard() {
     const digits = cardNumber.replace(/\D/g, "");
     if (digits.length < 4 || !cardExp.trim()) return;
-    setCards((cs) => [
-      ...cs,
-      { id: Date.now(), brand: brandFromNumber(cardNumber), last4: digits.slice(-4), exp: cardExp.trim(), primary: cs.length === 0 },
-    ]);
+    setCards(billAddCard({ brand: brandFromNumber(cardNumber), last4: digits.slice(-4), exp: cardExp.trim() }));
     setCardName(""); setCardNumber(""); setCardExp(""); setCardCvc("");
     setCardOpen(false);
   }
   function removeCard(id: number) {
-    setCards((cs) => {
-      const next = cs.filter((c) => c.id !== id);
-      if (next.length && !next.some((c) => c.primary)) next[0].primary = true;
-      return next;
-    });
+    setCards(billRemoveCard(id));
   }
   function makePrimary(id: number) {
-    setCards((cs) => cs.map((c) => ({ ...c, primary: c.id === id })));
+    setCards((cs) => {
+      const next = cs.map((c) => ({ ...c, primary: c.id === id }));
+      saveCards(next);
+      return next;
+    });
   }
 
   // Generation-history search box (Usage tab). Filters by prompt or model name.

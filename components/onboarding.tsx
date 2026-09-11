@@ -23,6 +23,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, setUser } from "@/lib/auth";
+import { addCard, addCredits, saveCards } from "@/lib/billing";
 
 // ---- shared class strings (kept token-driven) -------------------------------
 const inputClass =
@@ -110,11 +111,15 @@ export function Onboarding() {
     });
     try {
       if (persona) localStorage.setItem("fluxion.persona", persona);
-      // Mock: a saved card and a starting credit balance (frontend-only).
-      if (cardNumber.replace(/\D/g, "").length >= 12) {
-        localStorage.setItem("fluxion.hasCard", "1");
+      // Save the entered card (or record that none was added) via lib/billing,
+      // then apply any starting credits. This is what gates generation later.
+      const digits = cardNumber.replace(/\D/g, "");
+      if (digits.length >= 12) {
+        addCard({ brand: "Card", last4: digits.slice(-4), exp: cardExp.trim() || "—" });
+      } else {
+        saveCards([]); // user skipped payment — start with no method
       }
-      if (credits > 0) localStorage.setItem("fluxion.credits", String(credits));
+      if (credits > 0) addCredits(credits);
     } catch {
       /* localStorage may be unavailable; non-critical for the mock. */
     }

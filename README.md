@@ -83,9 +83,14 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | **Billing / payment / usage numbers** (`$0.00`, Visa •••• 4242, dates) | fake | `app/profile/page.tsx` |
 | **Docs content** (endpoints, code snippets, `api.fluxion-sys.ai`) | illustrative | `app/docs/page.tsx`, `components/api-docs.tsx` |
 | **Contact email / links** (`hello@fluxion-sys.ai`) | placeholder | `app/info/page.tsx`, `components/site-footer.tsx` |
-| **Generated result video** | replays the model's sample clip (no real AI) | mock in `app/generate/page.tsx` |
-| **Sign in / accounts / credits / favorites** | fake (`localStorage`) | `lib/auth.ts`, `lib/prefs.ts` |
+| **Generated result video** | replays the model's sample clip (no real AI) | **`lib/api.ts`** (`generateVideo` / `refineVideo`) — the one place to wire a real render backend |
+| **Payment methods, credits, "can generate?" gate** | fake (`localStorage`) | **`lib/billing.ts`** |
+| **Sign in / accounts / favorites** | fake (`localStorage`) | `lib/auth.ts`, `lib/prefs.ts` |
 | **Sign-up onboarding** (persona list, credit presets, card entry) | mock, nothing sent anywhere | `components/onboarding.tsx` |
+
+> **Backend integration:** see **[BACKEND.md](BACKEND.md)** — it lists every seam
+> (`lib/api.ts`, `lib/billing.ts`, `lib/auth.ts`, …), the exact function to replace,
+> and the real endpoint it should call. The demo keeps working untouched.
 
 ### `localStorage` keys used
 | Key | Meaning | Set in |
@@ -98,8 +103,9 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | `fluxion.recents` | recently-used model slugs (max 8) | `lib/prefs.ts` |
 | `fluxion.theme` | `dark` \| `light` \| `system` (follows the OS) | `lib/prefs.ts` + `app/layout.tsx` |
 | `fluxion.persona` | who-are-you answer from onboarding (student, developer, …) | `components/onboarding.tsx` |
-| `fluxion.hasCard` | mock "a card was added during signup" flag | `components/onboarding.tsx` |
-| `fluxion.credits` | starting credit amount chosen during signup | `components/onboarding.tsx` |
+| `fluxion.cards` | saved payment methods `{ id, brand, last4, exp, primary }[]` (source of truth for the generation gate) | `lib/billing.ts` |
+| `fluxion.hasCard` | legacy `1`/`0` mirror of "has a card" (kept in sync by `lib/billing.ts`) | `lib/billing.ts` |
+| `fluxion.credits` | credit balance (set during signup, topped up in Profile) | `lib/billing.ts` |
 | `fluxion.pendingImages` | images handed off from the library to a model's playground | `lib/prefs.ts` |
 | `fluxion.libraryImages` | persisted library images (samples + uploads, incl. those uploaded to a model) | `lib/prefs.ts` |
 | `fluxion.libraryFolders` | user-created image folders `{ id, name, imageIds[] }` | `app/library/page.tsx` |
