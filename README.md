@@ -204,10 +204,18 @@ components/              Reusable UI
   auth-form.tsx          Mock login form (used by /login)
   spotlight.tsx          Cursor-following glow + OS-theme sync
   avatar-editor.tsx      Profile-photo editor (crop/zoom/rotate + filters → PNG)
-lib/
-  models.ts              Model data (edit me)
-  auth.ts                Mock auth + form draft
-  prefs.ts               Favorites + recently-used (localStorage)
+  copy-button.tsx        Click-to-copy icon button (docs/API snippets)
+  toaster.tsx            Toast host (listens for lib/toast events)
+  docs-sidebar.tsx       Docs navigation sidebar
+lib/                     Backend seams (see BACKEND.md) — swap mock bodies for real API calls
+  api.ts                 Video generate/refine (the render-backend seam)
+  billing.ts             Payment methods, credits, "can generate?" gate
+  auth.ts                Mock auth + sign-in form draft
+  models.ts              Model catalog data (edit me)
+  prefs.ts               Favorites, recents, library images, settings, theme (localStorage)
+  toast.ts               Fire-a-toast helper
+  use-escape-key.ts      Esc-to-close hook
+  utils.ts               className merge helper
 public/
   reels/slotN/           Hero reel videos (a/b/c.mp4)
   models/                Model thumbnails (<slug>.mp4)
@@ -266,5 +274,6 @@ git worktree remove /tmp/ghpages --force
 ## Note
 
 Frontend demo only: no real authentication, payments, storage, API, or video
-generation. To make it real, swap the mock layers (`lib/auth.ts`,
-`lib/models.ts`, the generate/billing mocks) for calls to an actual service.
+generation. To make it real, swap the seam functions in `lib/` (`api.ts`,
+`billing.ts`, `auth.ts`, …) for calls to an actual service — see
+**[BACKEND.md](BACKEND.md)** for the per-function map and endpoints.
