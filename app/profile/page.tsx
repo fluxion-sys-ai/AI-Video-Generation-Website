@@ -9,7 +9,8 @@ import { GlowBlobs } from "@/components/glow-blobs";
 import { UsageChart } from "@/components/usage-chart";
 import { AvatarEditor } from "@/components/avatar-editor";
 import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
-import { getModels } from "@/lib/models";
+import { getModels, getModel } from "@/lib/models";
+import { getGenerations, formatWhen, type Generation } from "@/lib/generations";
 import { getTheme, applyTheme, getSettings, saveSettings, type Theme } from "@/lib/prefs";
 import { getCards, addCard as billAddCard, removeCard as billRemoveCard, saveCards } from "@/lib/billing";
 import { EmptyState } from "@/components/empty-state";
@@ -65,33 +66,6 @@ function ThemeIcon({ theme }: { theme: Theme }) {
 }
 
 // Mock list of past generations. Intentionally long so the history panel
-// demonstrates scrolling + search (see the Usage tab).
-function mockHistory() {
-  const models = getModels();
-  const prompts = [
-    "Aerial pull-back over a coastal town at golden hour",
-    "Close-up of rain on a neon-lit window, slow motion",
-    "A paper boat drifting down a rushing gutter",
-    "Timelapse of clouds over a mountain ridge",
-    "Macro shot of ink blooming in clear water",
-    "Drone flyover of a foggy pine forest at dawn",
-    "Neon city street reflections after the rain",
-    "Slow orbit around a floating crystal monolith",
-    "Hand-drawn storyboard sketch coming to life",
-    "Cozy cabin interior with a crackling fireplace",
-    "Sweeping desert dunes under a starfield sky",
-    "Underwater coral reef teeming with fish",
-  ];
-  const when = [
-    "2h ago", "Yesterday", "3 days ago", "Last week", "Last week",
-    "2 weeks ago", "2 weeks ago", "3 weeks ago", "Last month",
-    "Last month", "Last month", "2 months ago",
-  ];
-  return prompts.map((p, i) => {
-    const m = models[i % models.length];
-    return { id: i, prompt: p, model: m.name, slug: m.slug, poster: m.poster, when: when[i] };
-  });
-}
 
 type Tab = "account" | "billing" | "payment" | "usage" | "preferences";
 const TABS: Tab[] = ["account", "billing", "payment", "usage", "preferences"];
@@ -128,6 +102,8 @@ function ProfileInner() {
   type Card = { id: number; brand: string; last4: string; exp: string; primary: boolean };
   // Payment methods live in lib/billing (persisted). Hydrated on mount below.
   const [cards, setCards] = useState<Card[]>([]);
+  // Generation history (Usage tab). Source of truth: lib/generations.
+  const [history, setHistory] = useState<Generation[]>([]);
   const [cardOpen, setCardOpen] = useState(false);
   const [cardName, setCardName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
@@ -180,6 +156,7 @@ function ProfileInner() {
       setAvatar(u.avatar);
     }
     setCards(getCards());
+    setHistory(getGenerations());
     setReady(true);
   }, [router]);
 
@@ -250,10 +227,9 @@ function ProfileInner() {
 
   // Generation-history search box (Usage tab). Filters by prompt or model name.
   const [historyQuery, setHistoryQuery] = useState("");
-  const history = mockHistory();
   const q = historyQuery.trim().toLowerCase();
   const filteredHistory = q
-    ? history.filter((h) => `${h.prompt} ${h.model}`.toLowerCase().includes(q))
+    ? history.filter((h) => `${h.prompt} ${getModel(h.slug)?.name ?? ""}`.toLowerCase().includes(q))
     : history;
 
   // Payment methods: always show the default card first.
@@ -573,7 +549,7 @@ function ProfileInner() {
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm text-fg">{h.prompt}</p>
                             <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">
-                              {h.model} · {h.when}
+                              {getModel(h.slug)?.name ?? h.slug} · {formatWhen(h.createdAt)}
                             </p>
                           </div>
                         </Link>

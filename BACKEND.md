@@ -51,7 +51,20 @@ The gate lives in `onGenerate()` (`app/generate/page.tsx`): if
 `hasPaymentMethod()` is false the user is sent to `Profile → Payment` with a
 toast, instead of generating. To require credits too, tighten that one `if`.
 
-### 3. Auth & accounts — `lib/auth.ts`
+### 3. Past generations — `lib/generations.ts`
+The user's generation history — the single source of truth behind both the
+Library "Videos" tab and the Profile "Usage history" list.
+
+| Function | Replace mock with |
+| --- | --- |
+| `getGenerations()` | `GET /api/generations` (newest first) |
+| `addGeneration(g)` | server records this when a render finishes; the generate page calls it after `generateVideo()` succeeds |
+| `formatWhen(ms)` | pure UI helper (relative time) — keep client-side |
+
+Record shape (`Generation`): `{ id, slug, prompt, videoUrl, poster, createdAt }`.
+Seeded with sample history on first read so the demo isn't empty.
+
+### 4. Auth & accounts — `lib/auth.ts`
 | Function | Replace mock with |
 | --- | --- |
 | `isSignedIn()` | session/JWT check |
@@ -62,12 +75,12 @@ toast, instead of generating. To require credits too, tighten that one `if`.
 `saveDraft`/`loadDraft`/`clearDraft` are pure UX (they preserve the generation
 form across a sign-in redirect) — leave them client-side.
 
-### 4. User content — `lib/prefs.ts`
+### 5. User content — `lib/prefs.ts`
 Favorites, recently-used models, uploaded library images, settings, theme. Fine
 to leave in `localStorage`, or back with a `GET/PUT /api/me/...` per group. Theme
 functions are pure UI — keep them client-side.
 
-### 5. Model catalog — `lib/models.ts`
+### 6. Model catalog — `lib/models.ts`
 The `MODELS` array (names, capabilities, prices, sample media). Replace
 `getModels()` / `getModel(slug)` with `GET /api/models` if the catalog should be
 server-driven. Media paths point at `public/models/<slug>.{mp4,jpg}`.
@@ -78,8 +91,7 @@ server-driven. Media paths point at `public/models/<slug>.{mp4,jpg}`.
 These are inline sample values, not functions. Swap where noted (all listed in
 the README's mock table):
 
-- Generation history + dashboard recents seed — `app/profile/page.tsx`
-  (`mockHistory`), `lib/prefs.ts`
+- Dashboard "recents" seed — `lib/prefs.ts` (`getRecents`)
 - Usage/spend chart values — `components/usage-chart.tsx` (`DEFAULT`)
 - Docs endpoints & code snippets — `app/docs/page.tsx`, `components/api-docs.tsx`
 - Pricing math — `components/cost-estimator.tsx`, `components/model-pricing-table.tsx`

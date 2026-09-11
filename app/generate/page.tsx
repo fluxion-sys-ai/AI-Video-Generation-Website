@@ -12,6 +12,7 @@ import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavor
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { generateVideo, refineVideo } from "@/lib/api";
 import { hasPaymentMethod } from "@/lib/billing";
+import { addGeneration } from "@/lib/generations";
 import { toast } from "@/lib/toast";
 
 type Status = "idle" | "generating" | "complete" | "failed";
@@ -228,6 +229,8 @@ function GenerateInner() {
         setResultUrl(r.videoUrl);
         setStatus("complete");
         setSession(true);
+        // Record it so it shows up in the Library + Profile history.
+        addGeneration({ slug, prompt, videoUrl: r.videoUrl, poster: model.poster });
       })
       .catch(() => {
         if (id === genId.current) setStatus("failed");

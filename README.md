@@ -79,7 +79,8 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | **Landing stats** (`3.5K+`, `10x`, …) | invented marketing numbers | `components/stats.tsx` → `STATS` |
 | **Daily usage / spend charts** | random sample values | `components/usage-chart.tsx` (`DEFAULT`) |
 | **Aspect-ratio use labels** (YouTube, Reels/TikTok…) | guesses | `app/generate/page.tsx` → `ASPECT_USE` |
-| **Library items, generation history, dashboard recents seed** | invented prompts | `app/library/page.tsx`, `app/profile/page.tsx` (`mockHistory`) |
+| **Generation history** (Library videos + Profile usage) | seeded sample history, appended to on each generate | `lib/generations.ts` |
+| **Uploaded library images, dashboard recents seed** | invented | `app/library/page.tsx`, `lib/prefs.ts` |
 | **Billing / payment / usage numbers** (`$0.00`, Visa •••• 4242, dates) | fake | `app/profile/page.tsx` |
 | **Docs content** (endpoints, code snippets, `api.fluxion-sys.ai`) | illustrative | `app/docs/page.tsx`, `components/api-docs.tsx` |
 | **Contact email / links** (`hello@fluxion-sys.ai`) | placeholder | `app/info/page.tsx`, `components/site-footer.tsx` |
@@ -106,6 +107,7 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | `fluxion.cards` | saved payment methods `{ id, brand, last4, exp, primary }[]` (source of truth for the generation gate) | `lib/billing.ts` |
 | `fluxion.hasCard` | legacy `1`/`0` mirror of "has a card" (kept in sync by `lib/billing.ts`) | `lib/billing.ts` |
 | `fluxion.credits` | credit balance (set during signup, topped up in Profile) | `lib/billing.ts` |
+| `fluxion.generations` | past generations `{ id, slug, prompt, videoUrl, poster, createdAt }[]` (Library videos + Profile history) | `lib/generations.ts` |
 | `fluxion.pendingImages` | images handed off from the library to a model's playground | `lib/prefs.ts` |
 | `fluxion.libraryImages` | persisted library images (samples + uploads, incl. those uploaded to a model) | `lib/prefs.ts` |
 | `fluxion.libraryFolders` | user-created image folders `{ id, name, imageIds[] }` | `app/library/page.tsx` |
@@ -212,6 +214,7 @@ components/              Reusable UI
 lib/                     Backend seams (see BACKEND.md) — swap mock bodies for real API calls
   api.ts                 Video generate/refine (the render-backend seam)
   billing.ts             Payment methods, credits, "can generate?" gate
+  generations.ts         Past generations (Library videos + Profile history)
   auth.ts                Mock auth + sign-in form draft
   models.ts              Model catalog data (edit me)
   prefs.ts               Favorites, recents, library images, settings, theme (localStorage)

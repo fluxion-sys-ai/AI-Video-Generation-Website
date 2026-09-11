@@ -7,7 +7,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
-import { getModels, type Model } from "@/lib/models";
+import { getModels, getModel, type Model } from "@/lib/models";
+import { getGenerations, formatWhen, type Generation } from "@/lib/generations";
 import {
   getFavorites,
   getRecents,
@@ -19,30 +20,29 @@ import {
   type LibImage,
 } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
-import { Heart, ImageIcon, FolderOpen, Search } from "lucide-react";
+import { Heart, ImageIcon, FolderOpen, Search, Clapperboard } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { SkeletonImg } from "@/components/skeleton";
 
-type VideoItem = { id: number; prompt: string; model: Model; when: string };
-
-// Video card: the model poster is an <img> thumbnail that always loads; the
-// actual clip is only mounted (and plays) while hovering, so it never covers the
+// Video card: the poster is an <img> thumbnail that always loads; the actual
+// clip is only mounted (and plays) while hovering, so it never covers the
 // thumbnail with a black first frame.
-function VideoThumb({ v }: { v: VideoItem }) {
+function VideoThumb({ g }: { g: Generation }) {
   const [hover, setHover] = useState(false);
+  const modelName = getModel(g.slug)?.name ?? g.slug;
   return (
     <Link
-      href={`/generate?model=${v.model.slug}`}
+      href={`/generate?model=${g.slug}`}
       onMouseEnter={() => { if (isAutoplay()) setHover(true); }}
       onMouseLeave={() => setHover(false)}
       className="group border border-line p-3 transition-colors hover:border-blue-line"
     >
       <div className="relative aspect-video w-full overflow-hidden bg-black">
-        <SkeletonImg src={v.model.poster} imgClassName="h-full w-full object-cover" />
+        <SkeletonImg src={g.poster} imgClassName="h-full w-full object-cover" />
         {hover && (
           <video
-            src={v.model.demoVideo}
-            poster={v.model.poster}
+            src={g.videoUrl}
+            poster={g.poster}
             autoPlay
             muted
             loop
@@ -51,8 +51,8 @@ function VideoThumb({ v }: { v: VideoItem }) {
           />
         )}
       </div>
-      <p className="mt-3 truncate text-sm text-fg">{v.prompt}</p>
-      <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">{v.model.name} · {v.when}</p>
+      <p className="mt-3 truncate text-sm text-fg">{g.prompt}</p>
+      <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">{modelName} · {formatWhen(g.createdAt)}</p>
     </Link>
   );
 }
@@ -73,6 +73,8 @@ function LibraryInner() {
   // Persisted library images (samples + everything the user has uploaded,
   // including uploads made inside a model's playground).
   const [libImages, setLibImages] = useState<LibImage[]>([]);
+  // Past generations (the Videos tab). Source of truth: lib/generations.
+  const [gens, setGens] = useState<Generation[]>([]);
   const uploadRef = useRef<HTMLInputElement>(null);
 
   // Delete confirmation (holds the ids queued for deletion).
@@ -161,19 +163,10 @@ function LibraryInner() {
     const cleaned = loaded.map((f) => ({ ...f, imageIds: [...new Set((f.imageIds || []).filter((id) => idSet.has(id)))] }));
     setFolders(cleaned);
     setLibImages(imgs);
+    setGens(getGenerations());
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
-
-  const prompts = [
-    "Aerial pull-back over a coastal town at golden hour",
-    "Close-up of rain on a neon-lit window, slow motion",
-    "A paper boat drifting down a rushing gutter",
-    "Timelapse of clouds over a mountain ridge",
-    "Macro shot of ink blooming in water",
-    "Drone flyover of a foggy pine forest",
-  ];
-  const videos = prompts.map((p, i) => ({ id: i, prompt: p, model: models[i % models.length], when: ["2h ago", "Yesterday", "3 days ago", "Last week", "Last week", "2 weeks ago"][i] }));
 
   // ---- folder helpers -------------------------------------------------------
   // All mutations use functional updates so concurrent/async ops (e.g. dropping
@@ -374,11 +367,21 @@ function LibraryInner() {
 
         {/* VIDEOS — poster thumbnail always shown; hover plays the clip */}
         {tab === "videos" && (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {videos.map((v) => (
-              <VideoThumb key={v.id} v={v} />
-            ))}
-          </div>
+          gens.length === 0 ? (
+            <EmptyState
+              className="mt-8"
+              icon={<Clapperboard size={22} />}
+              title="No generations yet"
+              hint="Generate a video and it'll show up here."
+              action={{ label: "Generate a video", href: "/generate" }}
+            />
+          ) : (
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {gens.map((g) => (
+                <VideoThumb key={g.id} g={g} />
+              ))}
+            </div>
+          )
         )}
 
         {/* IMAGES */}
