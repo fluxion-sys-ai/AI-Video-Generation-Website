@@ -135,62 +135,24 @@ Notes:
 ## Design tokens & theming
 
 All color, font, and shape decisions live in **`app/globals.css`** as semantic
-CSS variables — there are no hardcoded hex colors in the pages/components
-anymore. This is the one place to restyle the whole app.
+CSS variables (no hardcoded hex in pages/components) — the one place to restyle
+the app. Values are declared under `:root` (dark, default) and overridden under
+`.light`, then exposed to Tailwind via `@theme inline`, so you style with
+semantic utilities (`bg-base`, `text-fg`, `border-line`, `bg-accent`, …) instead
+of raw hex. Fonts (`next/font` in `app/layout.tsx`) and shape radii are tokens
+too. Decorative background art (glow orbs, moving line-dots) reads its colors
+from the same vars, so it recolors per theme rather than being invert-filtered.
 
-- **Colors** are declared once under `:root` (dark, the default) and overridden
-  under `.light`. They're exposed to Tailwind via `@theme inline`, so you style
-  with **semantic utilities** instead of raw hex:
-  - Surfaces: `bg-base`, `bg-base-2`, `bg-surface`, `bg-panel`, `bg-raised`, `bg-track`
-    - Dark: near-black canvas (`--c-base: #070d1a`).
-    - Light: a soft **blue-grey** canvas (`--c-base: #eef2f8`) — the whole light
-      theme uses this "nicer" dashboard tone; cards/inputs (`bg-surface` = white)
-      lift off it.
-  - Text: `text-fg`, `text-fg-strong`, `text-fg-soft`, `text-fg-soft-2`, `text-muted`, `text-dim`, `text-ink` (on-accent)
-  - Lines: `border-line`, `border-line-strong`
-  - Chrome hairlines/hover washes (translucent, used by headers, dropdowns,
-    ghost buttons, dividers): `border-hairline`, `border-hairline-strong`,
-    `bg-hover`, `bg-accent-soft`, `border-accent-border`
-  - Brand: `text-/bg-accent`, `bg-accent-hover`, `text-gold`, `text-gold-soft`, `text-gold-bright`, `text-gold-2`, `text-blue`, `text-danger`
-  - Cursor spotlight gradient: the `--spotlight` token (softened in `.light`),
-    consumed by `.spotlight-glow` in `components/spotlight.tsx`
-  - Decorative background art (theme-colored, **not** inverted): glow-orb stops
-    `--glow-o0/--glow-o1` (warm) and `--glow-b0/--glow-b1` in
-    `components/glow-blobs.tsx`, and the moving line stroke `--dot-line` in
-    `components/plans-dots.tsx`. Dark = brand orange + sky blue; light = sunny
-    **orange/yellow** with a warm gold line.
-  - Hero-reels frame shadow: `--reel-shadow` (deep + gold glow in dark; soft warm,
-    no black halo, in light), consumed by `.reel-glow` in `components/hero-reels.tsx`
-- **Fonts** come from `next/font` in `app/layout.tsx` and are referenced as
-  `var(--font-jetbrains)` (headings/UI/buttons), `var(--font-geist-sans)` (body),
-  `var(--font-sora)` (logo). All `<button>`s default to JetBrains Mono.
-- **Shapes**: `--radius-card`, `--radius-control`, `--radius-chip`.
+**Theme switch** (Settings → Appearance): Dark / Light / System (follows the OS
+`prefers-color-scheme`, live-updated via `watchSystemTheme`). Switching only
+swaps `:root` → `.light` values — no per-page edits. Persisted as `fluxion.theme`
+and applied before paint by a script in `app/layout.tsx` (no flash); logic lives
+in `lib/prefs.ts`.
 
-**Light vs dark vs system:** switching themes only swaps the `:root` → `.light`
-variable values (no per-page edits). The setting is chosen in **Settings →
-Appearance** with three options:
-
-- **Dark** — the default brand look.
-- **Light** — matches the Fluxion marketing site.
-- **System** — follows the OS `prefers-color-scheme` and live-updates when it
-  changes (listener mounted in `components/spotlight.tsx` via
-  `watchSystemTheme`).
-
-It's persisted as `fluxion.theme` and applied before paint by a tiny script in
-`app/layout.tsx` (no flash). All the theme logic lives in `lib/prefs.ts`
-(`getTheme` / `resolveTheme` / `applyTheme` / `watchSystemTheme`).
-
-**Decorative background art** is theme-colored via the tokens above (no invert
-filter). The glow orbs and moving line/dot field read their colors from CSS
-vars, so they switch to warm orange/yellow on the light canvas. The homepage
-keeps its authored dark `backdrop.svg` **only in dark mode** (`.decor-dark`) and
-swaps to the theme-colored `GlowBlobs` + `PlansDots` **in light mode**
-(`.decor-light`). Those two helper classes (in `app/globals.css`) show/hide a
-layer per theme.
-
-To retheme: edit the variables in `app/globals.css`. To add a color: add a
-`--c-name` (both `:root` and `.light`), map it under `@theme inline`, then use
-`bg-name` / `text-name` / `border-name`.
+**To retheme:** edit the variables in `app/globals.css`. **To add a color:** add
+`--c-name` under both `:root` and `.light`, map it in `@theme inline`, then use
+`bg-name` / `text-name` / `border-name`. Full token list and inline comments are
+in `app/globals.css` itself.
 
 ## Other things you can tune (settings, not placeholders)
 
