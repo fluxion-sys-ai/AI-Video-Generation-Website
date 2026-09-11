@@ -385,17 +385,27 @@ export function LandingLuxury() {
         </div>
       </section>
 
-      {/* Cream trust-building section (the calmer beat in the rhythm). */}
-      <div style={{ background: "#f3ece0", color: "#1c1710" }}>
-        <WaveEdge flip fill="#f3ece0" />
-        <section className="mx-auto max-w-5xl px-8 py-16 text-center">
-          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em]" style={{ color: "#9a6a2e" }}>The Fluxion standard</p>
-          <h2 className="mt-3 font-[family-name:var(--font-playfair)] text-[clamp(28px,4vw,44px)]" style={{ color: "#1c1710" }}>Crafted for those who expect more.</h2>
-          <p className="mx-auto mt-5 max-w-2xl text-lg font-light" style={{ color: "#5a4a38" }}>
-            Every model in the collection is selected for its motion, coherence, and finish. No noise, no filler, only the tools worth putting your name on.
-          </p>
+      {/* Statement section over a second cinematic clip. */}
+      <div className="relative">
+        <WaveEdge flip fill="var(--c-base)" />
+        <section className="relative overflow-hidden">
+          <video
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover"
+            src={models[1]?.demoVideo ?? models[0].demoVideo}
+            poster={models[1]?.poster ?? models[0].poster}
+            autoPlay muted loop playsInline preload="auto"
+          />
+          <div aria-hidden="true" className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(10,16,36,0.82), rgba(10,16,36,0.7))" }} />
+          <div className="relative z-10 mx-auto max-w-4xl px-8 py-24 text-center">
+            <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">The Fluxion standard</p>
+            <h2 className="mt-3 font-[family-name:var(--font-playfair)] text-[clamp(28px,4vw,48px)] text-fg-strong">Crafted for those who expect more.</h2>
+            <p className="mx-auto mt-5 max-w-2xl text-lg font-light text-fg-soft">
+              Every model in the collection is selected for its motion, coherence, and finish. No noise, no filler, only the tools worth putting your name on.
+            </p>
+          </div>
         </section>
-        <WaveEdge fill="#f3ece0" />
+        <WaveEdge fill="var(--c-base)" />
       </div>
 
       {/* The collection (models), organic soft-clipped photo cards. */}
@@ -628,11 +638,11 @@ export function LandingCosmos() {
         <div className="cosmos-ribbon" style={{ width: "300vw" }} />
         {/* Panel 1: hero */}
         <section className={panel}>
-          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.4em] text-accent-ink">Fluxion / Deep space studio</p>
-          <h1 className="mt-6 max-w-3xl text-[clamp(44px,8vw,104px)] font-bold leading-[0.95] text-fg-strong">Generate at the speed of light.</h1>
-          <p className="mt-6 max-w-md text-lg text-fg-soft">Prompt a scene, pick a model, and launch. A studio built for motion, wrapped in a quiet galaxy.</p>
+          <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.4em] text-accent-ink">Fluxion Studio</p>
+          <h1 className="mt-6 max-w-3xl text-[clamp(44px,8vw,104px)] font-semibold leading-[0.95] text-fg-strong">From prompt to picture.</h1>
+          <p className="mt-6 max-w-md text-lg text-fg-soft">Pick a model, write a prompt, and generate. One idea per slide, told left to right.</p>
           <div className="mt-9 flex flex-wrap gap-4">
-            <Link href="/signup" className="rounded-[8px] bg-accent px-7 py-3.5 font-semibold text-ink shadow-[0_0_30px_-6px_var(--c-accent)] transition-transform hover:-translate-y-0.5">Launch the studio →</Link>
+            <Link href="/signup" className="rounded-[8px] bg-accent px-7 py-3.5 font-semibold text-ink shadow-[0_0_30px_-6px_var(--c-accent)] transition-transform hover:-translate-y-0.5">Start generating →</Link>
             <Link href="/models" className="rounded-[8px] border border-accent-border px-7 py-3.5 font-semibold text-accent-ink transition-colors hover:bg-accent-soft">Browse models</Link>
           </div>
           <p className="mt-12 flex items-center gap-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.2em] text-dim">Scroll sideways <span className="text-accent-ink">→</span></p>
@@ -640,7 +650,7 @@ export function LandingCosmos() {
 
         {/* Panel 2: models */}
         <section className={panel}>
-          <h2 className="font-[family-name:var(--font-space)] text-[clamp(26px,4vw,44px)] text-fg-strong">The fleet</h2>
+          <h2 className="font-[family-name:var(--font-space)] text-[clamp(26px,4vw,44px)] text-fg-strong">The models</h2>
           <div className="mt-8 flex gap-6 overflow-visible">
             {models.map((m, i) => (
               <Link key={m.slug} href={`/generate?model=${m.slug}`} className="group w-[240px] shrink-0 overflow-hidden rounded-[12px] border border-hairline bg-surface transition-transform hover:-translate-y-1">
@@ -660,7 +670,7 @@ export function LandingCosmos() {
 
         {/* Panel 3: pricing + CTA */}
         <section className={panel}>
-          <h2 className="font-[family-name:var(--font-space)] text-[clamp(26px,4vw,44px)] text-fg-strong">Pay as you fly</h2>
+          <h2 className="font-[family-name:var(--font-space)] text-[clamp(26px,4vw,44px)] text-fg-strong">Pay as you go</h2>
           <p className="mt-4 max-w-md text-fg-soft">No subscriptions. Pay per second, priced per model.</p>
           <div className="mt-8 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
             {models.map((m) => (

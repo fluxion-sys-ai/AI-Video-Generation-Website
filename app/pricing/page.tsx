@@ -107,7 +107,32 @@ export default function PricingPage() {
     );
   }
 
-  // ===== OG / Slideshow. =====
+  // ===== SLIDESHOW, a horizontal strip of price cards + estimator. =====
+  if (skin === "cosmos") {
+    return (
+      <Shell variant="a">
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="text-center">
+            <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">Pricing</p>
+            <h1 className="mt-2 text-[clamp(32px,5vw,56px)] font-semibold text-fg-strong">Pay as you go</h1>
+            <p className="mt-2 text-fg-soft"><span className="text-accent-ink">{PAYG.price}</span> {PAYG.note} · no subscriptions</p>
+          </div>
+          <div className="mt-8"><ModelPricingTable /></div>
+          <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_1.2fr] lg:items-center">
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-fg-soft">
+              {PAYG.features.map((f) => <span key={f} className="flex items-center gap-2"><span className="text-accent-ink">•</span>{f}</span>)}
+            </div>
+            <div className="rounded-[14px] border border-hairline bg-surface p-6">
+              <h2 className="text-lg font-semibold text-fg-strong">Estimate a clip</h2>
+              <div className="mt-3"><CostEstimator bare /></div>
+            </div>
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
+  // ===== OG. =====
   return (
     <Shell variant="a">
       <div className="mx-auto w-full max-w-6xl">

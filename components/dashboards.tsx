@@ -385,8 +385,8 @@ export function DashboardCosmos({ name, favs, recents, models }: DashData) {
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
       <main className="relative z-10 w-full flex-1 px-10 py-10">
-        <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.32em] text-accent-ink">Mission control</p>
-        <h1 className="mt-3 font-[family-name:var(--font-space)] text-[clamp(30px,5vw,52px)] leading-tight text-fg-strong">Welcome aboard, {name}.</h1>
+        <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.32em] text-accent-ink">Your studio</p>
+        <h1 className="mt-3 font-[family-name:var(--font-space)] text-[clamp(30px,5vw,52px)] leading-tight text-fg-strong">Welcome back, {name}.</h1>
 
         {/* Readouts */}
         <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -401,7 +401,7 @@ export function DashboardCosmos({ name, favs, recents, models }: DashData) {
         <div className="mt-10 grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-start">
           {/* Systems check (getting started) */}
           <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Systems check</h2>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Getting started</h2>
             <div className="mt-4 space-y-2">
               {STEPS.map((s, i) => (
                 <Link key={s.title} href={s.href} className="group flex items-center gap-4 rounded-[10px] border border-hairline bg-surface px-4 py-3 hover:-translate-y-0.5 transition-transform">
@@ -417,7 +417,7 @@ export function DashboardCosmos({ name, favs, recents, models }: DashData) {
           </div>
           {/* Launch pads (quick actions) */}
           <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Launch pads</h2>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Quick actions</h2>
             <div className="mt-4 grid grid-cols-2 gap-3">
               {LINKS.map((l) => (
                 <Link key={l.title} href={l.href} className="rounded-[10px] border border-hairline bg-surface p-4 transition-transform hover:-translate-y-0.5">
@@ -431,7 +431,7 @@ export function DashboardCosmos({ name, favs, recents, models }: DashData) {
 
         <div id="models" className="mt-12 scroll-mt-24 grid gap-10 lg:grid-cols-2">
           <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Recent flights</h2>
+            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Recently used</h2>
             {recents.length === 0 ? <p className="mt-4 rounded-[10px] border border-hairline bg-surface p-4 text-sm text-muted">Models you generate with show up here.</p> : <div className="mt-4 space-y-3">{recents.map((s) => <CosmosChip key={s} slug={s} />)}</div>}
           </div>
           <div>

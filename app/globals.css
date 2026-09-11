@@ -747,14 +747,19 @@ html.skin-luxury .pg-examples { display: none; }
   html.skin-luxury .pg-preview { grid-area: preview; }
 }
 
-/* Cosmos playground: neon control deck on the left, preview on the right, with
-   the examples rail kept but slimmed. */
+/* Slideshow playground: the preview leads on the LEFT, controls on the right,
+   examples move to their own concern (hidden rail) , a reversed, gallery-first
+   arrangement distinct from every other skin. */
+html.skin-cosmos .pg-examples { display: none; }
 @media (min-width: 1024px) {
   html.skin-cosmos .pg-grid {
-    grid-template-columns: 240px minmax(0, 1fr) minmax(0, 38%) !important;
+    grid-template-columns: minmax(0, 48%) minmax(0, 1fr) !important;
+    grid-template-areas: "preview form" !important;
+    grid-template-rows: minmax(0, 1fr);
   }
+  html.skin-cosmos .pg-preview { grid-area: preview; }
+  html.skin-cosmos .pg-form { grid-area: form; }
 }
-html.skin-cosmos .pg-examples > div { border-right-color: var(--c-hairline); }
 
 /* Luxury: shrink the (over-long) prompt box right down. */
 html.skin-luxury .pg-prompt { max-width: 26rem; }

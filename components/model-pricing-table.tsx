@@ -49,6 +49,22 @@ export function ModelPricingTable() {
     );
   }
 
+  // Slideshow, a horizontal row of soft violet price chips.
+  if (skin === "cosmos") {
+    return (
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {models.map((m) => (
+          <div key={m.slug} className="w-[220px] shrink-0 rounded-[14px] border border-hairline bg-surface p-5">
+            <p className="font-[family-name:var(--font-space)] text-base font-semibold text-fg-strong">{m.name}</p>
+            <p className="mt-3 text-3xl font-semibold text-accent-ink">${price(m.creditsPerSecond)}</p>
+            <p className="text-xs text-muted">per 5s clip · {m.creditsPerSecond} cr/s</p>
+            <p className="mt-2 text-xs text-fg-soft">up to {m.resolutions[m.resolutions.length - 1]}</p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // OG + Luxury, the table (recolors per tokens: navy/gold under Luxury).
   return (
     <div className="overflow-x-auto border border-line-strong bg-surface/70 backdrop-blur-sm">
