@@ -56,7 +56,7 @@ function ThemeIcon({ theme }: { theme: Theme }) {
       </svg>
     );
   }
-  // light — bright sun with rays
+  // light, bright sun with rays
   return (
     <svg {...p}>
       <circle cx="8" cy="8" r="3" />
@@ -270,7 +270,7 @@ function ProfileInner() {
             </div>
 
             <div className="settings-shell mt-8 grid gap-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:items-start">
-              {/* tab nav — layout varies per skin (see globals.css) */}
+              {/* tab nav, layout varies per skin (see globals.css) */}
               <aside className="settings-nav flex flex-row flex-wrap gap-1 border border-line p-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col">
                 {TABS.map((t) => (
                   <button
@@ -560,7 +560,7 @@ function ProfileInner() {
               </div>
             )}
 
-            {/* PREFERENCES (settings) — condensed to fit without scrolling */}
+            {/* PREFERENCES (settings), condensed to fit without scrolling */}
             {tab === "preferences" && (
               <div className="max-w-3xl space-y-5">
                 <section>
@@ -583,7 +583,7 @@ function ProfileInner() {
                   </div>
                 </section>
 
-                {/* Toggle settings — 2-up grid */}
+                {/* Toggle settings, 2-up grid */}
                 <div className="grid gap-2.5 sm:grid-cols-2">
                   <div className="flex items-center justify-between gap-4 border border-line p-3">
                     <div>

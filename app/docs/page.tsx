@@ -135,11 +135,11 @@ console.log(result.video.url);`}</Code>
           <section className="space-y-3">
             <H id="parameters">Parameters</H>
             <ul className="space-y-2 text-sm text-muted">
-              <li><code className="text-gold-2">prompt</code> — text description of the shot (required).</li>
-              <li><code className="text-gold-2">image_url</code> — optional image to animate (image-to-video).</li>
-              <li><code className="text-gold-2">duration</code> — seconds of output.</li>
-              <li><code className="text-gold-2">aspect_ratio</code> — e.g. 16:9, 9:16, 1:1.</li>
-              <li><code className="text-gold-2">resolution</code> — 480p, 720p, or 1080p.</li>
+              <li><code className="text-gold-2">prompt</code>, text description of the shot (required).</li>
+              <li><code className="text-gold-2">image_url</code>, optional image to animate (image-to-video).</li>
+              <li><code className="text-gold-2">duration</code>, seconds of output.</li>
+              <li><code className="text-gold-2">aspect_ratio</code>, e.g. 16:9, 9:16, 1:1.</li>
+              <li><code className="text-gold-2">resolution</code>, 480p, 720p, or 1080p.</li>
             </ul>
           </section>
 
@@ -159,9 +159,9 @@ console.log(result.video.url);`}</Code>
           <section className="space-y-3">
             <H id="errors">Errors</H>
             <ul className="space-y-2 text-sm text-muted">
-              <li><code className="text-danger">401</code> — missing or invalid API key.</li>
-              <li><code className="text-danger">422</code> — invalid parameters.</li>
-              <li><code className="text-danger">429</code> — rate limited.</li>
+              <li><code className="text-danger">401</code>, missing or invalid API key.</li>
+              <li><code className="text-danger">422</code>, invalid parameters.</li>
+              <li><code className="text-danger">429</code>, rate limited.</li>
             </ul>
           </section>
 

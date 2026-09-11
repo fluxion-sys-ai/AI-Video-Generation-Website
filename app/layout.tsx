@@ -33,7 +33,7 @@ const spaceGrotesk = Space_Grotesk({ variable: "--font-space", subsets: ["latin"
 const outfit = Outfit({ variable: "--font-outfit", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 
 const SITE = "Fluxion AI Video";
-const DESC = "AI video generator — choose a model, write a prompt, and generate.";
+const DESC = "AI video generator, choose a model, write a prompt, and generate.";
 const SITE_URL = "https://fluxion-sys-ai.github.io/AI-Video-Generation-Website/";
 
 export const metadata: Metadata = {

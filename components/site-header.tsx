@@ -286,7 +286,7 @@ export function SiteHeader() {
   const dashMode = ready && !!user && mode === "dashboard";
   const closeMobile = () => setMobileOpen(false);
 
-  // Clear/transparent top bar: no solid fill — the page (and its decorative
+  // Clear/transparent top bar: no solid fill, the page (and its decorative
   // background) shows straight through. A light backdrop-blur keeps the nav
   // legible over busy content, and a faint hairline separates it.
   return (
@@ -395,7 +395,7 @@ export function SiteHeader() {
                   Create
                 </Link>
               )}
-              {/* Settings gear — sits just left of the profile avatar (dashboard). */}
+              {/* Settings gear, sits just left of the profile avatar (dashboard). */}
               {dashMode && (
                 <div className="hidden md:block">
                   <NavMenu
@@ -429,7 +429,7 @@ export function SiteHeader() {
               </Link>
             </>
           )}
-          {/* hamburger — only below md, where the inline nav is hidden */}
+          {/* hamburger, only below md, where the inline nav is hidden */}
           <button
             type="button"
             aria-label="Menu"

@@ -32,7 +32,7 @@ function Shell({ children, variant = "a" }: { children: React.ReactNode; variant
 export default function PricingPage() {
   const skin = useSkin();
 
-  // ===== EDITORIAL — centered, airy, editorial statement. =====
+  // ===== EDITORIAL, centered, airy, editorial statement. =====
   if (skin === "editorial") {
     return (
       <Shell variant="a">
@@ -41,7 +41,7 @@ export default function PricingPage() {
           <h1 className="mt-4 text-[clamp(40px,7vw,80px)] font-semibold leading-[0.98] tracking-[-0.02em] text-fg-strong">
             <span className="text-accent-ink">{PAYG.price}</span><br />per second.
           </h1>
-          <p className="mx-auto mt-5 max-w-md text-lg font-light text-muted">No subscriptions. Pay only for the video you make — every model, up to 1080p, watermark-free.</p>
+          <p className="mx-auto mt-5 max-w-md text-lg font-light text-muted">No subscriptions. Pay only for the video you make, every model, up to 1080p, watermark-free.</p>
           <div className="mx-auto mt-10 max-w-2xl bg-surface p-8 text-left shadow-lg">
             <h2 className="text-xl font-semibold text-fg-strong">Estimate a clip</h2>
             <div className="mt-5"><CostEstimator bare /></div>
@@ -55,7 +55,7 @@ export default function PricingPage() {
     );
   }
 
-  // ===== LUXURY — immersive dark, gold, generous margins. =====
+  // ===== LUXURY, immersive dark, gold, generous margins. =====
   if (skin === "luxury") {
     return (
       <Shell variant="a">
@@ -87,13 +87,13 @@ export default function PricingPage() {
     );
   }
 
-  // ===== PLAYFUL — chunky pastel cards. =====
+  // ===== PLAYFUL, chunky pastel cards. =====
   if (skin === "playful") {
     return (
       <Shell variant="a">
         <main className="mx-auto w-full max-w-6xl flex-1 px-8 py-16">
-          <h1 className="text-center text-[clamp(36px,6vw,68px)] font-extrabold text-fg-strong">Simple, sunny pricing</h1>
-          <p className="mt-3 text-center text-lg text-muted">No subscriptions — just pay per second.</p>
+          <h1 className="text-center text-[clamp(36px,6vw,68px)] font-extrabold text-fg-strong">Pricing made simple</h1>
+          <p className="mt-3 text-center text-lg text-muted">No subscriptions, just pay per second.</p>
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
             <div className="rounded-[24px] p-8" style={{ background: "#fff2c2", color: "#1a1440", boxShadow: "6px 6px 0 rgba(26,20,64,0.16)" }}>
               <p className="text-5xl font-extrabold">{PAYG.price}<span className="text-lg font-bold"> {PAYG.note}</span></p>
@@ -116,7 +116,7 @@ export default function PricingPage() {
     );
   }
 
-  // ===== OG — the original layout. =====
+  // ===== OG, the original layout. =====
   return (
     <Shell variant="a">
       <main className="mx-auto w-full max-w-6xl flex-1 px-10 py-8">

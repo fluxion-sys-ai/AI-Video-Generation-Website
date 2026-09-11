@@ -132,7 +132,7 @@
   button {
     font-family: var(--font-jetbrains);
   }
-  /* Visible keyboard focus everywhere (keyboard only — not on mouse click). */
+  /* Visible keyboard focus everywhere (keyboard only, not on mouse click). */
   :where(a, button, select, input, textarea, [role="switch"], [tabindex]):focus-visible {
     outline: 2px solid var(--c-accent);
     outline-offset: 2px;
@@ -158,7 +158,7 @@
    overrides the same names. They are exposed to Tailwind as utilities
    (bg-surface, text-muted, border-line, text-accent-ink, …) via `@theme inline`
    below, so every page/component reads from here and both themes swap by only
-   changing these variables — no per-page color edits.
+   changing these variables, no per-page color edits.
 
    Fonts come from next/font (see app/layout.tsx): --font-jetbrains (headings,
    UI, all buttons), --font-geist-sans (body), --font-sora (logo wordmark).
@@ -192,7 +192,7 @@
   --c-hover: rgba(124, 189, 242, 0.06);           /* row / button hover wash */
   --c-accent-soft: rgba(255, 138, 30, 0.12);      /* active-tab accent tint */
   --c-accent-border: rgba(255, 138, 30, 0.55);    /* accent outline button */
-  /* Brand accents — identical in both themes */
+  /* Brand accents, identical in both themes */
   --c-accent: #ff8a1e;
   --c-accent-hover: #ff9f45;
   /* Accent used as *text*. Dark: same bright orange (great contrast on near-
@@ -240,7 +240,7 @@
   --dot-glow-1: #ffc15e;
 }
 
-/* Light theme — matches the Fluxion site's light look. Only surfaces, text,
+/* Light theme, matches the Fluxion site's light look. Only surfaces, text,
    and lines flip; brand accents stay the same. */
 .light {
   /* Page canvas is a soft blue-grey (the "nicer" dashboard tone), applied app-
@@ -258,7 +258,7 @@
   --c-fg-soft-2: #3e5c87;
   --c-muted: #5a6b84;
   --c-dim: #7e8fa8;
-  /* Borders — a touch darker so they read clearly on the grey canvas. */
+  /* Borders, a touch darker so they read clearly on the grey canvas. */
   --c-line: #c5cede;
   --c-line-strong: #a7b4ca;
   /* On white, translucent light-blue is nearly invisible, so hairlines/hover
@@ -269,7 +269,7 @@
   /* Darker orange for accent *text* on the light canvas (~4.7:1 on #eef2f8). */
   --c-accent-ink: #b8500a;
   /* Gold + blue are light by design (great on near-black) but wash out on the
-     pale canvas — darken them here so gold eyebrows/hover text and blue links
+     pale canvas, darken them here so gold eyebrows/hover text and blue links
      stay legible (all ≥4.5:1 on #eef2f8). */
   --c-gold: #8f5c10;
   --c-gold-soft: #98620f;
@@ -291,7 +291,7 @@
   --glow-b1: #ff8a1e;
   /* Moving line/dot field: warm gold line on white (was a muddy inverted blue). */
   --dot-line: #eaa23c;
-  /* Reels shadow in light mode: no heavy black — a soft warm drop + gold glow. */
+  /* Reels shadow in light mode: no heavy black, a soft warm drop + gold glow. */
   --reel-shadow: 0 16px 40px -14px rgba(180, 120, 30, 0.35), 0 0 55px -8px rgba(255, 176, 32, 0.5);
   /* Vivid amber bar so the chart stays punchy on the pale canvas (the gold text
      tokens darken for contrast, but a chart fill wants to stay bright). */
@@ -594,7 +594,7 @@ html.skin-playful h2 {
 }
 
 /* ----------------------------------------------------------------------------
-   STRUCTURAL layer — beyond colors/fonts, each skin reshapes the shared UI
+   STRUCTURAL layer, beyond colors/fonts, each skin reshapes the shared UI
    primitives site-wide by overriding the utility classes the pages already use
    (radius, surfaces, borders, shadows, buttons). This is what makes switching
    skins actually restructure every page, not just recolor it.
@@ -637,7 +637,7 @@ html.skin-editorial .pg-examples > div {
 /* Give the preview stage a soft framed card feel. */
 html.skin-editorial .pg-preview { padding: 0.25rem; }
 
-/* Luxury playground: a different arrangement entirely — controls + preview
+/* Luxury playground: a different arrangement entirely, controls + preview
    stacked on the left, the examples panel becomes a tall rail on the right. */
 @media (min-width: 1024px) {
   html.skin-luxury .pg-grid {
@@ -654,7 +654,7 @@ html.skin-editorial .pg-preview { padding: 0.25rem; }
 /* Luxury: shrink the (over-long) prompt box right down. */
 html.skin-luxury .pg-prompt { max-width: 26rem; }
 
-/* Playful playground: a different arrangement — the preview sits big on top,
+/* Playful playground: a different arrangement, the preview sits big on top,
    with the controls and examples side-by-side beneath it. */
 @media (min-width: 1024px) {
   html.skin-playful .pg-grid {
@@ -706,7 +706,7 @@ html.skin-luxury .lib-head p { display: none; }
 html.skin-luxury .lib-toolbar button { border-radius: 999px; }
 @media (min-width: 1024px) { html.skin-luxury .lib-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1.5rem; } }
 
-/* Playful: desktop vibe — no title, centered pill search, big rounded tiles,
+/* Playful: desktop vibe, no title, centered pill search, big rounded tiles,
    folder chips as chunky pastel pills. */
 html.skin-playful .lib-head { display: none; }
 html.skin-playful .lib-search { margin-left: auto; margin-right: auto; max-width: 30rem; }
@@ -729,7 +729,7 @@ html.skin-luxury .bg-panel {
   border: 1px solid var(--c-hairline);
   box-shadow: 0 24px 50px -32px rgba(0, 0, 0, 0.6);
 }
-/* Gold pill buttons — the luxury signature. */
+/* Gold pill buttons, the luxury signature. */
 html.skin-luxury button:not(.hit):not([class*="rounded-full"]),
 html.skin-luxury a[class*="bg-accent"] { border-radius: 999px; }
 /* Small-caps, letter-spaced navigation for the refined brochure feel. */
@@ -753,7 +753,7 @@ html.skin-playful .bg-panel {
 html.skin-playful button:not(.hit):not([class*="rounded-full"]),
 html.skin-playful a[class*="bg-accent"] { border-radius: 999px; }
 
-/* Cursor spotlight fill — token-driven so light mode softens it. */
+/* Cursor spotlight fill, token-driven so light mode softens it. */
 .spotlight-glow {
   background: var(--spotlight);
 }
@@ -829,7 +829,7 @@ mark.doc-hl {
 }
 
 /* Ambient drifting light "auras" (components/plans-dots.tsx). Big, blurred,
-   theme-colored radial glows that slowly float — a calm premium backdrop. */
+   theme-colored radial glows that slowly float, a calm premium backdrop. */
 .ambient-blob {
   position: absolute;
   border-radius: 50%;

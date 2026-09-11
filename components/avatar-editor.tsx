@@ -1,7 +1,7 @@
 "use client";
 
 /* ============================================================================
-   AvatarEditor — a dependency-free profile-photo editor.
+   AvatarEditor, a dependency-free profile-photo editor.
    Crop (drag to reposition), zoom, rotate, and apply a color/B&W filter, then
    export a square PNG via <canvas>. The same transform + CSS filter is applied
    in the live preview and when drawing to the canvas, so what you see is what

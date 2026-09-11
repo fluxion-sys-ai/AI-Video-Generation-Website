@@ -141,7 +141,7 @@ export function DashboardEditorial({ name, favs, recents, models }: DashData) {
         <p className="text-sm uppercase tracking-[0.16em] text-accent-ink">Your studio</p>
         <h1 className="mt-2 text-[clamp(34px,5vw,56px)] font-semibold leading-tight tracking-[-0.02em] text-fg-strong">Let&apos;s create something, {name}.</h1>
 
-        {/* Getting started — horizontal progress of rounded pill cards */}
+        {/* Getting started, horizontal progress of rounded pill cards */}
         <div className="mt-10">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-fg-strong">Getting started</h2>
@@ -168,7 +168,7 @@ export function DashboardEditorial({ name, favs, recents, models }: DashData) {
           ))}
         </div>
 
-        {/* Quick actions — big rounded cards */}
+        {/* Quick actions, big rounded cards */}
         <h2 className="mt-12 text-lg font-semibold text-fg-strong">Quick actions</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {LINKS.map((l) => (
@@ -222,7 +222,7 @@ export function DashboardLuxury({ name, favs, recents, models }: DashData) {
         <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">Your studio</p>
         <h1 className="mt-3 text-[clamp(34px,5vw,56px)] leading-tight text-fg-strong">Welcome back, {name}.</h1>
 
-        {/* Getting started — refined checklist + overview card */}
+        {/* Getting started, refined checklist + overview card */}
         <div className="mt-10 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:items-start">
           <div>
             <div className="flex items-center justify-between">
@@ -243,7 +243,7 @@ export function DashboardLuxury({ name, favs, recents, models }: DashData) {
             </div>
           </div>
 
-          {/* Overview — dark semi-transparent stat card */}
+          {/* Overview, dark semi-transparent stat card */}
           <div className="rounded-[16px] border border-hairline bg-surface/70 p-6 backdrop-blur">
             <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Overview</h2>
             <div className="mt-3 divide-y divide-line">
@@ -257,7 +257,7 @@ export function DashboardLuxury({ name, favs, recents, models }: DashData) {
           </div>
         </div>
 
-        {/* Quick actions — thin-underline links */}
+        {/* Quick actions, thin-underline links */}
         <h2 className="mt-12 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Quick actions</h2>
         <div className="mt-4 grid gap-x-10 sm:grid-cols-2">
           {LINKS.map((l) => (
@@ -313,7 +313,7 @@ export function DashboardPlayful({ name, favs, recents, models }: DashData) {
         <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink">Your studio</span>
         <h1 className="mt-4 text-[clamp(34px,5vw,56px)] font-bold leading-tight text-fg-strong">Hey {name}, let&apos;s make something.</h1>
 
-        {/* Getting started — pastel cards */}
+        {/* Getting started, pastel cards */}
         <h2 className="mt-10 text-lg font-bold text-fg-strong">Getting started</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((s, i) => (
@@ -325,7 +325,7 @@ export function DashboardPlayful({ name, favs, recents, models }: DashData) {
           ))}
         </div>
 
-        {/* Snapshot — pastel stat tiles */}
+        {/* Snapshot, pastel stat tiles */}
         <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {SNAPSHOT(models).map(([t, v], i) => (
             <div key={t} className="rounded-[22px] p-6 text-center" style={{ background: PLAY_PASTELS[(i + 2) % PLAY_PASTELS.length], color: "#1a1440" }}>
@@ -335,7 +335,7 @@ export function DashboardPlayful({ name, favs, recents, models }: DashData) {
           ))}
         </div>
 
-        {/* Quick actions — pastel cards */}
+        {/* Quick actions, pastel cards */}
         <h2 className="mt-12 text-lg font-bold text-fg-strong">Quick actions</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {LINKS.map((l, i) => (

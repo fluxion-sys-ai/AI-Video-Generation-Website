@@ -40,7 +40,7 @@ export function addRecent(slug: string) {
 }
 
 // Persisted library images. Seeded with samples by the library on first load,
-// then appended to whenever the user uploads — including uploads made inside a
+// then appended to whenever the user uploads, including uploads made inside a
 // model's playground (those carry `model`). Stored as data URLs so they survive
 // navigation/reload (frontend-only mock).
 export type LibImage = {
@@ -69,7 +69,7 @@ export function saveLibraryImages(list: LibImage[]) {
   try {
     localStorage.setItem(LIB_IMAGES_KEY, JSON.stringify(list));
   } catch {
-    /* quota / unavailable — non-critical for the mock */
+    /* quota / unavailable, non-critical for the mock */
   }
 }
 // Prepend new uploads so the newest show first.
@@ -166,14 +166,14 @@ export function resolveTheme(t: Theme): EffectiveTheme {
 }
 
 // Persist the setting and reflect it on <html> immediately (toggling `.light`,
-// which every design token keys off of — see app/globals.css).
+// which every design token keys off of, see app/globals.css).
 export function applyTheme(t: Theme) {
   if (typeof window === "undefined") return;
   localStorage.setItem(THEME_KEY, t);
   document.documentElement.classList.toggle("light", resolveTheme(t) === "light");
 }
 
-// Brand "skin" — an independent axis from dark/light. Overrides the whole token
+// Brand "skin", an independent axis from dark/light. Overrides the whole token
 // palette + fonts + radii site-wide via a class on <html> (see app/globals.css):
 //   - "og"        → the original Fluxion look (dark/light theme still applies)
 //   - "editorial" → warm frosted-glass, chunky black headlines (its own palette)
@@ -197,7 +197,7 @@ export function applySkin(skin: Skin) {
   const el = document.documentElement;
   el.classList.remove("skin-editorial", "skin-luxury", "skin-playful");
   if (skin !== "og") el.classList.add(`skin-${skin}`);
-  // Notify React components (useSkin) so layouts — not just CSS — re-render live.
+  // Notify React components (useSkin) so layouts, not just CSS, re-render live.
   window.dispatchEvent(new CustomEvent("fluxion-skin", { detail: skin }));
 }
 

@@ -7,20 +7,20 @@ import { GlowBlobs } from "@/components/glow-blobs";
 export const metadata = { title: "Info & contact" };
 
 const FEATURES: { icon: React.ReactNode; h: string; b: string }[] = [
-  { icon: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M10 9l5 3-5 3z" /></>, h: "Text & image to video", b: "Start from a prompt or animate a still — a model for every kind of shot." },
-  { icon: <><path d="M4 7h16M4 12h16M4 17h10" /></>, h: "Real controls", b: "Duration, aspect ratio, resolution, seed and audio — dial in exactly what you need." },
+  { icon: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M10 9l5 3-5 3z" /></>, h: "Text & image to video", b: "Start from a prompt or animate a still, a model for every kind of shot." },
+  { icon: <><path d="M4 7h16M4 12h16M4 17h10" /></>, h: "Real controls", b: "Duration, aspect ratio, resolution, seed and audio, dial in exactly what you need." },
   { icon: <><path d="M12 3v12M8 11l4 4 4-4M4 19h16" /></>, h: "Export & reuse", b: "Download finished MP4s, or push reference images back into a model's playground." },
   { icon: <><path d="M6 3h12l3 6-9 12L3 9z" /><path d="M3 9h18" /></>, h: "Pay as you go", b: "No subscriptions. Credit-based pricing per second, priced per model." },
 ];
 
 const STEPS = [
   ["01", "Pick a model", "Browse the catalog and compare capability, resolution, and price."],
-  ["02", "Write a prompt", "Describe the shot — subject, motion, camera, lighting — and set your options."],
+  ["02", "Write a prompt", "Describe the shot, subject, motion, camera, lighting, and set your options."],
   ["03", "Generate & refine", "Preview the result, refine it in chat, then download the finished clip."],
 ];
 
 const FAQ = [
-  ["Is this a real video generator?", "This is a frontend demo — the flows are real, but generation is mocked. See the docs and BACKEND.md for how a real backend plugs in."],
+  ["Is this a real video generator?", "This is a frontend demo, the flows are real, but generation is mocked. See the docs and BACKEND.md for how a real backend plugs in."],
   ["How is pricing calculated?", "Each model has a credits-per-second rate; the estimated dollar figure assumes an illustrative 1 credit ≈ $0.01."],
   ["Do I need an account?", "You can browse freely. Generating and saving to your library ask you to sign in first."],
   ["Which formats can I export?", "MP4 today. WebM and GIF are shown as coming-soon options in the playground."],
@@ -39,7 +39,7 @@ export default function InfoPage() {
           <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">About</span>
           <h1 className="mt-3 text-[clamp(34px,5.5vw,60px)] font-medium leading-[1.02] text-fg-strong">Prompt in, video out.</h1>
           <p className="mx-auto mt-5 max-w-xl text-lg text-muted">
-            Fluxion is a studio for turning words into motion. Choose a model, compose a prompt, and generate —
+            Fluxion is a studio for turning words into motion. Choose a model, compose a prompt, and generate -
             with real controls and a playground built for iteration.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -92,7 +92,7 @@ export default function InfoPage() {
           </div>
           <div className="h-fit rounded-[10px] border border-line bg-surface p-6">
             <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-strong">Get in touch</h2>
-            <p className="mt-2 text-sm text-muted">Questions, partnerships, or press — we&apos;d love to hear from you.</p>
+            <p className="mt-2 text-sm text-muted">Questions, partnerships, or press, we&apos;d love to hear from you.</p>
             <dl className="mt-5 space-y-3 text-sm">
               <div>
                 <dt className="text-xs uppercase tracking-[0.06em] text-dim">Email</dt>

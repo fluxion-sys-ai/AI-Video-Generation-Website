@@ -4,7 +4,7 @@ import { useState } from "react";
 
 /**
  * An <img> that shows a shimmering skeleton placeholder until the image has
- * actually loaded, then fades the real image in. Purely perceptual — it never
+ * actually loaded, then fades the real image in. Purely perceptual, it never
  * delays loading, it just fills the gap while a (network-loaded) poster arrives.
  *
  * The parent must be `position: relative` (the skeleton overlays it).

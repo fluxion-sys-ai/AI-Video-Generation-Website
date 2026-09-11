@@ -1,4 +1,4 @@
-// Decorative ambient background — soft, slowly-drifting blurred light "auras"
+// Decorative ambient background, soft, slowly-drifting blurred light "auras"
 // (replaces the old animated dot-on-line field). Elegant and calm; reads its
 // colors from theme tokens so it recolors per skin. Export name + props are
 // unchanged so existing pages don't need edits. Respects reduced motion.

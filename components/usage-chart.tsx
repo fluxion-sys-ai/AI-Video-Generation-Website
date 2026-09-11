@@ -94,7 +94,7 @@ export function UsageChart({
             </div>
           )}
         </div>
-        {/* X axis — sparse labels (every `step` days + the last), no wrapping */}
+        {/* X axis, sparse labels (every `step` days + the last), no wrapping */}
         <div className="mt-1.5 flex gap-[3px] font-[family-name:var(--font-jetbrains)] text-[9px] text-dim">
           {labels.map((l, i) => (
             <span key={i} className="min-w-0 flex-1 overflow-visible whitespace-nowrap text-center">

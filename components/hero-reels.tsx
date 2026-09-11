@@ -15,7 +15,7 @@ const SLOTS = [
 const GAP = 1700;
 
 // The poster (first frame) for a clip lives next to it as a .jpg, so each reel
-// tile shows an image immediately — no black box while the video downloads.
+// tile shows an image immediately, no black box while the video downloads.
 const posterFor = (src: string) => src.replace(/\.mp4$/, ".jpg");
 
 export function HeroReels() {

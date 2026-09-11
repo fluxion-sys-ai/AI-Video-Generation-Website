@@ -82,7 +82,7 @@ function GenerateInner() {
   const [audio, setAudio] = useState(false);
   const [prompt, setPrompt] = useState("");
   // Uploaded reference images (multiple). Each holds an object URL for the
-  // thumbnail preview + the file name. Mock only — nothing is sent anywhere.
+  // thumbnail preview + the file name. Mock only, nothing is sent anywhere.
   const [images, setImages] = useState<{ url: string; name: string }[]>([]);
   // Ref mirror so the unmount cleanup can revoke every object URL.
   const imagesRef = useRef(images);
@@ -116,7 +116,7 @@ function GenerateInner() {
   const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
   useEscapeKey(() => setLightbox(null));
 
-  // Favorite (heart) for the current model — shared with the model catalog.
+  // Favorite (heart) for the current model, shared with the model catalog.
   const [fav, setFav] = useState(false);
   useEffect(() => setFav(isFavorite(slug)), [slug]);
 
@@ -225,7 +225,7 @@ function GenerateInner() {
     setStatus("generating");
     generateVideo({ slug, prompt, aspect, resolution, duration, audio, images: images.map((i) => i.url) })
       .then((r) => {
-        if (id !== genId.current) return; // superseded — drop the result
+        if (id !== genId.current) return; // superseded, drop the result
         setResultUrl(r.videoUrl);
         setStatus("complete");
         setSession(true);
@@ -361,7 +361,7 @@ function GenerateInner() {
             </div>
           )}
       </div>
-      {/* Playground / API tabs — top bar beside the model picker. */}
+      {/* Playground / API tabs, top bar beside the model picker. */}
       <nav className="pg-viewnav flex gap-1 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
         {(["playground", "api"] as const).map((v) => (
           <button
@@ -645,7 +645,7 @@ function GenerateInner() {
       )}
       </div>
 
-      {/* Floating refine chatbot — fixed to the bottom-center like a chat app. */}
+      {/* Floating refine chatbot, fixed to the bottom-center like a chat app. */}
       {session && (
         <div
           className="fixed bottom-5 left-1/2 z-[60] w-[min(92vw,640px)] rounded-[14px] border border-line bg-panel/95 p-3 shadow-xl shadow-black/40 backdrop-blur"

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-// Each nav item carries an optional `body` — a plain-text version of that
+// Each nav item carries an optional `body`, a plain-text version of that
 // section's content. Searching matches the label, its group, OR the body, so a
 // keyword that only appears in the prose still surfaces the right tab.
 type NavItem = { id: string; label: string; body?: string };

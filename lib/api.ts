@@ -1,13 +1,13 @@
 "use client";
 
 /**
- * lib/api.ts — THE integration seam between this frontend demo and a real
+ * lib/api.ts, THE integration seam between this frontend demo and a real
  * backend. Every function here is a MOCK that resolves canned data after a
  * short delay (to imitate a render job). To go live, replace each function
  * body with a real `fetch()` to your API; keep the signatures + return shapes
  * exactly, because that is the contract the UI depends on. See BACKEND.md.
  *
- * Nothing else in the app calls setTimeout to fake a network request — it all
+ * Nothing else in the app calls setTimeout to fake a network request, it all
  * funnels through here, so this file is the whole "swap the mock for real"
  * surface for video generation.
  */

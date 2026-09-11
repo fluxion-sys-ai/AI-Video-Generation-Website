@@ -5,11 +5,11 @@
    ----------------------------------------------------------------------------
    A multi-step "slideshow" wizard shown on /signup. The flow:
 
-     0. Account        — email + password (or Continue with Google)
-     1. Your name      — name (pre-filled from the email), email shown read-only
-     2. Who are you     — pick a persona (student, developer, …) [optional]
-     3. Payment method  — card + billing address                 [optional / skip]
-     4. Add credits     — preset or custom top-up                 [optional / skip]
+     0. Account       , email + password (or Continue with Google)
+     1. Your name     , name (pre-filled from the email), email shown read-only
+     2. Who are you    , pick a persona (student, developer, …) [optional]
+     3. Payment method , card + billing address                 [optional / skip]
+     4. Add credits    , preset or custom top-up                 [optional / skip]
 
    Everything is mocked (frontend-only, see lib/auth.ts). On finish we sign the
    user in, save their profile, stash the extra answers in localStorage, and
@@ -17,7 +17,7 @@
 
    Each slide re-mounts on step change (via React `key`) so the `animate-slide-in`
    CSS replays, giving the slideshow feel. Colors/shapes come from the design
-   tokens in app/globals.css — no hardcoded hex here.
+   tokens in app/globals.css, no hardcoded hex here.
    ============================================================================ */
 
 import { useState } from "react";
@@ -115,9 +115,9 @@ export function Onboarding() {
       // then apply any starting credits. This is what gates generation later.
       const digits = cardNumber.replace(/\D/g, "");
       if (digits.length >= 12) {
-        addCard({ brand: "Card", last4: digits.slice(-4), exp: cardExp.trim() || "—" });
+        addCard({ brand: "Card", last4: digits.slice(-4), exp: cardExp.trim() || "-" });
       } else {
-        saveCards([]); // user skipped payment — start with no method
+        saveCards([]); // user skipped payment, start with no method
       }
       if (credits > 0) addCredits(credits);
     } catch {
@@ -126,7 +126,7 @@ export function Onboarding() {
     router.push("/dashboard");
   }
 
-  // Jump straight in with Google — mock: no real OAuth, just advance the flow.
+  // Jump straight in with Google, mock: no real OAuth, just advance the flow.
   function withGoogle() {
     if (!email) setEmail("you@gmail.com");
     if (!name) setName("You");
@@ -206,7 +206,7 @@ export function Onboarding() {
         {/* ---- Slide 2: persona ------------------------------------------- */}
         {current.key === "persona" && (
           <div className="mt-8">
-            <p className="text-sm text-muted">Helps us tailor examples and defaults. Pick one — or skip.</p>
+            <p className="text-sm text-muted">Helps us tailor examples and defaults. Pick one, or skip.</p>
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {PERSONAS.map((p) => {
                 const on = persona === p.key;

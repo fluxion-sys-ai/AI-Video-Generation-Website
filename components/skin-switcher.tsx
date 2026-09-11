@@ -1,6 +1,6 @@
 "use client";
 
-// TEMP — draggable floating skin switcher so all site themes can be compared
+// TEMP, draggable floating skin switcher so all site themes can be compared
 // across the real pages. Drag it by its header to move it out of the way.
 // Persists via lib/prefs (fluxion.skin), applied to <html> before paint by the
 // boot script in app/layout.tsx. Remove once a direction is chosen.

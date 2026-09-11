@@ -13,7 +13,7 @@ export function ModelPricingTable() {
   const models = getModels();
   const skin = useSkin();
 
-  // Editorial — a clean editorial row list (no table chrome).
+  // Editorial, a clean editorial row list (no table chrome).
   if (skin === "editorial") {
     return (
       <div>
@@ -33,7 +33,7 @@ export function ModelPricingTable() {
     );
   }
 
-  // Playful — colorful pastel price cards.
+  // Playful, colorful pastel price cards.
   if (skin === "playful") {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -49,7 +49,7 @@ export function ModelPricingTable() {
     );
   }
 
-  // OG + Luxury — the table (recolors per tokens: navy/gold under Luxury).
+  // OG + Luxury, the table (recolors per tokens: navy/gold under Luxury).
   return (
     <div className="overflow-x-auto border border-line-strong bg-surface/70 backdrop-blur-sm">
       <table className="w-full min-w-[560px] table-fixed text-left text-base">

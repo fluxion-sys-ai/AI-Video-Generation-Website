@@ -91,7 +91,7 @@ export function ModelCatalog({ models }: { models: Model[] }) {
 
   const empty = <p className="mt-8 text-sm text-dim">No models match your filters.</p>;
 
-  // ===== EDITORIAL — no big title; search up top; Instagram-style feed. =====
+  // ===== EDITORIAL, no big title; search up top; Instagram-style feed. =====
   if (skin === "editorial") {
     return (
       <div className="relative mx-auto max-w-5xl">
@@ -127,7 +127,7 @@ export function ModelCatalog({ models }: { models: Model[] }) {
     );
   }
 
-  // ===== LUXURY — serif title, minimal search, numbered index rows. =====
+  // ===== LUXURY, serif title, minimal search, numbered index rows. =====
   if (skin === "luxury") {
     return (
       <div className="relative mx-auto max-w-4xl">
@@ -163,7 +163,7 @@ export function ModelCatalog({ models }: { models: Model[] }) {
     );
   }
 
-  // ===== PLAYFUL — chunky title, big centered pill search, pastel bento. =====
+  // ===== PLAYFUL, chunky title, big centered pill search, pastel bento. =====
   if (skin === "playful") {
     const PASTELS = ["#fff2c2", "#d9ecff", "#ffd9ec", "#d9f5e6", "#e9ddff", "#ffe3d1"];
     return (
@@ -195,7 +195,7 @@ export function ModelCatalog({ models }: { models: Model[] }) {
     );
   }
 
-  // ===== OG — the original catalog. =====
+  // ===== OG, the original catalog. =====
   return (
     <div className="relative">
       <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">Models</span>

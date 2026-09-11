@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * lib/billing.ts — payment methods, credit balance, and the "can this user
+ * lib/billing.ts, payment methods, credit balance, and the "can this user
  * generate?" entitlement check. This is the ONE place the app tracks billing.
  *
  * BACKEND DEVS: everything here is a frontend-only mock backed by localStorage.
  * Replace each function body with a real API call (see BACKEND.md). Keep the
- * function names + return shapes — the UI (generate/profile/onboarding) only
+ * function names + return shapes, the UI (generate/profile/onboarding) only
  * ever talks to billing through these.
  */
 
@@ -44,14 +44,14 @@ export function getCards(): Card[] {
   return readJSON<Card[]>(CARDS_KEY, []);
 }
 
-// MOCK: persist the card list. Real impl: not needed — the server owns this.
+// MOCK: persist the card list. Real impl: not needed, the server owns this.
 export function saveCards(cards: Card[]) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(CARDS_KEY, JSON.stringify(cards));
     localStorage.setItem(LEGACY_HASCARD_KEY, cards.length ? "1" : "0");
   } catch {
-    /* quota / unavailable — non-critical for the mock */
+    /* quota / unavailable, non-critical for the mock */
   }
 }
 
@@ -75,7 +75,7 @@ export function removeCard(id: number): Card[] {
 /**
  * The entitlement gate. Generation is only allowed when the user has a payment
  * method on file. Real impl: derive from the server (subscription/credits), not
- * the client — never trust this check alone for billing.
+ * the client, never trust this check alone for billing.
  */
 export function hasPaymentMethod(): boolean {
   return getCards().length > 0;

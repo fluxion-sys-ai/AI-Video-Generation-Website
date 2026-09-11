@@ -2,7 +2,7 @@
 
 **Live demo:** https://fluxion-sys-ai.github.io/AI-Video-Generation-Website/
 
-A polished, **frontend-only** AI video generator — choose a model, write a
+A polished, **frontend-only** AI video generator, choose a model, write a
 prompt, set options, generate, watch, and export. There is **no real backend or
 AI inference**: all accounts, credits, payments, and "generation" are mocked in
 the browser (`localStorage` + a swappable data layer). It replays sample clips
@@ -13,7 +13,7 @@ headings/UI (all buttons use it too), **Geist** for body, **Sora** for the logo
 wordmark. Sky-blue (`#7CBDF2`) accent with a warm gold/orange (`#E0A24E` /
 `#FF8A1E`) highlight. Two themes: a near-black **dark** UI (default) and a soft
 blue-grey **light** UI (`#eef2f8` canvas); decorative glows are warm
-orange/yellow in light mode. All of it is token-driven — see
+orange/yellow in light mode. All of it is token-driven, see
 [Design tokens & theming](#design-tokens--theming).
 
 ---
@@ -22,10 +22,10 @@ orange/yellow in light mode. All of it is token-driven — see
 
 The same header switches between two "modes":
 
-- **Public (marketing) mode** — the landing page, model catalog, pricing, info,
+- **Public (marketing) mode**, the landing page, model catalog, pricing, info,
   docs. Nav shows **Models · Pricing · info**. When you're signed in, a small
   **`+ Create`** button appears next to your avatar.
-- **Dashboard (app) mode** — entered with the **Create** button. Nav becomes
+- **Dashboard (app) mode**, entered with the **Create** button. Nav becomes
   **Dashboard · Generate · Library · Settings**. The logo always returns you to
   the public home (you stay signed in).
 
@@ -35,7 +35,7 @@ The same header switches between two "modes":
 - App routes (`/dashboard`, `/library`, `/settings`) always show the app bar.
 - Shared routes (`/profile`, `/generate`, `/models`, `/docs`) inherit the last
   mode (stored in `localStorage` as `fluxion.mode`). This is why clicking your
-  profile photo from a public page **keeps** you in public mode — only the
+  profile photo from a public page **keeps** you in public mode, only the
   Create button (or an app page) switches you into the dashboard.
 
 ---
@@ -49,7 +49,7 @@ The same header switches between two "modes":
 | `/generate?model=<slug>` | Generation playground | Form + live preview + **multi-image upload** (thumbnails, lightbox, hover-to-delete) + **floating refine chatbot**; **API** tab with code snippets |
 | `/pricing` | Pricing | Pay-as-you-go rate + **cost estimator** + per-model rate table |
 | `/docs` | Documentation | fal.ai-style docs: section sidebar + quickstart/auth/API/etc. |
-| `/login` | Mock auth | Email/Google (mock) — sets a `localStorage` flag |
+| `/login` | Mock auth | Email/Google (mock), sets a `localStorage` flag |
 | `/signup` | **Guided onboarding slideshow** | Multi-step wizard: account → name (email autofilled) → who-are-you → payment + billing (optional) → add credits (optional) → dashboard |
 | `/info` | Info + contact | Placeholder contact links |
 | `/dashboard` | **App** dashboard | Getting-started checklist, quick actions, snapshot, recents + favorites |
@@ -84,12 +84,12 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | **Billing / payment / usage numbers** (`$0.00`, Visa •••• 4242, dates) | fake | `app/profile/page.tsx` |
 | **Docs content** (endpoints, code snippets, `api.fluxion-sys.ai`) | illustrative | `app/docs/page.tsx`, `components/api-docs.tsx` |
 | **Contact email / links** (`hello@fluxion-sys.ai`) | placeholder | `app/info/page.tsx`, `components/site-footer.tsx` |
-| **Generated result video** | replays the model's sample clip (no real AI) | **`lib/api.ts`** (`generateVideo` / `refineVideo`) — the one place to wire a real render backend |
+| **Generated result video** | replays the model's sample clip (no real AI) | **`lib/api.ts`** (`generateVideo` / `refineVideo`), the one place to wire a real render backend |
 | **Payment methods, credits, "can generate?" gate** | fake (`localStorage`) | **`lib/billing.ts`** |
 | **Sign in / accounts / favorites** | fake (`localStorage`) | `lib/auth.ts`, `lib/prefs.ts` |
 | **Sign-up onboarding** (persona list, credit presets, card entry) | mock, nothing sent anywhere | `components/onboarding.tsx` |
 
-> **Backend integration:** see **[BACKEND.md](BACKEND.md)** — it lists every seam
+> **Backend integration:** see **[BACKEND.md](BACKEND.md)**, it lists every seam
 > (`lib/api.ts`, `lib/billing.ts`, `lib/auth.ts`, …), the exact function to replace,
 > and the real endpoint it should call. The demo keeps working untouched.
 
@@ -129,7 +129,7 @@ names below; they show up automatically (rebuild/redeploy to publish).
 
 Notes:
 - Reels are vertical (9:16), `object-cover`, so any clip is cropped to fit.
-- Keep clips small (1–3 MB) — the hero plays several at once.
+- Keep clips small (1–3 MB), the hero plays several at once.
 - A model with no uploaded thumbnail falls back to its poster image.
 
 ---
@@ -137,7 +137,7 @@ Notes:
 ## Design tokens & theming
 
 All color, font, and shape decisions live in **`app/globals.css`** as semantic
-CSS variables (no hardcoded hex in pages/components) — the one place to restyle
+CSS variables (no hardcoded hex in pages/components), the one place to restyle
 the app. Values are declared under `:root` (dark, default) and overridden under
 `.light`, then exposed to Tailwind via `@theme inline`, so you style with
 semantic utilities (`bg-base`, `text-fg`, `border-line`, `bg-accent`, …) instead
@@ -147,7 +147,7 @@ from the same vars, so it recolors per theme rather than being invert-filtered.
 
 **Theme switch** (Settings → Appearance): Dark / Light / System (follows the OS
 `prefers-color-scheme`, live-updated via `watchSystemTheme`). Switching only
-swaps `:root` → `.light` values — no per-page edits. Persisted as `fluxion.theme`
+swaps `:root` → `.light` values, no per-page edits. Persisted as `fluxion.theme`
 and applied before paint by a script in `app/layout.tsx` (no flash); logic lives
 in `lib/prefs.ts`.
 
@@ -211,7 +211,7 @@ components/              Reusable UI
   docs-sidebar.tsx       Docs navigation sidebar
   empty-state.tsx        Reusable "nothing here yet" placeholder (icon + action)
   skeleton.tsx           Shimmering image placeholder shown until media loads
-lib/                     Backend seams (see BACKEND.md) — swap mock bodies for real API calls
+lib/                     Backend seams (see BACKEND.md), swap mock bodies for real API calls
   api.ts                 Video generate/refine (the render-backend seam)
   billing.ts             Payment methods, credits, "can generate?" gate
   generations.ts         Past generations (Library videos + Profile history)
@@ -237,7 +237,7 @@ public/
 - **Static export** (`output: "export"`) deployed to **GitHub Pages**
 
 Fonts are loaded with `next/font` (JetBrains Mono, Geist, Sora). No animation
-libraries — reveals use `IntersectionObserver`, backgrounds use SVG + CSS.
+libraries, reveals use `IntersectionObserver`, backgrounds use SVG + CSS.
 
 ---
 
@@ -280,5 +280,5 @@ git worktree remove /tmp/ghpages --force
 
 Frontend demo only: no real authentication, payments, storage, API, or video
 generation. To make it real, swap the seam functions in `lib/` (`api.ts`,
-`billing.ts`, `auth.ts`, …) for calls to an actual service — see
+`billing.ts`, `auth.ts`, …) for calls to an actual service, see
 **[BACKEND.md](BACKEND.md)** for the per-function map and endpoints.

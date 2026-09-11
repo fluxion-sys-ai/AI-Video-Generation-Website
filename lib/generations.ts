@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * lib/generations.ts — the user's past video generations. This is the single
+ * lib/generations.ts, the user's past video generations. This is the single
  * source of truth behind both the Library "Videos" tab and the Profile "Usage
  * history" list, and it's where a finished render is recorded.
  *
@@ -10,7 +10,7 @@
  *   - getGenerations()  → GET  /api/generations
  *   - addGeneration(g)  → happens server-side when a render completes; the
  *                         generate page calls this after api.generateVideo()
- * Keep the return shape (`Generation`) — the UI depends on it.
+ * Keep the return shape (`Generation`), the UI depends on it.
  */
 
 import { getModels } from "./models";
@@ -67,7 +67,7 @@ function save(list: Generation[]) {
   try {
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch {
-    /* quota / unavailable — non-critical for the mock */
+    /* quota / unavailable, non-critical for the mock */
   }
 }
 

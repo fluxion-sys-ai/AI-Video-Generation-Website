@@ -27,7 +27,7 @@ import { isFavorite, toggleFavorite, isAutoplay } from "@/lib/prefs";
 
 const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
 
-/* Shared fixed background — auto-switches via decor classes + tokens per skin. */
+/* Shared fixed background, auto-switches via decor classes + tokens per skin. */
 function Backdrop() {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
@@ -228,7 +228,7 @@ export function LandingEditorial() {
   const features = [
     {
       h: "Text to video in seconds",
-      b: "Describe a shot and Aurora renders cinematic motion — steady camera moves, coherent scenes, and sound on demand.",
+      b: "Describe a shot and Aurora renders cinematic motion, steady camera moves, coherent scenes, and sound on demand.",
       img: byslug("aurora").poster,
       href: "/generate?model=aurora",
     },
@@ -240,7 +240,7 @@ export function LandingEditorial() {
     },
     {
       h: "Finish in high resolution",
-      b: "Take a draft all the way to a polished 1080p cut with Nova — crisp detail for the shots that matter.",
+      b: "Take a draft all the way to a polished 1080p cut with Nova, crisp detail for the shots that matter.",
       img: byslug("nova").poster,
       href: "/generate?model=nova",
     },
@@ -250,12 +250,12 @@ export function LandingEditorial() {
       <Backdrop />
       <SiteHeader />
 
-      {/* Hero: editorial split — statement left, framed preview right. No reels. */}
+      {/* Hero: editorial split, statement left, framed preview right. No reels. */}
       <section className="mx-auto grid max-w-6xl items-center gap-12 px-8 py-20 lg:grid-cols-[1.05fr_.95fr]">
         <div>
           <Kicker label="AI Video Studio" color="var(--c-accent-ink)" />
           <h1 className="mt-5 text-[clamp(44px,7vw,84px)] font-semibold leading-[0.98] tracking-[-0.02em] text-fg-strong">Your words,<br />in motion.</h1>
-          <p className="mt-6 max-w-md text-lg font-light leading-relaxed text-muted">A boutique studio for motion. Write a line, choose a model, and watch it come together — crisp content over a warm, unhurried canvas.</p>
+          <p className="mt-6 max-w-md text-lg font-light leading-relaxed text-muted">A boutique studio for motion. Write a line, choose a model, and watch it come together, crisp content over a warm, unhurried canvas.</p>
           <div className="mt-9 flex flex-wrap gap-4">
             <Link href="/signup" className="bg-accent px-7 py-3.5 font-medium text-ink transition-colors hover:bg-accent-hover">Start generating →</Link>
             <Link href="/models" className="border border-hairline-strong px-7 py-3.5 font-medium text-fg transition-colors hover:bg-hover">Browse models</Link>
@@ -315,7 +315,7 @@ export function LandingEditorial() {
 }
 
 /* ---------------------------------------------------------------- LUXURY ---- */
-// Smooth wave-shaped section divider (the luxury signature — organic, upscale).
+// Smooth wave-shaped section divider (the luxury signature, organic, upscale).
 export function WaveEdge({ flip = false, fill = "var(--c-base)", className = "" }: { flip?: boolean; fill?: string; className?: string }) {
   return (
     <svg viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true" className={`block h-[70px] w-full ${className}`} style={{ transform: flip ? "rotate(180deg)" : undefined, fill }}>
@@ -340,7 +340,7 @@ export function LandingLuxury() {
       <Backdrop />
       <SiteHeader />
 
-      {/* Immersive cinematic hero — a horizontal model clip plays behind the copy. */}
+      {/* Immersive cinematic hero, a horizontal model clip plays behind the copy. */}
       <section className="relative overflow-hidden">
         <video
           aria-hidden="true"
@@ -368,19 +368,18 @@ export function LandingLuxury() {
         <div className="absolute bottom-0 left-0 right-0 z-10"><WaveEdge /></div>
       </section>
 
-      {/* Trust stats — dark semi-transparent cards with circular gold badges. */}
-      <section className="mx-auto -mt-2 max-w-6xl px-8 py-14">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Trust stats, borderless columns spread wide, split by thin vertical rules. */}
+      <section className="mx-auto max-w-7xl px-10 py-16">
+        <div className="grid grid-cols-2 divide-x divide-hairline sm:grid-cols-4">
           {[
-            ["◆", "4K", "Cinematic models"],
-            ["▲", "60s", "Prompt to picture"],
-            ["◉", "1080p", "Finishing quality"],
-            ["✦", "0", "Subscriptions"],
-          ].map(([badge, big, label]) => (
-            <div key={label} className="rounded-[16px] border border-hairline bg-surface/70 p-6 text-center backdrop-blur">
-              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-accent-border text-accent-ink">{badge}</span>
-              <p className="mt-3 font-[family-name:var(--font-playfair)] text-3xl text-fg-strong">{big}</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.1em] text-muted">{label}</p>
+            ["4K", "Cinematic models"],
+            ["60s", "Prompt to picture"],
+            ["1080p", "Finishing quality"],
+            ["0", "Subscriptions"],
+          ].map(([big, label]) => (
+            <div key={label} className="px-6 text-center">
+              <p className="font-[family-name:var(--font-playfair)] text-[clamp(36px,5vw,56px)] leading-none text-fg-strong">{big}</p>
+              <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted">{label}</p>
             </div>
           ))}
         </div>
@@ -393,13 +392,13 @@ export function LandingLuxury() {
           <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em]" style={{ color: "#9a6a2e" }}>The Fluxion standard</p>
           <h2 className="mt-3 font-[family-name:var(--font-playfair)] text-[clamp(28px,4vw,44px)]" style={{ color: "#1c1710" }}>Crafted for those who expect more.</h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg font-light" style={{ color: "#5a4a38" }}>
-            Every model in the collection is selected for its motion, coherence, and finish. No noise, no filler — only the tools worth putting your name on.
+            Every model in the collection is selected for its motion, coherence, and finish. No noise, no filler, only the tools worth putting your name on.
           </p>
         </section>
         <WaveEdge fill="#f3ece0" />
       </div>
 
-      {/* The collection (models) — organic soft-clipped photo cards. */}
+      {/* The collection (models), organic soft-clipped photo cards. */}
       <section id="models" className="mx-auto max-w-6xl scroll-mt-24 px-8 py-16">
         <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">The collection</p>
         <h2 className="mt-2 font-[family-name:var(--font-playfair)] text-[clamp(28px,4vw,44px)] text-fg-strong">Choose your model</h2>
@@ -444,7 +443,7 @@ export function LandingLuxury() {
 
 /* --------------------------------------------------------------- PLAYFUL ---- */
 const PASTELS = ["#d9f5e6", "#e9ddff", "#ffe3d1", "#d9ecff", "#fff2c2", "#ffd9ec"];
-// Minimal line-icon paths (24x24, stroke) — no emoji.
+// Minimal line-icon paths (24x24, stroke), no emoji.
 const SVC_ICONS: Record<string, React.ReactNode> = {
   text: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M10 9l5 3-5 3z" /></>,
   image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9.5" r="1.5" /><path d="M4 18l5-5 4 4 3-3 4 4" /></>,
@@ -459,7 +458,7 @@ const SERVICES = [
   { icon: "refine", bg: "#ffd9ec", h: "Refine & remix", b: "Iterate with a friendly chat until it's just right." },
   { icon: "export", bg: "#d9f5e6", h: "Export anywhere", b: "Download MP4s ready to post and share." },
   { icon: "sound", bg: "#e9ddff", h: "Sound on demand", b: "Add coherent audio to supported models." },
-  { icon: "gem", bg: "#ffe3d1", h: "Pay as you go", b: "No subscriptions — only pay for what you make." },
+  { icon: "gem", bg: "#ffe3d1", h: "Pay as you go", b: "No subscriptions, only pay for what you make." },
 ];
 
 // Little twinkling sparkle.
@@ -526,7 +525,7 @@ export function LandingPlayful() {
 
       <PlayWave fill="var(--c-base-2)" />
 
-      {/* Services — 3-col pastel sticker cards over a faint pixel grid. */}
+      {/* Services, 3-col pastel sticker cards over a faint pixel grid. */}
       <section className="relative overflow-hidden bg-base-2 px-8 py-16">
         <div className="play-pixels pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
         <EdgeBlock style={{ right: -60, top: 30, width: 140, height: 140, rotate: "12deg", background: "linear-gradient(135deg,#fff2c2,#d9f5e6)" }} />
@@ -551,7 +550,7 @@ export function LandingPlayful() {
 
       <PlayWave flip fill="var(--c-base-2)" />
 
-      {/* Models — asymmetric bento of colorful sticker cards. */}
+      {/* Models, asymmetric bento of colorful sticker cards. */}
       <section id="models" className="relative scroll-mt-24 overflow-hidden px-8 py-16">
         <EdgeBlock style={{ left: -70, bottom: 40, width: 160, height: 120, rotate: "-8deg", background: "linear-gradient(135deg,#e9ddff,#d9ecff)" }} />
         <div className="relative mx-auto max-w-6xl">
@@ -583,10 +582,10 @@ export function LandingPlayful() {
         <div className="play-pixels pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
         <div className="relative mx-auto max-w-5xl rounded-[28px] bg-surface p-8" style={{ boxShadow: POP }}>
           <div className="flex items-center gap-2">
-            <h2 className="text-3xl font-extrabold text-fg-strong">Simple, sunny pricing</h2>
+            <h2 className="text-3xl font-extrabold text-fg-strong">Pricing made simple</h2>
             <Sparkle className="text-accent" size={20} />
           </div>
-          <p className="mt-3 text-muted">No subscriptions — pay per second of video, priced per model.</p>
+          <p className="mt-3 text-muted">No subscriptions, pay per second of video, priced per model.</p>
           <div className="mt-7"><ModelPricingTable /></div>
           <div className="mt-6"><Link href="/pricing" className="inline-block rounded-full bg-accent px-7 py-3.5 font-semibold text-ink transition-transform hover:-translate-y-0.5" style={{ boxShadow: POP }}>See full pricing →</Link></div>
         </div>

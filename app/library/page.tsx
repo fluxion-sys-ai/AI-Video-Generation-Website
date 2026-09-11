@@ -367,7 +367,7 @@ function LibraryInner() {
           ))}
         </div>
 
-        {/* VIDEOS — poster thumbnail always shown; hover plays the clip */}
+        {/* VIDEOS, poster thumbnail always shown; hover plays the clip */}
         {tab === "videos" && (
           gens.length === 0 ? (
             <EmptyState
@@ -392,7 +392,7 @@ function LibraryInner() {
             {/* hidden file input for uploads */}
             <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={onUploadFiles} />
 
-            {/* search — matches by name across all images (results show their folder) */}
+            {/* search, matches by name across all images (results show their folder) */}
             <div className="lib-search relative mt-6 max-w-md">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-dim">
                 <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
@@ -419,7 +419,7 @@ function LibraryInner() {
                 >
                   All ({libImages.length})
                 </button>
-                {/* Favorites pseudo-folder — appears once any image is hearted */}
+                {/* Favorites pseudo-folder, appears once any image is hearted */}
                 {favCount > 0 && (
                   <button
                     onClick={() => setActiveFolder("favorites")}

@@ -2,8 +2,8 @@
 
 This is a **frontend-only demo**. Every "server" behavior (auth, generation,
 billing) is faked in the browser with `localStorage` and `setTimeout`. This guide
-is the map for making it real: it lists each **seam** — a small file of functions
-the UI calls — and the endpoint you'd swap in behind it.
+is the map for making it real: it lists each **seam**, a small file of functions
+the UI calls, and the endpoint you'd swap in behind it.
 
 **Golden rule:** the UI never talks to a backend directly. It only calls the
 functions in `lib/*.ts`. To go live, replace the *bodies* of those functions with
@@ -20,7 +20,7 @@ grep -rn "MOCK:" lib/
 
 ## The seams (in priority order)
 
-### 1. Video generation — `lib/api.ts`  ⭐ start here
+### 1. Video generation, `lib/api.ts`  ⭐ start here
 The single place a render backend plugs in. Two functions, both async:
 
 | Function | Called from | Replace mock with |
@@ -35,14 +35,14 @@ The mock resolves the model's sample clip after a random delay. Swap the body fo
 a real request and the whole playground (progress state, preview, refine loop,
 download) keeps working as-is.
 
-### 2. Billing & the generation gate — `lib/billing.ts`
+### 2. Billing & the generation gate, `lib/billing.ts`
 Payment methods, credit balance, and the **entitlement check** that decides
 whether a user may generate.
 
 | Function | Replace mock with |
 | --- | --- |
 | `getCards()` | `GET /api/billing/cards` |
-| `addCard(card)` | `POST /api/billing/cards` (tokenize via Stripe/etc — never send raw PANs) |
+| `addCard(card)` | `POST /api/billing/cards` (tokenize via Stripe/etc, never send raw PANs) |
 | `removeCard(id)` | `DELETE /api/billing/cards/:id` |
 | `hasPaymentMethod()` | derive from the server (subscription/credits). **Never trust the client for real billing.** |
 | `getCredits()` / `addCredits(n)` | `GET /api/billing/credits` / server-side after a real payment |
@@ -51,20 +51,20 @@ The gate lives in `onGenerate()` (`app/generate/page.tsx`): if
 `hasPaymentMethod()` is false the user is sent to `Profile → Payment` with a
 toast, instead of generating. To require credits too, tighten that one `if`.
 
-### 3. Past generations — `lib/generations.ts`
-The user's generation history — the single source of truth behind both the
+### 3. Past generations, `lib/generations.ts`
+The user's generation history, the single source of truth behind both the
 Library "Videos" tab and the Profile "Usage history" list.
 
 | Function | Replace mock with |
 | --- | --- |
 | `getGenerations()` | `GET /api/generations` (newest first) |
 | `addGeneration(g)` | server records this when a render finishes; the generate page calls it after `generateVideo()` succeeds |
-| `formatWhen(ms)` | pure UI helper (relative time) — keep client-side |
+| `formatWhen(ms)` | pure UI helper (relative time), keep client-side |
 
 Record shape (`Generation`): `{ id, slug, prompt, videoUrl, poster, createdAt }`.
 Seeded with sample history on first read so the demo isn't empty.
 
-### 4. Auth & accounts — `lib/auth.ts`
+### 4. Auth & accounts, `lib/auth.ts`
 | Function | Replace mock with |
 | --- | --- |
 | `isSignedIn()` | session/JWT check |
@@ -73,14 +73,14 @@ Seeded with sample history on first read so the demo isn't empty.
 | `getUser()` / `setUser(u)` | `GET/PATCH /api/me` |
 
 `saveDraft`/`loadDraft`/`clearDraft` are pure UX (they preserve the generation
-form across a sign-in redirect) — leave them client-side.
+form across a sign-in redirect), leave them client-side.
 
-### 5. User content — `lib/prefs.ts`
+### 5. User content, `lib/prefs.ts`
 Favorites, recently-used models, uploaded library images, settings, theme. Fine
 to leave in `localStorage`, or back with a `GET/PUT /api/me/...` per group. Theme
-functions are pure UI — keep them client-side.
+functions are pure UI, keep them client-side.
 
-### 6. Model catalog — `lib/models.ts`
+### 6. Model catalog, `lib/models.ts`
 The `MODELS` array (names, capabilities, prices, sample media). Replace
 `getModels()` / `getModel(slug)` with `GET /api/models` if the catalog should be
 server-driven. Media paths point at `public/models/<slug>.{mp4,jpg}`.
@@ -91,10 +91,10 @@ server-driven. Media paths point at `public/models/<slug>.{mp4,jpg}`.
 These are inline sample values, not functions. Swap where noted (all listed in
 the README's mock table):
 
-- Dashboard "recents" seed — `lib/prefs.ts` (`getRecents`)
-- Usage/spend chart values — `components/usage-chart.tsx` (`DEFAULT`)
-- Docs endpoints & code snippets — `app/docs/page.tsx`, `components/api-docs.tsx`
-- Pricing math — `components/cost-estimator.tsx`, `components/model-pricing-table.tsx`
+- Dashboard "recents" seed, `lib/prefs.ts` (`getRecents`)
+- Usage/spend chart values, `components/usage-chart.tsx` (`DEFAULT`)
+- Docs endpoints & code snippets, `app/docs/page.tsx`, `components/api-docs.tsx`
+- Pricing math, `components/cost-estimator.tsx`, `components/model-pricing-table.tsx`
 
 If you want these server-driven too, lift each into a `lib/*.ts` function first
 (same pattern as the seams above), then wire the endpoint.
@@ -108,4 +108,4 @@ If you want these server-driven too, lift each into a `lib/*.ts` function first
 4. (optional) `lib/prefs.ts`, `lib/models.ts` → server-backed.
 5. Turn off the static export in `next.config.*` if you now need server routes.
 
-The demo runs fully without any of this — swap seams one at a time.
+The demo runs fully without any of this, swap seams one at a time.
