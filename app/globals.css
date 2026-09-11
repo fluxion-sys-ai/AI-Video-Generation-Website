@@ -580,114 +580,99 @@ html.skin-playful h2 {
 /* ---- Cosmos: deep-space neon. Near-black indigo, electric cyan + violet, a
    starfield backdrop, and a futuristic display font (Orbitron). ------------- */
 html.skin-cosmos {
-  --c-base: #070613;
-  --c-base-2: #0c0a1e;
-  --c-surface: #12102a;
-  --c-panel: #0e0c24;
-  --c-raised: #1a1740;
-  --c-track: #2e2a55;
-  --c-ink: #060512;          /* dark text on the cyan accent fills */
-  --c-fg: #e9e6ff;
-  --c-fg-strong: #ffffff;
-  --c-fg-soft: #c3bff0;
-  --c-fg-soft-2: #a7a2d8;
-  --c-muted: #8a86b8;
-  --c-dim: #6b6796;
-  --c-line: #2a2652;
-  --c-line-strong: #3a3570;
-  --c-hairline: rgba(120, 200, 255, 0.16);
-  --c-hairline-strong: rgba(120, 200, 255, 0.28);
-  --c-hover: rgba(120, 200, 255, 0.07);
-  --c-accent: #4de3ff;       /* electric cyan */
-  --c-accent-hover: #7cebff;
-  --c-accent-ink: #6ee7ff;
-  --c-accent-soft: rgba(77, 227, 255, 0.12);
-  --c-accent-border: rgba(77, 227, 255, 0.5);
-  --c-gold: #b06bff;         /* repurposed to neon violet */
-  --c-gold-soft: #c48fff;
-  --c-gold-bright: #b06bff;
-  --c-gold-2: #9a5cff;
-  --c-blue: #6aa8ff;
-  --c-blue-chip: rgba(106, 168, 255, 0.14);
-  --c-blue-chip-border: rgba(106, 168, 255, 0.45);
-  --c-blue-line: rgba(106, 168, 255, 0.5);
-  --c-danger: #ff5d7a;
-  --c-danger-hover: #ff7d95;
-  --radius-card: 10px;
-  --radius-control: 8px;
+  --c-base: #eef1fb;         /* light lavender-white */
+  --c-base-2: #e6eaf7;
+  --c-surface: #ffffff;
+  --c-panel: #f6f8fe;
+  --c-raised: #eef2fc;
+  --c-track: #cdd5ee;
+  --c-ink: #ffffff;          /* white text on the violet accent fills */
+  --c-fg: #1a1b3a;
+  --c-fg-strong: #0f1030;
+  --c-fg-soft: #3a3c66;
+  --c-fg-soft-2: #4c4e7e;
+  --c-muted: #6d6f9a;
+  --c-dim: #9092b8;
+  --c-line: #dfe3f5;
+  --c-line-strong: #c6cceb;
+  --c-hairline: rgba(108, 92, 231, 0.14);
+  --c-hairline-strong: rgba(108, 92, 231, 0.26);
+  --c-hover: rgba(108, 92, 231, 0.05);
+  --c-accent: #6c5ce7;       /* soft violet */
+  --c-accent-hover: #7d6ff0;
+  --c-accent-ink: #5a4bd0;
+  --c-accent-soft: rgba(108, 92, 231, 0.1);
+  --c-accent-border: rgba(108, 92, 231, 0.4);
+  --c-gold: #0e9aa7;         /* teal secondary (readable on light) */
+  --c-gold-soft: #12aebd;
+  --c-gold-bright: #0e9aa7;
+  --c-gold-2: #0d8b97;
+  --c-blue: #4a7dff;
+  --c-blue-chip: rgba(74, 125, 255, 0.12);
+  --c-blue-chip-border: rgba(74, 125, 255, 0.4);
+  --c-blue-line: rgba(74, 125, 255, 0.5);
+  --c-danger: #e5484d;
+  --c-danger-hover: #ef5f64;
+  --radius-card: 14px;
+  --radius-control: 10px;
   --radius-chip: 999px;
-  --spotlight: radial-gradient(circle, rgba(77, 227, 255, 0.12), rgba(176, 107, 255, 0.06) 45%, transparent 72%);
-  --glow-o0: #4de3ff;
-  --glow-o1: #b06bff;
-  --glow-b0: #6aa8ff;
-  --glow-b1: #4de3ff;
-  --dot-line: #4de3ff;
-  --dot-glow-0: #4de3ff;
-  --dot-glow-1: #b06bff;
-  --reel-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 60px -8px rgba(77, 227, 255, 0.5);
-  --c-chart-bar: #4de3ff;
-  --c-heart-idle: #e9e6ff;
-  --c-skeleton: #12102a;
-  --c-skeleton-hi: #1e1a45;
+  --spotlight: radial-gradient(circle, rgba(108, 92, 231, 0.1), rgba(74, 125, 255, 0.05) 45%, transparent 72%);
+  --glow-o0: #d6ccff;
+  --glow-o1: #c3e9ff;
+  --glow-b0: #c3e9ff;
+  --glow-b1: #d6ccff;
+  --dot-line: #b8aef0;
+  --dot-glow-0: #d6ccff;
+  --dot-glow-1: #c3e9ff;
+  --reel-shadow: 0 22px 50px -28px rgba(108, 92, 231, 0.4);
+  --c-chart-bar: #6c5ce7;
+  --c-heart-idle: #ffffff;
+  --c-skeleton: #e6eaf7;
+  --c-skeleton-hi: #f3f5fc;
   --font-jetbrains: var(--font-space);
   --font-geist-sans: var(--font-inter);
 }
 html.skin-cosmos h1,
 html.skin-cosmos h2 {
-  font-family: var(--font-orbitron);
-  letter-spacing: 0.01em;
+  font-family: var(--font-space);
+  font-weight: 600;
+  letter-spacing: -0.01em;
   text-transform: none;
 }
-/* Cosmos: rounded panels with a faint neon edge + outer glow. */
-html.skin-cosmos .rounded-none { border-radius: 10px !important; }
+/* Slideshow: airy rounded cards, soft violet shadow. */
+html.skin-cosmos .rounded-none { border-radius: 14px !important; }
 html.skin-cosmos .bg-surface,
 html.skin-cosmos .bg-panel {
   border: 1px solid var(--c-hairline);
-  box-shadow: 0 20px 55px -34px rgba(77, 227, 255, 0.5);
+  box-shadow: 0 22px 50px -34px rgba(108, 92, 231, 0.35);
 }
-/* Cosmos uses its own fixed starfield backdrop; hide the standard page decor. */
+/* Slideshow uses its own fixed airy backdrop; hide the standard page decor. */
 .skin-cosmos .decor-dark,
 .skin-cosmos .decor-light { display: none; }
 .skin-cosmos .ambient-blob { display: none; }
 
-/* Cosmos starfield + nebula planets (components/cosmos-backdrop.tsx). */
-.cosmos-planet { position: absolute; border-radius: 50%; filter: blur(6px); opacity: 0.75; animation: cosmos-float 26s ease-in-out infinite alternate; }
-@keyframes cosmos-float { from { translate: 0 0; } to { translate: 0 -18px; } }
-.cosmos-stars {
-  position: absolute; inset: -25%;
-  background-repeat: repeat;
-}
-.cosmos-stars-a {
-  background-image:
-    radial-gradient(1.5px 1.5px at 40px 60px, #ffffffcc, transparent),
-    radial-gradient(1.5px 1.5px at 130px 180px, #cfe9ffbb, transparent),
-    radial-gradient(1px 1px at 220px 90px, #ffffffaa, transparent),
-    radial-gradient(1.5px 1.5px at 300px 250px, #d9c8ffbb, transparent);
-  background-size: 360px 360px;
-}
-.cosmos-stars-b {
-  background-image:
-    radial-gradient(1px 1px at 80px 120px, #ffffff99, transparent),
-    radial-gradient(1px 1px at 200px 40px, #a7d8ff99, transparent),
-    radial-gradient(1px 1px at 320px 200px, #ffffff88, transparent);
-  background-size: 420px 420px;
-  opacity: 0.8;
-}
-.cosmos-stars-c {
-  background-image:
-    radial-gradient(1px 1px at 60px 200px, #ffffff77, transparent),
-    radial-gradient(1px 1px at 260px 100px, #c8b8ff77, transparent);
-  background-size: 520px 520px;
-  opacity: 0.6;
-  animation: cosmos-twinkle 4s ease-in-out infinite;
-}
-@keyframes cosmos-twinkle { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.85; } }
-@media (prefers-reduced-motion: reduce) {
-  .cosmos-planet, .cosmos-stars-c { animation: none; }
-}
-/* Horizontal slideshow deck (Cosmos landing). */
+/* Light, airy backdrop: soft floating gradient blobs (components/cosmos-backdrop). */
+.cosmos-planet { position: absolute; border-radius: 50%; filter: blur(8px); opacity: 0.7; animation: cosmos-float 26s ease-in-out infinite alternate; }
+@keyframes cosmos-float { from { translate: 0 0; } to { translate: 0 -20px; } }
+@media (prefers-reduced-motion: reduce) { .cosmos-planet { animation: none; } }
+
+/* Horizontal slideshow deck (Slideshow landing). */
 .cosmos-deck { scroll-snap-type: x mandatory; scrollbar-width: thin; }
 .cosmos-deck > section { scroll-snap-align: start; }
+/* A continuous pattern that spans the full deck width (scrolls with content). */
+.cosmos-pattern {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle, rgba(108, 92, 231, 0.10) 1.5px, transparent 1.6px);
+  background-size: 46px 46px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.cosmos-ribbon {
+  position: absolute; left: 0; top: 50%; height: 2px; z-index: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--c-accent-border), var(--c-blue-line), var(--c-gold-soft), transparent);
+  opacity: 0.5;
+}
 
 /* Alt skins use the tokenized (recolorable) decor, not the fixed dark backdrop. */
 .skin-editorial .decor-dark,

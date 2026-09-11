@@ -13,7 +13,7 @@ const OPTIONS: { key: Skin; label: string }[] = [
   { key: "editorial", label: "Editorial" },
   { key: "luxury", label: "Luxury" },
   { key: "playful", label: "Playful" },
-  { key: "cosmos", label: "Cosmos" },
+  { key: "cosmos", label: "Slideshow" },
 ];
 
 export function SkinSwitcher() {

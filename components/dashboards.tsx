@@ -136,7 +136,7 @@ export function DashboardEditorial({ name, favs, recents, models }: DashData) {
   return (
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-8 py-12">
+      <main className="relative z-10 w-full flex-1 px-10 py-10">
         {/* Big warm greeting */}
         <p className="text-sm uppercase tracking-[0.16em] text-accent-ink">Your studio</p>
         <h1 className="mt-2 text-[clamp(34px,5vw,56px)] font-semibold leading-tight tracking-[-0.02em] text-fg-strong">Let&apos;s create something, {name}.</h1>
@@ -218,7 +218,7 @@ export function DashboardLuxury({ name, favs, recents, models }: DashData) {
   return (
     <div className="relative flex min-h-screen flex-col bg-base">
       <SiteHeader />
-      <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-8 py-12">
+      <main className="relative z-10 w-full flex-1 px-10 py-10">
         <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">Your studio</p>
         <h1 className="mt-3 text-[clamp(34px,5vw,56px)] leading-tight text-fg-strong">Welcome back, {name}.</h1>
 
@@ -309,7 +309,7 @@ export function DashboardPlayful({ name, favs, recents, models }: DashData) {
   return (
     <div className="relative flex min-h-screen flex-col bg-base">
       <SiteHeader />
-      <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-8 py-12">
+      <main className="relative z-10 w-full flex-1 px-10 py-10">
         <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink">Your studio</span>
         <h1 className="mt-4 text-[clamp(34px,5vw,56px)] font-bold leading-tight text-fg-strong">Hey {name}, let&apos;s make something.</h1>
 
@@ -372,7 +372,7 @@ function CosmosChip({ slug }: { slug: string }) {
     <Link href={`/generate?model=${m.slug}`} className="group flex items-center gap-4 rounded-[10px] border border-hairline bg-surface p-3 transition-transform hover:-translate-y-0.5">
       <img src={m.poster} alt="" className="h-12 w-20 shrink-0 rounded-[6px] bg-black object-cover" />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-[family-name:var(--font-orbitron)] text-sm text-fg-strong">{m.name}</p>
+        <p className="truncate font-[family-name:var(--font-space)] text-sm text-fg-strong">{m.name}</p>
         <p className="truncate text-xs text-muted">{m.tagline}</p>
       </div>
       <span className="text-accent-ink transition-transform group-hover:translate-x-1">→</span>
@@ -384,15 +384,15 @@ export function DashboardCosmos({ name, favs, recents, models }: DashData) {
   return (
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-8 py-12">
+      <main className="relative z-10 w-full flex-1 px-10 py-10">
         <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.32em] text-accent-ink">Mission control</p>
-        <h1 className="mt-3 font-[family-name:var(--font-orbitron)] text-[clamp(30px,5vw,52px)] leading-tight text-fg-strong">Welcome aboard, {name}.</h1>
+        <h1 className="mt-3 font-[family-name:var(--font-space)] text-[clamp(30px,5vw,52px)] leading-tight text-fg-strong">Welcome aboard, {name}.</h1>
 
         {/* Readouts */}
         <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {SNAPSHOT(models).map(([t, v]) => (
             <div key={t} className="rounded-[10px] border border-hairline bg-surface p-5">
-              <p className="font-[family-name:var(--font-orbitron)] text-2xl text-accent-ink">{v}</p>
+              <p className="font-[family-name:var(--font-space)] text-2xl text-accent-ink">{v}</p>
               <p className="mt-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.14em] text-muted">{t}</p>
             </div>
           ))}
@@ -421,7 +421,7 @@ export function DashboardCosmos({ name, favs, recents, models }: DashData) {
             <div className="mt-4 grid grid-cols-2 gap-3">
               {LINKS.map((l) => (
                 <Link key={l.title} href={l.href} className="rounded-[10px] border border-hairline bg-surface p-4 transition-transform hover:-translate-y-0.5">
-                  <p className="font-[family-name:var(--font-orbitron)] text-sm text-fg-strong">{l.title}</p>
+                  <p className="font-[family-name:var(--font-space)] text-sm text-fg-strong">{l.title}</p>
                   <p className="mt-1 text-xs text-muted">{l.desc}</p>
                 </Link>
               ))}

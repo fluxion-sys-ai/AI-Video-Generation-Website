@@ -200,7 +200,7 @@ export function ModelCatalog({ models }: { models: Model[] }) {
     return (
       <div className="relative">
         <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.3em] text-accent-ink">Star catalog</p>
-        <h1 className="mt-2 font-[family-name:var(--font-orbitron)] text-[clamp(30px,4.5vw,52px)] text-fg-strong">The fleet</h1>
+        <h1 className="mt-2 font-[family-name:var(--font-space)] text-[clamp(30px,4.5vw,52px)] text-fg-strong">The fleet</h1>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <SearchBox q={q} setQ={setQ} className="w-full max-w-md" placeholder="Search the fleet" />
           <SortSelect sort={sort} setSort={setSort} />
@@ -216,7 +216,7 @@ export function ModelCatalog({ models }: { models: Model[] }) {
                   <div className="absolute right-2.5 top-2.5"><FavHeart slug={m.slug} light /></div>
                 </div>
                 <div className="p-5">
-                  <h3 className="font-[family-name:var(--font-orbitron)] text-lg text-fg-strong">{m.name}</h3>
+                  <h3 className="font-[family-name:var(--font-space)] text-lg text-fg-strong">{m.name}</h3>
                   <p className="mt-1 text-sm text-muted">{m.tagline}</p>
                   <p className="mt-3 line-clamp-2 text-sm text-fg-soft">{m.description}</p>
                   <p className="mt-4 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-accent-ink">{m.creditsPerSecond} cr/s · {m.resolutions[m.resolutions.length - 1]} →</p>
