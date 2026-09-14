@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { ModelCard } from "@/components/models/model-card";
-import type { Model } from "@/lib/models";
+import { getModels, refreshCatalog, type Model } from "@/lib/models";
+import { BACKEND_ENABLED } from "@/lib/hub";
+import { useLive } from "@/lib/live";
 import { isFavorite, toggleFavorite } from "@/lib/prefs";
 import { useSkin } from "@/lib/use-skin";
 
@@ -68,8 +70,12 @@ function SearchBox({ q, setQ, className = "", placeholder = "Search models" }: {
   );
 }
 
-export function ModelCatalog({ models }: { models: Model[] }) {
+export function ModelCatalog({ models: initial }: { models: Model[] }) {
   const skin = useSkin();
+  // In backend mode the catalog comes from the database, so prefer the live list
+  // over the one this page was exported with.
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
+  const models = BACKEND_ENABLED ? getModels() : initial;
   const [q, setQ] = useState("");
   const [tags, setTags] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<Sort>("popular");

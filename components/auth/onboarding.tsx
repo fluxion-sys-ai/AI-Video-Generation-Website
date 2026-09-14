@@ -20,9 +20,11 @@
    tokens in app/globals.css, no hardcoded hex here.
    ============================================================================ */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn, setUser } from "@/lib/auth";
+import { completeEmailSignup, getUser, setUser, startEmailSignup } from "@/lib/auth";
+import { BACKEND_ENABLED } from "@/lib/hub";
+import { toast } from "@/lib/toast";
 import { addCard, addCredits, saveCards } from "@/lib/billing";
 
 // ---- shared class strings (kept token-driven) -------------------------------
@@ -51,10 +53,6 @@ function nameFromEmail(email: string): string {
   const local = (email.split("@")[0] || "").replace(/[._-]+/g, " ").trim();
   return local ? local.replace(/\b\w/g, (c) => c.toUpperCase()) : "";
 }
-function usernameFromEmail(email: string): string {
-  return (email.split("@")[0] || "creator").replace(/[^a-z0-9]/gi, "").toLowerCase() || "creator";
-}
-
 // The ordered slides. `optional` steps show a "Skip" control.
 const STEPS = [
   { key: "account", title: "Create your account", optional: false },
@@ -82,16 +80,61 @@ export function Onboarding() {
   const [postal, setPostal] = useState("");
   const [credits, setCredits] = useState(25);
   const [finishing, setFinishing] = useState(false);
+  const [signupError, setSignupError] = useState<string | null>(null);
+  // Backend mode: the account is created on the first slide with an emailed code.
+  const [code, setCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+  const [creating, setCreating] = useState(false);
+  const [accountCreated, setAccountCreated] = useState(false);
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
 
   const total = STEPS.length;
   const current = STEPS[step];
   const isLast = step === total - 1;
   // Slide 0 (account) needs an email before you can continue.
-  const canAdvance = step === 0 ? /\S+@\S+\.\S+/.test(email) : true;
+  const emailValid = /\S+@\S+\.\S+/.test(email);
+  const canAdvance =
+    step === 0 ? emailValid && (!BACKEND_ENABLED || accountCreated || (password.length >= 8 && code.trim().length >= 4)) : true;
 
-  function goNext() {
+  async function sendCode() {
+    setSignupError(null);
+    setSending(true);
+    try {
+      await startEmailSignup(email);
+      setCodeSent(true);
+      setResendIn(30);
+      toast(`We emailed a code to ${email}`);
+    } catch (err) {
+      setSignupError(err instanceof Error ? err.message : "Could not send the code. Try again.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function goNext() {
     // When leaving the account slide, seed the display name from the email.
     if (step === 0 && !name) setName(nameFromEmail(email));
+    // Backend mode creates the account here, with the emailed code, so the rest
+    // of the wizard is optional profile detail.
+    if (step === 0 && BACKEND_ENABLED && !accountCreated) {
+      setCreating(true);
+      setSignupError(null);
+      try {
+        await completeEmailSignup({ email, password, code, name: nameFromEmail(email) });
+        setAccountCreated(true);
+      } catch (err) {
+        setSignupError(err instanceof Error ? err.message : "Could not create your account. Try again.");
+        return;
+      } finally {
+        setCreating(false);
+      }
+    }
     if (isLast) return finish();
     setStep((s) => Math.min(s + 1, total - 1));
   }
@@ -99,16 +142,26 @@ export function Onboarding() {
     setStep((s) => Math.max(s - 1, 0));
   }
 
-  // Complete sign-up: create the mock account, persist profile + extra answers.
-  function finish() {
+  // Complete sign-up. Backend mode already created the account on the first
+  // slide, so this saves the chosen display name; demo mode creates the local one.
+  async function finish() {
     setFinishing(true);
+    setSignupError(null);
     const finalEmail = email || "you@fluxion.ai";
-    signIn(finalEmail);
-    setUser({
-      name: name.trim() || nameFromEmail(finalEmail) || "Creator",
-      username: usernameFromEmail(finalEmail),
-      email: finalEmail,
-    });
+    const finalName = name.trim() || nameFromEmail(finalEmail) || "Creator";
+    try {
+      if (BACKEND_ENABLED) {
+        const current = getUser();
+        if (current) setUser({ ...current, name: finalName });
+      } else {
+        await completeEmailSignup({ email: finalEmail, password, code, name: finalName });
+      }
+    } catch (err) {
+      setSignupError(err instanceof Error ? err.message : "Could not create your account. Try again.");
+      setFinishing(false);
+      setStep(0);
+      return;
+    }
     try {
       if (persona) localStorage.setItem("fluxion.persona", persona);
       // Save the entered card (or record that none was added) via lib/billing,
@@ -164,26 +217,57 @@ export function Onboarding() {
         {/* ---- Slide 0: account ------------------------------------------- */}
         {current.key === "account" && (
           <div className="mt-8 space-y-4">
-            <button type="button" onClick={withGoogle} className={`${btnGhost} flex w-full items-center justify-center gap-3 bg-panel py-3`}>
-              <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z" />
-                <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z" />
-                <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z" />
-                <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" />
-              </svg>
-              Continue with Google
-            </button>
-            <div className="my-2 flex items-center gap-3 text-xs text-dim">
-              <span className="h-px flex-1 bg-hairline" /> or <span className="h-px flex-1 bg-hairline" />
-            </div>
+            {!BACKEND_ENABLED && (
+              <>
+                <button type="button" onClick={withGoogle} className={`${btnGhost} flex w-full items-center justify-center gap-3 bg-panel py-3`}>
+                  <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                    <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z" />
+                    <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z" />
+                    <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z" />
+                    <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" />
+                  </svg>
+                  Continue with Google
+                </button>
+                <div className="my-2 flex items-center gap-3 text-xs text-dim">
+                  <span className="h-px flex-1 bg-hairline" /> or <span className="h-px flex-1 bg-hairline" />
+                </div>
+              </>
+            )}
             <div>
               <label htmlFor="ob-email" className={labelClass}>Email</label>
-              <input id="ob-email" type="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="you@example.com" />
+              <input id="ob-email" type="email" autoFocus autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={accountCreated} className={inputClass} placeholder="you@example.com" />
             </div>
             <div>
               <label htmlFor="ob-password" className={labelClass}>Password</label>
-              <input id="ob-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} placeholder="Create a password" />
+              <input id="ob-password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={accountCreated} className={inputClass} placeholder="Create a password" />
+              {BACKEND_ENABLED && <p className="mt-1.5 text-xs text-dim">At least 8 characters.</p>}
             </div>
+            {BACKEND_ENABLED && (
+              <div>
+                <label htmlFor="ob-code" className={labelClass}>Verification code</label>
+                <div className="flex gap-2">
+                  <input
+                    id="ob-code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    autoComplete="one-time-code"
+                    disabled={accountCreated}
+                    className={inputClass}
+                    placeholder={codeSent ? "Code from the email" : "Send a code to your email"}
+                  />
+                  <button
+                    type="button"
+                    onClick={sendCode}
+                    disabled={sending || resendIn > 0 || !emailValid || accountCreated}
+                    className={`${btnGhost} shrink-0 disabled:opacity-40`}
+                  >
+                    {sending ? "Sending…" : resendIn > 0 ? `Resend in ${resendIn}s` : codeSent ? "Resend code" : "Send code"}
+                  </button>
+                </div>
+                {accountCreated && <p className="mt-1.5 text-xs text-dim">Account created. You are signed in.</p>}
+              </div>
+            )}
+            {signupError && <p role="alert" className="text-sm text-danger">{signupError}</p>}
           </div>
         )}
 
@@ -311,8 +395,8 @@ export function Onboarding() {
               Skip
             </button>
           )}
-          <button type="button" onClick={goNext} disabled={!canAdvance || finishing} className={btnPrimary}>
-            {isLast ? (finishing ? "Setting up…" : "Finish & enter Fluxion") : "Continue"}
+          <button type="button" onClick={goNext} disabled={!canAdvance || finishing || creating} className={btnPrimary}>
+            {isLast ? (finishing ? "Setting up…" : "Finish & enter Fluxion") : creating ? "Creating account…" : "Continue"}
           </button>
         </div>
       </div>

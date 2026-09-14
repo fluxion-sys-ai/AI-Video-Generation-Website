@@ -1,4 +1,8 @@
-import { getModels } from "@/lib/models";
+"use client";
+
+import { getModels, refreshCatalog } from "@/lib/models";
+import { BACKEND_ENABLED } from "@/lib/hub";
+import { useLive } from "@/lib/live";
 
 // Single-series magnitude bars - one accent hue, value labels in ink tokens.
 function BarRow({ label, value, max, display }: { label: string; value: number; max: number; display: string }) {
@@ -17,6 +21,7 @@ function BarRow({ label, value, max, display }: { label: string; value: number; 
 }
 
 export function PricingCharts() {
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const models = getModels();
   const maxCps = Math.max(...models.map((m) => m.creditsPerSecond));
 

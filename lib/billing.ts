@@ -4,11 +4,15 @@
  * lib/billing.ts, payment methods, credit balance, and the "can this user
  * generate?" entitlement check. This is the ONE place the app tracks billing.
  *
- * BACKEND DEVS: everything here is a frontend-only mock backed by localStorage.
- * Replace each function body with a real API call (see BACKEND.md). Keep the
- * function names + return shapes, the UI (generate/profile/onboarding) only
- * ever talks to billing through these.
+ * With a backend (NEXT_PUBLIC_BACKEND=1) the balance is the customer's real credit
+ * in the hub and top-ups go through Stripe Checkout; the entitlement check becomes
+ * "has credit" instead of "has a card on file". Saved cards stay Stripe-side, so
+ * the card functions are demo-only (see cardsSupported()).
+ * Without a backend everything here is a localStorage mock.
  */
+
+import { BACKEND_ENABLED, getSelf, quotaToUsd, startTopupCheckout } from "./hub";
+import { notify } from "./live";
 
 const CARDS_KEY = "fluxion.cards";
 const CREDITS_KEY = "fluxion.credits";
@@ -32,7 +36,7 @@ function readJSON<T>(key: string, fallback: T): T {
 
 // MOCK: list saved payment methods. Real impl: GET /api/billing/cards.
 export function getCards(): Card[] {
-  if (typeof window === "undefined") return [];
+  if (BACKEND_ENABLED || typeof window === "undefined") return [];
   // Seed the sample card once, only for brand-new accounts (key never set).
   if (localStorage.getItem(CARDS_KEY) === null) {
     // Respect the legacy onboarding flag: if the user explicitly skipped adding
@@ -78,16 +82,47 @@ export function removeCard(id: number): Card[] {
  * the client, never trust this check alone for billing.
  */
 export function hasPaymentMethod(): boolean {
+  // Backend mode: the customer may generate while they hold credit. The hub also
+  // enforces this server-side, which is what actually protects billing.
+  if (BACKEND_ENABLED) return !balanceLoaded || balanceUsd > 0;
   return getCards().length > 0;
 }
 
-// MOCK: current credit balance. Real impl: GET /api/billing/credits.
+let balanceUsd = 0;
+let balanceLoaded = false;
+
+/** Loads the real balance from the hub. */
+export async function refreshBilling(): Promise<void> {
+  if (!BACKEND_ENABLED) return;
+  const me = await getSelf();
+  balanceUsd = quotaToUsd(me.quota);
+  balanceLoaded = true;
+  notify("billing");
+}
+
+/** Credit balance in dollars. Backend mode serves the cache refreshBilling() fills. */
 export function getCredits(): number {
+  if (BACKEND_ENABLED) return Math.round(balanceUsd * 100) / 100;
   return Number(readJSON<string | number>(CREDITS_KEY, 0)) || 0;
 }
 
-// MOCK: add credits (after a top-up). Real impl: server updates after payment.
+/** False in backend mode: cards live in Stripe, so the site does not manage them. */
+export function cardsSupported(): boolean {
+  return !BACKEND_ENABLED;
+}
+
+/** Sends the customer to Stripe Checkout for `amount` dollars of credit. */
+export async function startTopup(amount: number): Promise<void> {
+  window.location.href = await startTopupCheckout(Math.max(1, Math.round(amount)));
+}
+
+// Demo-only. In backend mode credit arrives when Stripe confirms the payment, so
+// this just re-reads the balance.
 export function addCredits(amount: number): number {
+  if (BACKEND_ENABLED) {
+    void refreshBilling().catch(() => {});
+    return getCredits();
+  }
   const next = getCredits() + amount;
   if (typeof window !== "undefined") localStorage.setItem(CREDITS_KEY, String(next));
   return next;

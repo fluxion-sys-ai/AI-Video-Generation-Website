@@ -1,10 +1,13 @@
 "use client";
 
-import { getModels } from "@/lib/models";
+import { getModels, refreshCatalog } from "@/lib/models";
+import { BACKEND_ENABLED } from "@/lib/hub";
+import { useLive } from "@/lib/live";
 import { ModelCard } from "@/components/models/model-card";
 
 // One horizontal line, auto-scrolling. Hover pauses; hovering a card plays it.
 export function ModelMarquee() {
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const models = getModels();
   const row = [...models, ...models]; // duplicated for a seamless loop
 

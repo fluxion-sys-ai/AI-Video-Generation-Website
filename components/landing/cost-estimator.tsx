@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getModels } from "@/lib/models";
+import { getModels, refreshCatalog } from "@/lib/models";
+import { BACKEND_ENABLED } from "@/lib/hub";
+import { useLive } from "@/lib/live";
+import { estimateCost, money, ratesFor, useRateCard } from "@/lib/rate-card";
 
-// mock rates: resolution multiplier + $ per credit
+// Demo rates: resolution multiplier + $ per credit. With a backend the real
+// per-model prices come from the hub's database (lib/rate-card.ts).
 const RES_MULT: Record<string, number> = { "480p": 1, "720p": 1.5, "1080p": 2.5 };
 const PER_CREDIT = 0.01;
 
@@ -11,6 +15,8 @@ const sel =
   "rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue";
 
 export function CostEstimator({ bare = false }: { bare?: boolean }) {
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
+  const { card } = useRateCard();
   const models = getModels();
   const [slug, setSlug] = useState(models[0].slug);
   const model = models.find((m) => m.slug === slug) || models[0];
@@ -26,6 +32,8 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
   const mult = RES_MULT[resolution] ?? 1;
   const credits = Math.round(model.creditsPerSecond * duration * mult);
   const dollars = (credits * PER_CREDIT).toFixed(2);
+  const tiers = ratesFor(card, model);
+  const live = BACKEND_ENABLED && tiers ? estimateCost(tiers, { seconds: duration, resolution, input_video_seconds: 0 }) : null;
 
   return (
     <div className={bare ? "" : "border border-line bg-surface/70 p-6 backdrop-blur-sm"}>
@@ -62,8 +70,12 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
         </div>
       </div>
       <div className="mt-4 flex items-baseline gap-3 border-t border-hairline pt-3">
-        <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold text-accent-ink">≈ ${dollars}</span>
-        <span className="text-sm text-muted">{credits} credits · {duration}s · {resolution}</span>
+        <span className="font-[family-name:var(--font-jetbrains)] text-3xl font-semibold text-accent-ink">
+          ≈ {live !== null ? money(live) : `$${dollars}`}
+        </span>
+        <span className="text-sm text-muted">
+          {live !== null ? `${duration}s · ${resolution} · live rates` : `${credits} credits · ${duration}s · ${resolution}`}
+        </span>
       </div>
     </div>
   );

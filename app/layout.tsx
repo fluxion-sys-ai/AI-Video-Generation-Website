@@ -3,6 +3,7 @@ import { Geist, JetBrains_Mono, Sora, Archivo_Black, Playfair_Display, Caveat, I
 import "./globals.css";
 import { Spotlight } from "@/components/decor/spotlight";
 import { Toaster } from "@/components/ui/toaster";
+import { CatalogSync } from "@/components/site/catalog-sync";
 import { SkinSwitcher } from "@/components/skins/skin-switcher";
 import { CosmosBackdrop } from "@/components/skins/cosmos-backdrop";
 
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <CosmosBackdrop />
         {children}
         <SkinSwitcher />
+        <CatalogSync />
         <Toaster />
       </body>
     </html>

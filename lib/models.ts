@@ -1,5 +1,9 @@
 export type Model = {
   slug: string;
+  /** Model name the hub routes; defaults to the slug. */
+  hubModel?: string;
+  /** False when no provider serves this model (backend mode). */
+  available?: boolean;
   name: string;
   tagline: string;
   description: string;
@@ -17,7 +21,8 @@ export type Model = {
 // local media live in public/models/<slug>.mp4 (clip) + <slug>.jpg (poster).
 // The poster is a first frame extracted from the clip (see scripts note in the
 // README), self-hosted so nothing depends on external image URLs.
-const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
+// Set by next.config.ts ("" unless building for GitHub Pages).
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
 const thumb = (slug: string) => `${BASE}/models/${slug}.mp4`;
 const poster = (slug: string) => `${BASE}/models/${slug}.jpg`;
 
@@ -86,9 +91,59 @@ export const MODELS: Model[] = [
 ];
 
 export function getModels(): Model[] {
-  return MODELS;
+  // `live` is filled by refreshCatalog() in backend mode; MODELS is the demo catalog
+  // and the fallback while the request is in flight.
+  return live && live.length ? live : MODELS;
 }
 
 export function getModel(slug: string): Model | undefined {
-  return MODELS.find((m) => m.slug === slug);
+  return getModels().find((m) => m.slug === slug);
+}
+
+// ---- catalog from the backend (backend mode) --------------------------------------
+// In demo mode MODELS above is the catalog. With a backend, the catalog lives in
+// the database: display metadata, capabilities and prices are edited there, not here.
+
+import { BACKEND_ENABLED, getCatalog } from "./hub";
+import { notify } from "./live";
+import { parseTaskTiers, perSecondPrice } from "./pricing-expr";
+
+let live: Model[] | null = null;
+
+function toModel(entry: Awaited<ReturnType<typeof getCatalog>>[number]): Model {
+  const tiers = entry.pricing?.billing_expr
+    ? parseTaskTiers(entry.pricing.billing_expr, entry.pricing.billing_usage_schema)
+    : [];
+  const resolution = entry.popularResolutions[0] || entry.resolutions[0];
+  const perSecond = tiers.length && resolution ? perSecondPrice(tiers, { resolution }) : null;
+  return {
+    slug: entry.slug,
+    hubModel: entry.model,
+    available: entry.available,
+    name: entry.name,
+    tagline: entry.tagline,
+    description: entry.description,
+    capabilities: entry.capabilities,
+    durations: entry.durations,
+    resolutions: entry.resolutions,
+    aspectRatios: entry.aspectRatios,
+    popularResolutions: entry.popularResolutions,
+    supports: {
+      image: Boolean(entry.supports?.image),
+      audio: Boolean(entry.supports?.audio),
+      seed: Boolean(entry.supports?.seed),
+    },
+    // Credits are the site's unit at $0.01 each, so charts and sorting stay meaningful.
+    creditsPerSecond: perSecond !== null ? Math.round((perSecond / 0.01) * 1000) / 1000 : 0,
+    demoVideo: entry.demoVideo || `${BASE}/models/${entry.slug}.mp4`,
+    poster: entry.poster || `${BASE}/models/${entry.slug}.jpg`,
+  };
+}
+
+/** Loads the catalog from the backend. Safe to call repeatedly. */
+export async function refreshCatalog(): Promise<void> {
+  if (!BACKEND_ENABLED) return;
+  const entries = await getCatalog();
+  live = entries.map(toModel);
+  notify("models");
 }

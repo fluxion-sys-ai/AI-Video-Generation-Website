@@ -7,6 +7,7 @@ import { Brand } from "@/components/site/brand";
 import { getModels } from "@/lib/models";
 import { getUser, isSignedIn, type User } from "@/lib/auth";
 import { getFavorites } from "@/lib/prefs";
+import { BACKEND_ENABLED } from "@/lib/hub";
 import { Settings } from "lucide-react";
 
 const models = getModels();
@@ -142,6 +143,18 @@ const PROFILE_TABS: { key: string; title: string; icon: React.ReactNode }[] = [
     ),
   },
   {
+    key: "keys",
+    title: "API keys",
+    icon: (
+      <TabChip>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+          <circle cx="5.5" cy="5.5" r="2.5" />
+          <path d="M7.4 7.4 13 13M11 11l-1.4 1.4M13 9l-1.4 1.4" strokeLinecap="round" />
+        </svg>
+      </TabChip>
+    ),
+  },
+  {
     key: "usage",
     title: "Usage",
     icon: (
@@ -196,13 +209,22 @@ function ProfileMenu({ user }: { user: User }) {
       {open && (
         <div className="absolute right-0 top-full min-w-52 pt-3">
           <div className="overflow-hidden rounded-[10px] border border-hairline bg-panel p-1 shadow-xl shadow-black/40">
-            {PROFILE_TABS.map((t) => (
+            {profileTabs().map((t) => (
               <MenuItem key={t.key} href={`/profile?tab=${t.key}`} title={t.title} icon={t.icon} />
             ))}
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+// The profile page hides saved cards when there is a backend (Stripe holds them)
+// and only offers API keys when there is a hub to create them in. Keep the menu
+// in step with app/profile/page.tsx.
+function profileTabs() {
+  return PROFILE_TABS.filter((t) =>
+    t.key === "payment" ? !BACKEND_ENABLED : t.key === "keys" ? BACKEND_ENABLED : true,
   );
 }
 
@@ -408,7 +430,7 @@ export function SiteHeader() {
                       </span>
                     }
                   >
-                    {PROFILE_TABS.map((t) => (
+                    {profileTabs().map((t) => (
                       <MenuItem key={t.key} href={`/profile?tab=${t.key}`} title={t.title} icon={t.icon} />
                     ))}
                   </NavMenu>
@@ -468,7 +490,7 @@ export function SiteHeader() {
                 </MobileGroup>
                 <MobileLink href="/docs" onNavigate={closeMobile}>Docs</MobileLink>
                 <MobileGroup label="Settings">
-                  {PROFILE_TABS.map((t) => (
+                  {profileTabs().map((t) => (
                     <SubLink key={t.key} href={`/profile?tab=${t.key}`} onNavigate={closeMobile}>{t.title}</SubLink>
                   ))}
                 </MobileGroup>

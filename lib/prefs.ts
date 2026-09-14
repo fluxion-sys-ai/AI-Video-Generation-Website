@@ -1,5 +1,20 @@
 "use client";
 
+import {
+  BACKEND_ENABLED,
+  createLibraryFolder,
+  deleteLibraryFolder,
+  deleteLibraryImage,
+  libraryImageLink,
+  listLibrary,
+  renameLibraryFolder,
+  setLibraryOrder,
+  updateLibraryImage,
+  uploadLibraryImage as hubUploadLibraryImage,
+  type LibraryFolder,
+} from "./hub";
+import { notify } from "./live";
+
 // Frontend-only favorites + recently-used model tracking (localStorage).
 const FAV_KEY = "fluxion.favorites";
 const REC_KEY = "fluxion.recents";
@@ -39,7 +54,10 @@ export function addRecent(slug: string) {
   localStorage.setItem(REC_KEY, JSON.stringify(next));
 }
 
-// Persisted library images. Seeded with samples by the library on first load,
+// Persisted library images. In backend mode these live in the backend's bucket
+// (see the server-backed section at the end of this file) so they follow the
+// customer across devices; the getters below then serve that cache.
+// Seeded with samples by the library on first load,
 // then appended to whenever the user uploads, including uploads made inside a
 // model's playground (those carry `model`). Stored as data URLs so they survive
 // navigation/reload (frontend-only mock).
@@ -56,6 +74,7 @@ export type LibImage = {
 const LIB_IMAGES_KEY = "fluxion.libraryImages";
 
 export function getLibraryImages(): LibImage[] {
+  if (BACKEND_ENABLED) return liveImages ?? [];
   if (typeof window === "undefined") return [];
   try {
     const v = JSON.parse(localStorage.getItem(LIB_IMAGES_KEY) || "[]");
@@ -65,7 +84,7 @@ export function getLibraryImages(): LibImage[] {
   }
 }
 export function saveLibraryImages(list: LibImage[]) {
-  if (typeof window === "undefined") return;
+  if (BACKEND_ENABLED || typeof window === "undefined") return;
   try {
     localStorage.setItem(LIB_IMAGES_KEY, JSON.stringify(list));
   } catch {
@@ -74,6 +93,7 @@ export function saveLibraryImages(list: LibImage[]) {
 }
 // Prepend new uploads so the newest show first.
 export function addLibraryImages(items: LibImage[]) {
+  if (BACKEND_ENABLED) return; // backend mode stores uploads through uploadLibraryImage()
   saveLibraryImages([...items, ...getLibraryImages()]);
 }
 
@@ -215,4 +235,90 @@ export function watchSystemTheme(): () => void {
   };
   mq.addEventListener("change", onChange);
   return () => mq.removeEventListener("change", onChange);
+}
+
+// ---- library images and folders on the server (backend mode) ---------------------
+// getLibraryImages() is synchronous by contract, so it serves this cache;
+// components call useLive("library", refreshLibrary) to fill and follow it.
+
+let liveImages: LibImage[] | null = null;
+let liveFolders: LibraryFolder[] = [];
+let folderOfImage: Record<string, string | null> = {};
+
+export async function refreshLibrary(): Promise<void> {
+  if (!BACKEND_ENABLED) return;
+  const { items, folders } = await listLibrary();
+  liveFolders = folders;
+  folderOfImage = Object.fromEntries(items.map((i) => [i.id, i.folder_id]));
+  liveImages = items.map((i) => ({
+    id: i.id,
+    src: i.url,
+    name: i.name,
+    model: i.model || undefined,
+    size: i.bytes,
+    uses: i.uses,
+    addedAt: Date.parse(i.created_at),
+    fav: i.favourite,
+  }));
+  notify("library");
+}
+
+/** Folders in the shape the library page uses, with their image ids filled in. */
+export function getLibraryFolders(): { id: string; name: string; imageIds: string[] }[] {
+  return liveFolders.map((f) => ({
+    id: f.id,
+    name: f.name,
+    imageIds: Object.entries(folderOfImage)
+      .filter(([, folderId]) => folderId === f.id)
+      .map(([imageId]) => imageId),
+  }));
+}
+
+export async function uploadLibraryImage(file: Blob, opts: { name?: string; model?: string; folderId?: string } = {}) {
+  const saved = await hubUploadLibraryImage(file, opts);
+  await refreshLibrary();
+  return saved;
+}
+
+export async function removeLibraryImages(ids: string[]): Promise<void> {
+  await Promise.all(ids.map((id) => deleteLibraryImage(id)));
+  await refreshLibrary();
+}
+
+export async function setImageFavourite(id: string, favourite: boolean): Promise<void> {
+  await updateLibraryImage(id, { favourite });
+  await refreshLibrary();
+}
+
+export async function setImageFolder(id: string, folderId: string | null): Promise<void> {
+  await updateLibraryImage(id, { folder_id: folderId });
+  await refreshLibrary();
+}
+
+export async function markImageUsed(id: string): Promise<void> {
+  await updateLibraryImage(id, { used: true });
+}
+
+export async function saveLibraryOrder(ids: string[]): Promise<void> {
+  await setLibraryOrder(ids);
+}
+
+export async function addLibraryFolder(name: string): Promise<void> {
+  await createLibraryFolder(name);
+  await refreshLibrary();
+}
+
+export async function renameLibraryFolderByName(id: string, name: string): Promise<void> {
+  await renameLibraryFolder(id, name);
+  await refreshLibrary();
+}
+
+export async function removeLibraryFolder(id: string): Promise<void> {
+  await deleteLibraryFolder(id);
+  await refreshLibrary();
+}
+
+/** A URL a provider can fetch, for handing a stored image to a generation. */
+export async function libraryImageProviderUrl(id: string): Promise<string> {
+  return (await libraryImageLink(id)).url;
 }

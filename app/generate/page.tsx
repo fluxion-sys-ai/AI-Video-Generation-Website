@@ -1,14 +1,16 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
+import { useLive } from "@/lib/live";
 import { Heart, GripHorizontal } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site/site-header";
 import { ApiDocs } from "@/components/docs/api-docs";
 import { SiteFooter } from "@/components/site/site-footer";
-import { getModels, getModel, type Model } from "@/lib/models";
+import { getModels, getModel, type Model, refreshCatalog } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
-import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings } from "@/lib/prefs";
+import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings, uploadLibraryImage } from "@/lib/prefs";
+import { BACKEND_ENABLED } from "@/lib/hub";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { useSkin } from "@/lib/use-skin";
 import { generateVideo, refineVideo } from "@/lib/api";
@@ -63,6 +65,7 @@ const ASPECT_USE: Record<string, string> = {
 };
 
 function GenerateInner() {
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const router = useRouter();
   const params = useSearchParams();
   // No ?model → use the saved default model (Settings), else the first model.
@@ -93,6 +96,22 @@ function GenerateInner() {
   function addImages(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
+    if (BACKEND_ENABLED) {
+      // Store each image once in the library; generation then hands the provider
+      // a link instead of re-uploading the bytes.
+      void Promise.all(
+        files.map(async (f) => {
+          try {
+            const saved = await uploadLibraryImage(f, { name: f.name, model: slug });
+            setImages((prev) => [...prev, { url: saved.url, name: saved.name }]);
+          } catch (err) {
+            toast(err instanceof Error ? err.message : "Could not upload that image.");
+          }
+        }),
+      );
+      e.target.value = "";
+      return;
+    }
     // Read as data URLs so the upload also persists into the library (tagged
     // with this model) and shows up under /library.
     files.forEach((f) => {
@@ -216,10 +235,11 @@ function GenerateInner() {
       router.push(`/login?next=${encodeURIComponent(`/generate?model=${slug}`)}`);
       return;
     }
-    // Gate 2: must have a payment method on file.
+    // Gate 2: must be able to pay. With a backend that means holding credit;
+    // in the demo it means a saved card. The hub enforces this server-side too.
     if (!hasPaymentMethod()) {
-      toast("Add a payment method to start generating.");
-      router.push("/profile?tab=payment");
+      toast(BACKEND_ENABLED ? "Add credits to start generating." : "Add a payment method to start generating.");
+      router.push(BACKEND_ENABLED ? "/profile?tab=billing" : "/profile?tab=payment");
       return;
     }
     const id = ++genId.current;
@@ -234,8 +254,10 @@ function GenerateInner() {
         // Record it so it shows up in the Library + Profile history.
         addGeneration({ slug, prompt, videoUrl: r.videoUrl, poster: model.poster });
       })
-      .catch(() => {
-        if (id === genId.current) setStatus("failed");
+      .catch((err) => {
+        if (id !== genId.current) return;
+        setStatus("failed");
+        if (err instanceof Error && err.message) toast(err.message);
       });
   }
 
@@ -252,8 +274,10 @@ function GenerateInner() {
         setStatus("complete");
         setSession(true);
       })
-      .catch(() => {
-        if (id === genId.current) setStatus("failed");
+      .catch((err) => {
+        if (id !== genId.current) return;
+        setStatus("failed");
+        if (err instanceof Error && err.message) toast(err.message);
       });
   }
   function sendRefine() {

@@ -1,7 +1,10 @@
 "use client";
 
-import { getModels } from "@/lib/models";
+import { getModels, refreshCatalog, type Model } from "@/lib/models";
 import { useSkin } from "@/lib/use-skin";
+import { BACKEND_ENABLED } from "@/lib/hub";
+import { useLive } from "@/lib/live";
+import { estimateCost, money, rateRange, ratesFor, useRateCard } from "@/lib/rate-card";
 
 // Per-model pricing. Credits are the app's unit; the $ column assumes
 // 1 credit ≈ $0.01 for an illustrative price. The *presentation* changes per
@@ -10,8 +13,19 @@ const price = (creditsPerSecond: number) => (creditsPerSecond * 5 * 0.01).toFixe
 const PLAY_PASTELS = ["#fff2c2", "#d9ecff", "#ffd9ec", "#d9f5e6"];
 
 export function ModelPricingTable() {
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
+  const { card } = useRateCard();
   const models = getModels();
   const skin = useSkin();
+
+  // With a backend these read the hub's live prices; otherwise the demo math.
+  const clip5 = (m: Model) => {
+    const tiers = ratesFor(card, m);
+    const resolution = m.popularResolutions[0] || m.resolutions[0];
+    const cost = tiers ? estimateCost(tiers, { seconds: 5, resolution, input_video_seconds: 0 }) : null;
+    return cost !== null ? money(cost) : `$${price(m.creditsPerSecond)}`;
+  };
+  const perSecond = (m: Model) => rateRange(ratesFor(card, m), m.resolutions) ?? `${m.creditsPerSecond} cr/s`;
 
   // Editorial, a clean editorial row list (no table chrome).
   if (skin === "editorial") {
@@ -24,7 +38,7 @@ export function ModelPricingTable() {
               <p className="text-sm font-light text-muted">{m.tagline} · up to {m.resolutions[m.resolutions.length - 1]}</p>
             </div>
             <div className="text-right">
-              <p className="text-xl font-semibold text-fg-strong">${price(m.creditsPerSecond)}</p>
+              <p className="text-xl font-semibold text-fg-strong">{clip5(m)}</p>
               <p className="text-xs text-muted">/ 5s · {m.creditsPerSecond} cr/s</p>
             </div>
           </div>
@@ -40,7 +54,7 @@ export function ModelPricingTable() {
         {models.map((m, i) => (
           <div key={m.slug} className="rounded-[20px] p-5" style={{ background: PLAY_PASTELS[i % PLAY_PASTELS.length], color: "#1a1440", boxShadow: "5px 5px 0 rgba(26,20,64,0.14)" }}>
             <p className="text-sm font-bold uppercase tracking-[0.06em]">{m.name}</p>
-            <p className="mt-3 text-3xl font-extrabold">${price(m.creditsPerSecond)}</p>
+            <p className="mt-3 text-3xl font-extrabold">{clip5(m)}</p>
             <p className="text-xs font-semibold" style={{ color: "#4a4570" }}>per 5s clip</p>
             <p className="mt-3 text-xs" style={{ color: "#4a4570" }}>{m.creditsPerSecond} cr/s · {m.resolutions[m.resolutions.length - 1]}</p>
           </div>
@@ -56,7 +70,7 @@ export function ModelPricingTable() {
         {models.map((m) => (
           <div key={m.slug} className="w-[220px] shrink-0 rounded-[14px] border border-hairline bg-surface p-5">
             <p className="font-[family-name:var(--font-space)] text-base font-semibold text-fg-strong">{m.name}</p>
-            <p className="mt-3 text-3xl font-semibold text-accent-ink">${price(m.creditsPerSecond)}</p>
+            <p className="mt-3 text-3xl font-semibold text-accent-ink">{clip5(m)}</p>
             <p className="text-xs text-muted">per 5s clip · {m.creditsPerSecond} cr/s</p>
             <p className="mt-2 text-xs text-fg-soft">up to {m.resolutions[m.resolutions.length - 1]}</p>
           </div>
@@ -74,7 +88,7 @@ export function ModelPricingTable() {
             <th className="px-5 py-3.5">Model</th>
             <th className="px-5 py-3.5">Best for</th>
             <th className="px-5 py-3.5">Max res</th>
-            <th className="px-5 py-3.5 text-right">Credits / sec</th>
+            <th className="px-5 py-3.5 text-right">{BACKEND_ENABLED ? "$ / sec" : "Credits / sec"}</th>
             <th className="px-5 py-3.5 text-right">≈ $ / 5s clip</th>
           </tr>
         </thead>
@@ -84,8 +98,8 @@ export function ModelPricingTable() {
               <td className="px-5 py-3.5 font-[family-name:var(--font-jetbrains)] uppercase tracking-[0.02em] text-fg-strong">{m.name}</td>
               <td className="px-5 py-3.5 text-muted">{m.tagline}</td>
               <td className="px-5 py-3.5 text-muted">{m.resolutions[m.resolutions.length - 1]}</td>
-              <td className="px-5 py-3.5 text-right font-[family-name:var(--font-jetbrains)] text-lg text-gold-bright">{m.creditsPerSecond}</td>
-              <td className="px-5 py-3.5 text-right text-fg-strong">${price(m.creditsPerSecond)}</td>
+              <td className="px-5 py-3.5 text-right font-[family-name:var(--font-jetbrains)] text-lg text-gold-bright">{perSecond(m)}</td>
+              <td className="px-5 py-3.5 text-right text-fg-strong">{clip5(m)}</td>
             </tr>
           ))}
         </tbody>

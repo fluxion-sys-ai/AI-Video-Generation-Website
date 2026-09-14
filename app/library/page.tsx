@@ -7,8 +7,10 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
-import { getModels, getModel, type Model } from "@/lib/models";
-import { getGenerations, formatWhen, type Generation } from "@/lib/generations";
+import { getModels, getModel, type Model, refreshCatalog } from "@/lib/models";
+import { getGenerations, refreshGenerations, formatWhen, type Generation } from "@/lib/generations";
+import { BACKEND_ENABLED } from "@/lib/hub";
+import { useLive } from "@/lib/live";
 import {
   getFavorites,
   getRecents,
@@ -16,10 +18,21 @@ import {
   getLibraryImages,
   saveLibraryImages,
   addLibraryImages,
+  refreshLibrary,
+  getLibraryFolders,
+  uploadLibraryImage,
+  removeLibraryImages,
+  setImageFavourite,
+  setImageFolder,
+  markImageUsed,
+  saveLibraryOrder,
+  addLibraryFolder,
+  removeLibraryFolder,
   isAutoplay,
   type LibImage,
 } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
+import { toast } from "@/lib/toast";
 import { Heart, ImageIcon, FolderOpen, Search, Clapperboard } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonImg } from "@/components/ui/skeleton";
@@ -123,9 +136,31 @@ function LibraryInner() {
     if (t === "images" || t === "videos") setTab(t);
   }, [search]);
 
+  // Backend mode: images, folders and videos come from the server. These hooks
+  // refresh them on mount and re-render whenever they change.
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
+  const libraryVersion = useLive("library", BACKEND_ENABLED ? refreshLibrary : undefined);
+  const generationsVersion = useLive("generations", BACKEND_ENABLED ? refreshGenerations : undefined);
+  useEffect(() => {
+    if (!BACKEND_ENABLED) return;
+    // The seams have already loaded; copying their caches into state is what
+    // re-renders the page, and local edits below stay optimistic until the next
+    // refresh lands. Same shape as the hydration effects further down.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setLibImages(getLibraryImages());
+    setFolders(getLibraryFolders());
+    setGens(getGenerations());
+    setReady(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [libraryVersion, generationsVersion]);
+
   useEffect(() => {
     if (!isSignedIn()) {
       router.replace("/login?next=/library");
+      return;
+    }
+    if (BACKEND_ENABLED) {
+      setReady(true);
       return;
     }
     // Load images; seed with sample references on first visit.
@@ -176,24 +211,46 @@ function LibraryInner() {
   function createFolder(name: string) {
     const n = name.trim();
     if (!n) return;
-    setFolders((prev) => [...prev, { id: `f${Date.now()}`, name: n, imageIds: [] }]);
+    if (BACKEND_ENABLED) {
+      void addLibraryFolder(n).catch((err) => toast(err instanceof Error ? err.message : "Could not create the folder."));
+    } else {
+      setFolders((prev) => [...prev, { id: `f${Date.now()}`, name: n, imageIds: [] }]);
+    }
     setNewFolderName("");
     setCreatingFolder(false);
   }
   function addToFolder(folderId: string, imageId: string) {
+    if (BACKEND_ENABLED) {
+      void setImageFolder(imageId, folderId).catch(() => toast("Could not move that image."));
+      return;
+    }
     setFolders((prev) =>
       prev.map((f) => (f.id === folderId ? (f.imageIds.includes(imageId) ? f : { ...f, imageIds: [...f.imageIds, imageId] }) : f)),
     );
   }
   function removeFromFolder(folderId: string, imageId: string) {
+    if (BACKEND_ENABLED) {
+      void setImageFolder(imageId, null).catch(() => toast("Could not remove that image from the folder."));
+      return;
+    }
     setFolders((prev) => prev.map((f) => (f.id === folderId ? { ...f, imageIds: f.imageIds.filter((x) => x !== imageId) } : f)));
   }
   function deleteFolder(folderId: string) {
-    setFolders((prev) => prev.filter((f) => f.id !== folderId));
+    if (BACKEND_ENABLED) {
+      void removeLibraryFolder(folderId).catch(() => toast("Could not delete the folder."));
+    } else {
+      setFolders((prev) => prev.filter((f) => f.id !== folderId));
+    }
     if (activeFolder === folderId) setActiveFolder(null);
   }
   // Add all currently-selected images to a folder (from select mode).
   function addSelectedToFolder(folderId: string) {
+    if (BACKEND_ENABLED) {
+      void Promise.all([...selected].map((id) => setImageFolder(id, folderId))).catch(() => toast("Could not move those images."));
+      setAddFolderOpen(false);
+      exitSelect();
+      return;
+    }
     setFolders((prev) => prev.map((f) => (f.id === folderId ? { ...f, imageIds: [...new Set([...f.imageIds, ...selected])] } : f)));
     setAddFolderOpen(false);
     exitSelect();
@@ -202,7 +259,9 @@ function LibraryInner() {
   // Persist folders whenever they change (skips the initial hydrate render so it
   // never overwrites stored folders with the empty initial state).
   const foldersHydrated = useRef(false);
+  // In backend mode folders live on the server, so skip the localStorage mirror.
   useEffect(() => {
+    if (BACKEND_ENABLED) return;
     if (!foldersHydrated.current) {
       foldersHydrated.current = true;
       return;
@@ -266,6 +325,17 @@ function LibraryInner() {
   function onUploadFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
+    if (BACKEND_ENABLED) {
+      void Promise.all(
+        files.map((f) =>
+          uploadLibraryImage(f, { name: f.name, folderId: activeFolder && activeFolder !== "favorites" ? activeFolder : undefined }).catch((err) =>
+            toast(err instanceof Error ? err.message : "Could not upload that image."),
+          ),
+        ),
+      );
+      e.target.value = "";
+      return;
+    }
     files.forEach((f) => {
       const reader = new FileReader();
       reader.onload = () => {
@@ -279,6 +349,12 @@ function LibraryInner() {
     e.target.value = "";
   }
   function deleteImages(ids: string[]) {
+    if (BACKEND_ENABLED) {
+      void removeLibraryImages(ids).catch(() => toast("Could not delete those images."));
+      setSelected(new Set());
+      setDeleteIds(null);
+      return;
+    }
     const set = new Set(ids);
     setLibImages((prev) => {
       const next = prev.filter((i) => !set.has(i.id));
@@ -293,6 +369,11 @@ function LibraryInner() {
   function uploadTo(model: Model) {
     const chosen = libImages.filter((img) => selected.has(img.id)).map((img) => ({ url: img.src, name: img.name }));
     setPendingImages(chosen);
+    if (BACKEND_ENABLED) {
+      void Promise.all([...selected].map((id) => markImageUsed(id))).catch(() => {});
+      router.push(`/generate?model=${model.slug}`);
+      return;
+    }
     // Bump "use frequency" for the images sent.
     saveLibraryImages(libImages.map((im) => (selected.has(im.id) ? { ...im, uses: (im.uses || 0) + 1 } : im)));
     router.push(`/generate?model=${model.slug}`);
@@ -302,6 +383,19 @@ function LibraryInner() {
   // the sort to "custom" so the new order is what's shown.
   function reorderImage(draggedId: string, targetId: string) {
     if (draggedId === targetId) return;
+    if (BACKEND_ENABLED) {
+      const from = libImages.findIndex((i) => i.id === draggedId);
+      const to = libImages.findIndex((i) => i.id === targetId);
+      if (from >= 0 && to >= 0) {
+        const next = [...libImages];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        setLibImages(next);
+        setSortKey("custom");
+        void saveLibraryOrder(next.map((i) => i.id)).catch(() => {});
+      }
+      return;
+    }
     setLibImages((prev) => {
       const from = prev.findIndex((i) => i.id === draggedId);
       const to = prev.findIndex((i) => i.id === targetId);
@@ -321,6 +415,12 @@ function LibraryInner() {
   // Heart / un-heart an image. When the last favorite is removed while on the
   // Favorites tab, fall back to All.
   function toggleImgFav(id: string) {
+    if (BACKEND_ENABLED) {
+      const current = libImages.find((im) => im.id === id);
+      void setImageFavourite(id, !current?.fav).catch(() => toast("Could not update that image."));
+      if (activeFolder === "favorites" && current?.fav && libImages.filter((im) => im.fav).length <= 1) setActiveFolder(null);
+      return;
+    }
     const next = libImages.map((im) => (im.id === id ? { ...im, fav: !im.fav } : im));
     setLibImages(next);
     saveLibraryImages(next);

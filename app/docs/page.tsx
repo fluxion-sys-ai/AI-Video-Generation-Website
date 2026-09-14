@@ -88,30 +88,41 @@ export default function DocsPage() {
 
           <section className="space-y-3">
             <H id="quickstart">Quickstart</H>
-            <p className="text-muted">Install the client and run your first generation:</p>
-            <Code>{`npm install @fluxion-ai/client
+            <p className="text-muted">
+              Two HTTP calls: submit a job, then poll it until the video is ready. No SDK required.
+            </p>
+            <Code>{`# Submit; the response carries the video id.
+curl -X POST https://api.fluxion-sys.ai/v1/videos \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "MiniMax-H3",
+    "prompt": "A cinematic aerial shot at golden hour",
+    "seconds": 6,
+    "resolution": "768P",
+    "aspect_ratio": "16:9"
+  }'
 
-import { fluxion } from "@fluxion-ai/client";
+# Poll until "status": "completed", then download the MP4.
+curl https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID \\
+  -H "Authorization: Bearer $FLUXION_API_KEY"
 
-fluxion.config({ credentials: process.env.FLUXION_API_KEY });
-
-const result = await fluxion.run("fluxion/aurora", {
-  input: {
-    prompt: "A cinematic aerial shot at golden hour",
-    duration: 5,
-    aspect_ratio: "16:9",
-    resolution: "720p",
-  },
-});
-
-console.log(result.video.url);`}</Code>
+curl -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
+  -H "Authorization: Bearer $FLUXION_API_KEY"`}</Code>
           </section>
 
           <section className="space-y-3">
             <H id="authentication">Authentication</H>
-            <p className="text-muted">Create a key in your dashboard and pass it as an environment variable:</p>
-            <Code>{`export FLUXION_API_KEY="sk-fluxion-xxxxxxxxxxxx"`}</Code>
-            <p className="text-muted">Never ship a key in client-side code. Rotate keys from the API keys page.</p>
+            <p className="text-muted">
+              Create a key under{" "}
+              <Link href="/profile?tab=keys" className="text-blue hover:text-gold-soft">Profile → API keys</Link>{" "}
+              and send it as a bearer token on every request:
+            </p>
+            <Code>{`export FLUXION_API_KEY="sk-xxxxxxxxxxxxxxxxxxxx"`}</Code>
+            <p className="text-muted">
+              Never ship a key in client-side code. Keys carry your credit balance, so rotate or revoke
+              them from the same page if one leaks.
+            </p>
           </section>
 
           <section className="space-y-3">
@@ -125,13 +136,18 @@ console.log(result.video.url);`}</Code>
           <section className="space-y-3">
             <H id="generating">Generating video</H>
             <p className="text-muted">
-              Send a prompt and options; the response includes the output video URL and timing. Longer clips and higher
-              resolutions cost more credits.
+              Generation is asynchronous. <code className="text-gold-2">POST /v1/videos</code> holds the credits and
+              returns a video id with <code className="text-gold-2">&quot;status&quot;: &quot;queued&quot;</code>;
+              <code className="text-gold-2"> GET /v1/videos/&#123;id&#125;</code> reports progress until it is{" "}
+              <code className="text-gold-2">completed</code> or <code className="text-gold-2">failed</code>;
+              <code className="text-gold-2"> GET /v1/videos/&#123;id&#125;/content</code> streams the MP4 and honours
+              Range requests. A failed job returns its credits.
             </p>
-            <Code>{`curl -X POST https://api.fluxion-sys.ai/v1/fluxion/aurora \\
-  -H "Authorization: Key $FLUXION_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{ "input": { "prompt": "Neon rain on a city street", "duration": 5 } }'`}</Code>
+            <p className="text-muted">
+              For image-to-video, pass <code className="text-gold-2">image_url</code>, or post the same fields as
+              <code className="text-gold-2"> multipart/form-data</code> with an <code className="text-gold-2">image</code> part.
+              Longer clips and higher resolutions cost more credits.
+            </p>
           </section>
 
           <section className="space-y-3">
@@ -139,46 +155,64 @@ console.log(result.video.url);`}</Code>
             <ul className="space-y-2 text-sm text-muted">
               <li><code className="text-gold-2">prompt</code>, text description of the shot (required).</li>
               <li><code className="text-gold-2">image_url</code>, optional image to animate (image-to-video).</li>
-              <li><code className="text-gold-2">duration</code>, seconds of output.</li>
+              <li><code className="text-gold-2">seconds</code>, clip length; each model lists the values it accepts.</li>
               <li><code className="text-gold-2">aspect_ratio</code>, e.g. 16:9, 9:16, 1:1.</li>
-              <li><code className="text-gold-2">resolution</code>, 480p, 720p, or 1080p.</li>
+              <li><code className="text-gold-2">resolution</code>, per model, e.g. 768P or 2K on MiniMax H3.</li>
+              <li><code className="text-gold-2">audio</code>, generate sound, on models that support it.</li>
+              <li><code className="text-gold-2">seed</code>, for reproducible output, on models that support it.</li>
             </ul>
           </section>
 
           <section className="space-y-3">
             <H id="api">API reference</H>
             <p className="text-muted">
-              Every model exposes the same request shape at <code className="text-gold-2">fluxion/&lt;model&gt;</code>. See the
-              per-model reference from any model&apos;s playground under the API tab.
+              Every model shares one endpoint, <code className="text-gold-2">/v1/videos</code>, and is selected with the
+              request&apos;s <code className="text-gold-2">model</code> field. See the per-model reference, with its exact
+              durations, resolutions and pricing, from any model&apos;s playground under the API tab.
             </p>
           </section>
 
           <section className="space-y-3">
             <H id="rate-limits">Rate limits</H>
-            <p className="text-muted">Requests are limited per key. Bursting beyond your tier returns HTTP 429; retry with backoff.</p>
+            <p className="text-muted">
+              Requests are limited per account. Bursting returns HTTP 429 with a{" "}
+              <code className="text-gold-2">Retry-After</code> hint; retry with exponential backoff. Poll a job every
+              few seconds rather than in a tight loop.
+            </p>
           </section>
 
           <section className="space-y-3">
             <H id="errors">Errors</H>
+            <p className="text-muted">
+              Errors come back as <code className="text-gold-2">&#123; &quot;error&quot;: &#123; &quot;message&quot;, &quot;type&quot;, &quot;code&quot; &#125; &#125;</code>{" "}
+              with a request id in the message, which is worth logging.
+            </p>
             <ul className="space-y-2 text-sm text-muted">
+              <li><code className="text-danger">400</code>, invalid parameters, e.g. a resolution the model does not support.</li>
               <li><code className="text-danger">401</code>, missing or invalid API key.</li>
-              <li><code className="text-danger">422</code>, invalid parameters.</li>
+              <li><code className="text-danger">403</code>, not enough credits for the request.</li>
               <li><code className="text-danger">429</code>, rate limited.</li>
+              <li><code className="text-danger">503</code>, no capacity for that model right now; retry shortly.</li>
             </ul>
           </section>
 
           <section className="space-y-3">
             <H id="billing">Billing</H>
             <p className="text-muted">
-              Pay per second of generated video. Add credits and manage limits from{" "}
+              Pay per second of generated video, priced per model and resolution. Credits are held when a job is
+              submitted and returned if it fails. Top up and set a low-balance alert from{" "}
               <Link href="/profile?tab=billing" className="text-blue hover:text-gold-soft">Billing</Link>. Credits never expire.
             </p>
           </section>
 
           <section className="space-y-3">
             <H id="keys">API keys</H>
-            <p className="text-muted">Generate, name, and revoke keys from your account. Treat keys like passwords.</p>
-            <p className="text-xs text-dim">Illustrative only. No live API here.</p>
+            <p className="text-muted">
+              Create, name, and revoke keys under{" "}
+              <Link href="/profile?tab=keys" className="text-blue hover:text-gold-soft">Profile → API keys</Link>, where each
+              one also shows when it was last used and how much it has spent. Treat keys like passwords: they spend
+              your credits.
+            </p>
           </section>
         </main>
       </div>

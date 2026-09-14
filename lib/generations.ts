@@ -5,15 +5,16 @@
  * source of truth behind both the Library "Videos" tab and the Profile "Usage
  * history" list, and it's where a finished render is recorded.
  *
- * BACKEND DEVS: mock backed by localStorage. Replace the bodies with real calls
- * (see BACKEND.md):
- *   - getGenerations()  → GET  /api/generations
- *   - addGeneration(g)  → happens server-side when a render completes; the
- *                         generate page calls this after api.generateVideo()
- * Keep the return shape (`Generation`), the UI depends on it.
+ * With a backend (NEXT_PUBLIC_BACKEND=1) this reads the customer's real jobs from
+ * the hub and plays the copy stored in Google Cloud Storage. Without one it stays
+ * a localStorage mock. `getGenerations()` is synchronous by contract, so backend
+ * mode serves a cache that `refreshGenerations()` fills; components use
+ * useLive("generations", refreshGenerations) to re-render when it lands.
  */
 
-import { getModels } from "./models";
+import { getModel, getModels } from "./models";
+import { BACKEND_ENABLED, listGenerations, videoUrl } from "./hub";
+import { notify } from "./live";
 
 export type Generation = {
   id: string;
@@ -62,6 +63,29 @@ function seed(): Generation[] {
   });
 }
 
+let live: Generation[] | null = null;
+
+/** Loads real generations (and their stored video URLs) from the backend. */
+export async function refreshGenerations(limit = 24): Promise<void> {
+  if (!BACKEND_ENABLED) return;
+  const { items } = await listGenerations(1, limit);
+  const finished = items.filter((g) => g.status === "completed");
+  const urls = await Promise.allSettled(finished.map((g) => videoUrl(g.id)));
+  live = finished.map((g, index) => {
+    const model = getModels().find((m) => (m.hubModel || m.slug) === g.model) || getModel(g.model);
+    const url = urls[index];
+    return {
+      id: g.id,
+      slug: model?.slug || g.model,
+      prompt: g.prompt || "(no prompt)",
+      videoUrl: url.status === "fulfilled" ? url.value : "",
+      poster: model?.poster || "",
+      createdAt: (g.finishedAt || g.createdAt) * 1000,
+    };
+  });
+  notify("generations");
+}
+
 function save(list: Generation[]) {
   if (typeof window === "undefined") return;
   try {
@@ -73,6 +97,7 @@ function save(list: Generation[]) {
 
 // Newest first. Seeds sample history on first read.
 export function getGenerations(): Generation[] {
+  if (BACKEND_ENABLED) return live ?? [];
   if (typeof window === "undefined") return [];
   const raw = localStorage.getItem(KEY);
   if (raw === null) {
@@ -91,6 +116,11 @@ export function getGenerations(): Generation[] {
 // Record a finished generation (prepended so it shows first).
 export function addGeneration(g: Omit<Generation, "id" | "createdAt">): Generation {
   const rec: Generation = { ...g, id: `gen_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, createdAt: Date.now() };
+  if (BACKEND_ENABLED) {
+    // The hub already recorded the job; just refresh so the new one appears.
+    void refreshGenerations().catch(() => {});
+    return rec;
+  }
   save([rec, ...getGenerations()]);
   return rec;
 }
