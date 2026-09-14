@@ -17,7 +17,8 @@ export type Model = {
 // local media live in public/models/<slug>.mp4 (clip) + <slug>.jpg (poster).
 // The poster is a first frame extracted from the clip (see scripts note in the
 // README) — self-hosted so nothing depends on external image URLs.
-const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
+// Set by next.config.ts ("" unless building for GitHub Pages).
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
 const thumb = (slug: string) => `${BASE}/models/${slug}.mp4`;
 const poster = (slug: string) => `${BASE}/models/${slug}.jpg`;
 

@@ -2,7 +2,8 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 
-const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
+// Set by next.config.ts ("" unless building for GitHub Pages).
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 const SLOTS = [
   ["a", "b", "c"].map((v) => `${BASE}/reels/slot1/${v}.mp4`),

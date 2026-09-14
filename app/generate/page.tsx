@@ -8,6 +8,7 @@ import { ApiDocs } from "@/components/api-docs";
 import { SiteFooter } from "@/components/site-footer";
 import { getModels, getModel, type Model } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
+import { ApiError, BACKEND_ENABLED, createVideo, videoUrl, waitForVideo } from "@/lib/api";
 import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
 
@@ -56,6 +57,17 @@ const ASPECT_USE: Record<string, string> = {
   "3:4": "Instagram portrait",
   "21:9": "Cinema",
 };
+
+// User-facing message for a failed hub generation.
+function friendlyError(err: unknown): string {
+  if (err instanceof ApiError) {
+    // new-api localizes this message ("...quota..." / "预扣费额度失败...").
+    if (/quota|额度|balance/i.test(err.message)) return "Not enough credits for this generation. Add credits in Billing.";
+    if (err.status === 401) return "Your session expired. Log in again.";
+    return err.message;
+  }
+  return "Generation failed. Try again.";
+}
 
 function GenerateInner() {
   const router = useRouter();
@@ -124,6 +136,10 @@ function GenerateInner() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Hub generation in flight; aborted when the model changes or the page unmounts.
+  const job = useRef<AbortController | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Refine session: appears automatically after the first generation.
   const [session, setSession] = useState(false);
@@ -160,6 +176,7 @@ function GenerateInner() {
 
   // Keep the prompt, but drop any generated video / refine session.
   useEffect(() => {
+    job.current?.abort();
     setAspect(model.aspectRatios[0]);
     setResolution(preferredRes());
     setDuration(model.durations[0]);
@@ -195,15 +212,69 @@ function GenerateInner() {
   }, []);
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  useEffect(() => () => job.current?.abort(), []);
 
   function draft(): Draft {
     return { slug, aspect, resolution, duration, audio, prompt };
+  }
+
+  // Submit to the hub, poll until done, then play the signed result URL.
+  async function runHub(fullPrompt: string) {
+    job.current?.abort();
+    const ctrl = new AbortController();
+    job.current = ctrl;
+    setResultUrl(null);
+    setErrorMsg(null);
+    setProgress(null);
+    setStatus("generating");
+    try {
+      const first = model.supports.image ? images[0] : undefined;
+      let image: Blob | undefined;
+      if (first) {
+        try {
+          image = await (await fetch(first.url)).blob();
+        } catch {
+          throw new ApiError("Could not read the reference image. Upload it again.", 400);
+        }
+      }
+      const created = await createVideo({
+        model: model.slug,
+        prompt: fullPrompt,
+        seconds: duration,
+        resolution,
+        aspect_ratio: aspect,
+        ...(model.supports.audio ? { audio } : {}),
+        image,
+        imageName: first?.name,
+      });
+      const done = await waitForVideo(created.id, { signal: ctrl.signal, onUpdate: (v) => setProgress(v.progress) });
+      if (done.status !== "completed") throw new ApiError(done.error?.message || "Generation failed. Try again.", 500);
+      const url = await videoUrl(done.id);
+      if (ctrl.signal.aborted) return;
+      setResultUrl(url);
+      setStatus("complete");
+      setSession(true);
+    } catch (err) {
+      if (ctrl.signal.aborted) return;
+      setErrorMsg(friendlyError(err));
+      setStatus("failed");
+    }
   }
 
   function onGenerate() {
     if (!isSignedIn()) {
       saveDraft(draft());
       router.push(`/login?next=${encodeURIComponent(`/generate?model=${slug}`)}`);
+      return;
+    }
+    if (BACKEND_ENABLED) {
+      if (!prompt.trim()) {
+        setErrorMsg("Write a prompt first.");
+        setStatus("failed");
+        return;
+      }
+      setChat([]);
+      void runHub(prompt.trim());
       return;
     }
     setResultUrl(null);
@@ -218,7 +289,13 @@ function GenerateInner() {
 
   // Re-generate from the current prompt + all refinements (mock: reuses the model
   // to re-render, i.e. the latest edits applied on top of the last result).
-  function regen() {
+  function regen(nextChat: string[] = chat) {
+    if (BACKEND_ENABLED) {
+      // The hub has no edit-in-place yet: re-generate with the refinements appended.
+      const full = [prompt.trim(), ...nextChat.map((r) => `Refinement: ${r}`)].filter(Boolean).join("\n");
+      void runHub(full);
+      return;
+    }
     setResultUrl(null);
     setStatus("generating");
     timer.current = setTimeout(() => {
@@ -230,17 +307,19 @@ function GenerateInner() {
   function sendRefine() {
     const text = refineInput.trim();
     if (!text) return;
-    setChat((c) => [...c, text]);
+    const next = [...chat, text];
+    setChat(next);
     setRefineInput("");
-    regen();
+    regen(next);
   }
   function undoRefine() {
-    setChat((c) => c.slice(0, -1));
-    regen();
+    const next = chat.slice(0, -1);
+    setChat(next);
+    regen(next);
   }
   function restartRefine() {
     setChat([]);
-    regen();
+    regen([]);
   }
 
   // Real download: fetch the result and save it as a file (works for the mock
@@ -577,14 +656,14 @@ function GenerateInner() {
               {status === "generating" ? (
                 <>
                   <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-muted">
-                    Hang tight, generating…
+                    Hang tight, generating…{progress ? ` ${progress}%` : ""}
                   </p>
                   <div className="h-1 w-40 overflow-hidden rounded-full bg-raised">
                     <div className="h-full w-1/3 animate-pulse rounded-full bg-accent" />
                   </div>
                 </>
               ) : status === "failed" ? (
-                <p className="text-sm text-white">Generation failed. Try again.</p>
+                <p className="text-sm text-white">{errorMsg || "Generation failed. Try again."}</p>
               ) : (
                 <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-muted">
                   {aspect}
@@ -605,7 +684,7 @@ function GenerateInner() {
               <button disabled title="Coming soon" className="cursor-not-allowed rounded-[10px] border border-hairline-strong px-4 py-2 text-sm opacity-40">
                 GIF
               </button>
-              <button onClick={regen} className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
+              <button onClick={() => regen()} className="rounded-[10px] border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
                 Regenerate
               </button>
             </div>

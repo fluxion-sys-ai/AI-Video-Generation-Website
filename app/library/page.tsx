@@ -7,6 +7,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
+import { BACKEND_ENABLED, listGenerations, videoUrl } from "@/lib/api";
+import { timeAgo } from "@/lib/utils";
 import { getModels, type Model } from "@/lib/models";
 import {
   getFavorites,
@@ -21,7 +23,8 @@ import {
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { Heart } from "lucide-react";
 
-type VideoItem = { id: number; prompt: string; model: Model; when: string };
+// `src` is a generated video from the hub; mock items fall back to the model clip.
+type VideoItem = { id: number | string; prompt: string; model: Model; when: string; src?: string };
 
 // Video card: the model poster is an <img> thumbnail that always loads; the
 // actual clip is only mounted (and plays) while hovering, so it never covers the
@@ -40,7 +43,7 @@ function VideoThumb({ v }: { v: VideoItem }) {
         <img src={v.model.poster} alt="" className="h-full w-full object-cover" />
         {hover && (
           <video
-            src={v.model.demoVideo}
+            src={v.src ?? v.model.demoVideo}
             poster={v.model.poster}
             autoPlay
             muted
@@ -162,6 +165,38 @@ export default function LibraryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
+  // Generated videos from the hub (backend mode): completed jobs with playable URLs.
+  const [hubVideos, setHubVideos] = useState<VideoItem[] | null>(null);
+  useEffect(() => {
+    if (!BACKEND_ENABLED || !isSignedIn()) return;
+    let cancelled = false;
+    listGenerations(1, 24)
+      .then(async ({ items }) => {
+        const done = items.filter((g) => g.status === "completed");
+        const urls = await Promise.allSettled(done.map((g) => videoUrl(g.id)));
+        return done.map((g, i): VideoItem => {
+          const url = urls[i];
+          return {
+            id: g.id,
+            prompt: g.prompt || "(no prompt)",
+            model: models.find((m) => m.slug === g.model) ?? models[0],
+            when: timeAgo(g.finishedAt ?? g.createdAt),
+            src: url.status === "fulfilled" ? url.value : undefined,
+          };
+        });
+      })
+      .then((items) => {
+        if (!cancelled) setHubVideos(items);
+      })
+      .catch(() => {
+        if (!cancelled) setHubVideos([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const prompts = [
     "Aerial pull-back over a coastal town at golden hour",
     "Close-up of rain on a neon-lit window, slow motion",
@@ -170,7 +205,8 @@ export default function LibraryPage() {
     "Macro shot of ink blooming in water",
     "Drone flyover of a foggy pine forest",
   ];
-  const videos = prompts.map((p, i) => ({ id: i, prompt: p, model: models[i % models.length], when: ["2h ago", "Yesterday", "3 days ago", "Last week", "Last week", "2 weeks ago"][i] }));
+  const mockVideos = prompts.map((p, i) => ({ id: i, prompt: p, model: models[i % models.length], when: ["2h ago", "Yesterday", "3 days ago", "Last week", "Last week", "2 weeks ago"][i] }));
+  const videos: VideoItem[] = BACKEND_ENABLED ? hubVideos ?? [] : mockVideos;
 
   // ---- folder helpers -------------------------------------------------------
   // All mutations use functional updates so concurrent/async ops (e.g. dropping
@@ -375,6 +411,11 @@ export default function LibraryPage() {
             {videos.map((v) => (
               <VideoThumb key={v.id} v={v} />
             ))}
+            {BACKEND_ENABLED && videos.length === 0 && (
+              <p className="text-sm text-dim">
+                {hubVideos === null ? "Loading…" : <>No videos yet. <Link href="/generate" className="text-blue hover:underline">Generate one</Link>.</>}
+              </p>
+            )}
           </div>
         )}
 

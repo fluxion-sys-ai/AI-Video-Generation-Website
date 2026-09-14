@@ -12,12 +12,16 @@ export function ApiDocs({ model }: { model: Model }) {
   const ar = model.aspectRatios[0];
   const res = model.popularResolutions[0] || model.resolutions[0];
   const dur = model.durations[0];
-  const id = `fluxion/${model.slug}`;
+  const id = model.slug;
+  const minDur = Math.min(...model.durations);
+  const maxDur = Math.max(...model.durations);
+  const size = ({ "480p": "854x480", "720p": "1280x720", "1080p": "1920x1080" } as Record<string, string>)[res] ?? "1280x720";
 
   const params: { name: string; type: string; req?: boolean; desc: string }[] = [
+    { name: "model", type: "string", req: true, desc: `Model id: "${id}".` },
     { name: "prompt", type: "string", req: true, desc: "Text description of the shot." },
-    ...(model.supports.image ? [{ name: "image_url", type: "string", desc: "Optional image to animate (image-to-video)." }] : []),
-    { name: "duration", type: "integer", desc: `Seconds (${model.durations[0]}-${model.durations[model.durations.length - 1]}).` },
+    ...(model.supports.image ? [{ name: "image", type: "string | file", desc: "Optional image to animate: an https URL or base64 data URL, or a multipart file." }] : []),
+    { name: "seconds", type: "integer", desc: `Seconds of output (${minDur}-${maxDur}).` },
     { name: "aspect_ratio", type: "enum", desc: model.aspectRatios.join(", ") },
     { name: "resolution", type: "enum", desc: model.resolutions.join(", ") },
     ...(model.supports.audio ? [{ name: "audio", type: "boolean", desc: "Generate a soundtrack." }] : []),
@@ -25,53 +29,90 @@ export function ApiDocs({ model }: { model: Model }) {
   ];
 
   const snippets: Record<Lang, string> = {
-    js: `import { fluxion } from "@fluxion-ai/client";
+    js: `const API = "https://api.fluxion-sys.ai";
+const headers = {
+  Authorization: \`Bearer \${process.env.FLUXION_API_KEY}\`,
+  "Content-Type": "application/json",
+};
 
-fluxion.config({ credentials: process.env.FLUXION_API_KEY });
-
-const result = await fluxion.run("${id}", {
-  input: {
+// Start the job
+let video = await fetch(\`\${API}/v1/videos\`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    model: "${id}",
     prompt: "A cinematic aerial shot at golden hour",
-    duration: ${dur},
+    seconds: ${dur},
     aspect_ratio: "${ar}",
     resolution: "${res}",
-  },
-});
+  }),
+}).then((r) => r.json());
 
-console.log(result.video.url);`,
-    python: `import fluxion
+// Poll until it finishes
+while (video.status === "queued" || video.status === "in_progress") {
+  await new Promise((r) => setTimeout(r, 5000));
+  video = await fetch(\`\${API}/v1/videos/\${video.id}\`, { headers }).then((r) => r.json());
+}
 
-fluxion.api_key = os.environ["FLUXION_API_KEY"]
+// Download the MP4
+const mp4 = await fetch(\`\${API}/v1/videos/\${video.id}/content\`, { headers });`,
+    python: `import os, time
+import requests
 
-result = fluxion.run("${id}", input={
+API = "https://api.fluxion-sys.ai"
+headers = {"Authorization": f"Bearer {os.environ['FLUXION_API_KEY']}"}
+
+video = requests.post(f"{API}/v1/videos", headers=headers, json={
+    "model": "${id}",
     "prompt": "A cinematic aerial shot at golden hour",
-    "duration": ${dur},
+    "seconds": ${dur},
     "aspect_ratio": "${ar}",
     "resolution": "${res}",
-})
+}).json()
 
-print(result["video"]["url"])`,
-    curl: `curl -X POST https://api.fluxion-sys.ai/v1/${id} \\
-  -H "Authorization: Key $FLUXION_API_KEY" \\
+while video["status"] in ("queued", "in_progress"):
+    time.sleep(5)
+    video = requests.get(f"{API}/v1/videos/{video['id']}", headers=headers).json()
+
+with open("out.mp4", "wb") as f:
+    f.write(requests.get(f"{API}/v1/videos/{video['id']}/content", headers=headers).content)`,
+    curl: `# Start the job
+curl -X POST https://api.fluxion-sys.ai/v1/videos \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "input": {
-      "prompt": "A cinematic aerial shot at golden hour",
-      "duration": ${dur},
-      "aspect_ratio": "${ar}",
-      "resolution": "${res}"
-    }
-  }'`,
+    "model": "${id}",
+    "prompt": "A cinematic aerial shot at golden hour",
+    "seconds": ${dur},
+    "aspect_ratio": "${ar}",
+    "resolution": "${res}"
+  }'
+
+# Poll (repeat until "status" is "completed")
+curl https://api.fluxion-sys.ai/v1/videos/VIDEO_ID \\
+  -H "Authorization: Bearer $FLUXION_API_KEY"
+
+# Download the MP4
+curl -o out.mp4 https://api.fluxion-sys.ai/v1/videos/VIDEO_ID/content \\
+  -H "Authorization: Bearer $FLUXION_API_KEY"`,
   };
 
   const response = `{
-  "video": {
-    "url": "https://cdn.fluxion-sys.ai/outputs/${model.slug}-9f3a.mp4",
-    "duration": ${dur},
-    "resolution": "${res}"
-  },
-  "seed": 812043,
-  "timings": { "inference": 8.4 }
+  "id": "task_9f3aXk2b7QeLm1Rt",
+  "object": "video",
+  "model": "${id}",
+  "status": "completed",
+  "progress": 100,
+  "created_at": 1789090065,
+  "completed_at": 1789090081,
+  "seconds": "${dur}",
+  "size": "${size}",
+  "metadata": {
+    "prompt": "A cinematic aerial shot at golden hour",
+    "resolution": "${res}",
+    "aspect_ratio": "${ar}",
+    "seed": 812043
+  }
 }`;
 
   const langLabel: Record<Lang, string> = { js: "JavaScript", python: "Python", curl: "cURL" };
@@ -83,7 +124,7 @@ print(result["video"]["url"])`,
         {model.name} API
       </h1>
       <p className="mt-2 text-sm text-muted">
-        Call this model over HTTP. Endpoint id:{" "}
+        Call this model over HTTP. Model id:{" "}
         <code className="rounded bg-raised px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-gold-2">{id}</code>
       </p>
 
@@ -94,8 +135,8 @@ print(result["video"]["url"])`,
           Create a key in your dashboard and set it as an environment variable:
         </p>
         <pre className="relative mt-3 overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
-          <CopyButton text={'export FLUXION_API_KEY="sk-fluxion-xxxxxxxxxxxx"'} />
-          <code>export FLUXION_API_KEY=&quot;sk-fluxion-xxxxxxxxxxxx&quot;</code>
+          <CopyButton text={'export FLUXION_API_KEY="sk-xxxxxxxxxxxxxxxx"'} />
+          <code>export FLUXION_API_KEY=&quot;sk-xxxxxxxxxxxxxxxx&quot;</code>
         </pre>
       </section>
 
@@ -154,7 +195,7 @@ print(result["video"]["url"])`,
           <CopyButton text={response} />
           <code>{response}</code>
         </pre>
-        <p className="mt-3 text-xs text-dim">Illustrative only. No live API here.</p>
+        <p className="mt-3 text-xs text-dim">Jobs run asynchronously: poll until status is completed or failed. Failed jobs are refunded.</p>
       </section>
     </div>
   );

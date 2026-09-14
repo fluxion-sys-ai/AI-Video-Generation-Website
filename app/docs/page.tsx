@@ -14,24 +14,24 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
     group: "Getting started",
     items: [
       { id: "introduction", label: "Introduction", body: "fluxion turns text and images into video pick a model describe the shot set duration aspect ratio resolution generate playground or http api" },
-      { id: "quickstart", label: "Quickstart", body: "install the client npm install @fluxion-ai/client run your first generation fluxion.run aurora prompt duration aspect_ratio resolution video url" },
-      { id: "authentication", label: "Authentication", body: "create a key in your dashboard pass it as an environment variable FLUXION_API_KEY never ship a key in client-side code rotate keys" },
+      { id: "quickstart", label: "Quickstart", body: "generation is asynchronous start a job poll until it finishes download the mp4 fetch post v1 videos aurora prompt seconds aspect_ratio resolution" },
+      { id: "authentication", label: "Authentication", body: "create a key in your dashboard send it as a bearer token authorization FLUXION_API_KEY never ship a key in client-side code rotate keys" },
     ],
   },
   {
     group: "Models",
     items: [
       { id: "models", label: "Overview", body: "each model has its own strengths supported durations resolutions per-second pricing browse the model catalog" },
-      { id: "generating", label: "Generating video", body: "send a prompt and options response includes the output video url and timing longer clips and higher resolutions cost more credits curl post aurora" },
-      { id: "parameters", label: "Parameters", body: "prompt image_url duration aspect_ratio resolution image-to-video required seconds of output" },
+      { id: "generating", label: "Generating video", body: "post v1 videos starts a job poll status completed failed download content credits reserved refunded longer clips higher resolutions cost more curl aurora" },
+      { id: "parameters", label: "Parameters", body: "model prompt seconds aspect_ratio resolution audio seed image image-to-video multipart url data url required" },
     ],
   },
   {
     group: "Reference",
     items: [
-      { id: "api", label: "API reference", body: "every model exposes the same request shape at fluxion model per-model reference api tab" },
+      { id: "api", label: "API reference", body: "every model uses the same endpoints the model field picks the model per-model reference api tab" },
       { id: "rate-limits", label: "Rate limits", body: "requests are limited per key bursting beyond your tier returns http 429 retry with backoff" },
-      { id: "errors", label: "Errors", body: "401 missing or invalid api key 422 invalid parameters 429 rate limited" },
+      { id: "errors", label: "Errors", body: "400 invalid parameters message names the field 401 missing or invalid api key 403 not enough credits 429 rate limited" },
     ],
   },
   {
@@ -86,29 +86,43 @@ export default function DocsPage() {
 
           <section className="space-y-3">
             <H id="quickstart">Quickstart</H>
-            <p className="text-muted">Install the client and run your first generation:</p>
-            <Code>{`npm install @fluxion-ai/client
+            <p className="text-muted">
+              Generation is asynchronous: start a job, poll it until it finishes, then download the MP4. No SDK needed:
+            </p>
+            <Code>{`const API = "https://api.fluxion-sys.ai";
+const headers = {
+  Authorization: \`Bearer \${process.env.FLUXION_API_KEY}\`,
+  "Content-Type": "application/json",
+};
 
-import { fluxion } from "@fluxion-ai/client";
-
-fluxion.config({ credentials: process.env.FLUXION_API_KEY });
-
-const result = await fluxion.run("fluxion/aurora", {
-  input: {
+// 1. Start a job
+let video = await fetch(\`\${API}/v1/videos\`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    model: "aurora",
     prompt: "A cinematic aerial shot at golden hour",
-    duration: 5,
+    seconds: 6,
     aspect_ratio: "16:9",
     resolution: "720p",
-  },
-});
+  }),
+}).then((r) => r.json());
 
-console.log(result.video.url);`}</Code>
+// 2. Poll until it finishes
+while (video.status === "queued" || video.status === "in_progress") {
+  await new Promise((r) => setTimeout(r, 5000));
+  video = await fetch(\`\${API}/v1/videos/\${video.id}\`, { headers }).then((r) => r.json());
+}
+
+// 3. Download the MP4
+const mp4 = await fetch(\`\${API}/v1/videos/\${video.id}/content\`, { headers });`}</Code>
           </section>
 
           <section className="space-y-3">
             <H id="authentication">Authentication</H>
-            <p className="text-muted">Create a key in your dashboard and pass it as an environment variable:</p>
-            <Code>{`export FLUXION_API_KEY="sk-fluxion-xxxxxxxxxxxx"`}</Code>
+            <p className="text-muted">Create a key in your dashboard and send it as a bearer token:</p>
+            <Code>{`export FLUXION_API_KEY="sk-xxxxxxxxxxxxxxxx"
+curl https://api.fluxion-sys.ai/v1/videos/VIDEO_ID -H "Authorization: Bearer $FLUXION_API_KEY"`}</Code>
             <p className="text-muted">Never ship a key in client-side code. Rotate keys from the API keys page.</p>
           </section>
 
@@ -123,30 +137,36 @@ console.log(result.video.url);`}</Code>
           <section className="space-y-3">
             <H id="generating">Generating video</H>
             <p className="text-muted">
-              Send a prompt and options; the response includes the output video URL and timing. Longer clips and higher
-              resolutions cost more credits.
+              <code className="text-gold-2">POST /v1/videos</code> starts a job and returns its id. Poll{" "}
+              <code className="text-gold-2">GET /v1/videos/{"{id}"}</code> until <code className="text-gold-2">status</code> is{" "}
+              <code className="text-gold-2">completed</code> or <code className="text-gold-2">failed</code>, then download{" "}
+              <code className="text-gold-2">GET /v1/videos/{"{id}"}/content</code>. Credits are reserved when the job starts and
+              refunded if it fails. Longer clips and higher resolutions cost more.
             </p>
-            <Code>{`curl -X POST https://api.fluxion-sys.ai/v1/fluxion/aurora \\
-  -H "Authorization: Key $FLUXION_API_KEY" \\
+            <Code>{`curl -X POST https://api.fluxion-sys.ai/v1/videos \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{ "input": { "prompt": "Neon rain on a city street", "duration": 5 } }'`}</Code>
+  -d '{ "model": "aurora", "prompt": "Neon rain on a city street", "seconds": 6, "resolution": "720p" }'`}</Code>
           </section>
 
           <section className="space-y-3">
             <H id="parameters">Parameters</H>
             <ul className="space-y-2 text-sm text-muted">
+              <li><code className="text-gold-2">model</code> — model id: aurora, pulse, volt, or nova (required).</li>
               <li><code className="text-gold-2">prompt</code> — text description of the shot (required).</li>
-              <li><code className="text-gold-2">image_url</code> — optional image to animate (image-to-video).</li>
-              <li><code className="text-gold-2">duration</code> — seconds of output.</li>
+              <li><code className="text-gold-2">seconds</code> — seconds of output, within the model&apos;s range.</li>
               <li><code className="text-gold-2">aspect_ratio</code> — e.g. 16:9, 9:16, 1:1.</li>
-              <li><code className="text-gold-2">resolution</code> — 480p, 720p, or 1080p.</li>
+              <li><code className="text-gold-2">resolution</code> — 480p, 720p, or 1080p, as the model supports.</li>
+              <li><code className="text-gold-2">audio</code> — generate a soundtrack, on models that support it.</li>
+              <li><code className="text-gold-2">seed</code> — integer for reproducible output.</li>
+              <li><code className="text-gold-2">image</code> — image to animate: an https URL or base64 data URL, or an <code className="text-gold-2">image</code> file in a multipart/form-data request.</li>
             </ul>
           </section>
 
           <section className="space-y-3">
             <H id="api">API reference</H>
             <p className="text-muted">
-              Every model exposes the same request shape at <code className="text-gold-2">fluxion/&lt;model&gt;</code>. See the
+              Every model uses the same endpoints; the <code className="text-gold-2">model</code> field picks the model. See the
               per-model reference from any model&apos;s playground under the API tab.
             </p>
           </section>
@@ -159,8 +179,9 @@ console.log(result.video.url);`}</Code>
           <section className="space-y-3">
             <H id="errors">Errors</H>
             <ul className="space-y-2 text-sm text-muted">
+              <li><code className="text-danger">400</code> — invalid parameters; the message names the field.</li>
               <li><code className="text-danger">401</code> — missing or invalid API key.</li>
-              <li><code className="text-danger">422</code> — invalid parameters.</li>
+              <li><code className="text-danger">403</code> — not enough credits for the request; nothing is charged.</li>
               <li><code className="text-danger">429</code> — rate limited.</li>
             </ul>
           </section>
@@ -176,7 +197,6 @@ console.log(result.video.url);`}</Code>
           <section className="space-y-3">
             <H id="keys">API keys</H>
             <p className="text-muted">Generate, name, and revoke keys from your account. Treat keys like passwords.</p>
-            <p className="text-xs text-dim">Illustrative only. No live API here.</p>
           </section>
         </main>
       </div>

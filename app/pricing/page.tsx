@@ -5,6 +5,10 @@ import { PlansDots } from "@/components/plans-dots";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { ModelPricingTable } from "@/components/model-pricing-table";
 import { CostEstimator } from "@/components/cost-estimator";
+import { HubCostEstimator, HubFromPrice, HubModelPricingTable } from "@/components/hub-pricing";
+
+// Inlined at build time: backend builds read live prices from the hub.
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND === "1";
 
 export const metadata = { title: "Pricing" };
 
@@ -42,7 +46,7 @@ export default function PricingPage() {
           {/* left: rate + features + CTA */}
           <div className="flex flex-col justify-center p-6">
             <div className="flex items-baseline gap-1">
-              <span className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-accent">{PAYG.price}</span>
+              <span className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-accent">{BACKEND ? <HubFromPrice fallback={PAYG.price} /> : PAYG.price}</span>
               <span className="text-sm text-dim">{PAYG.note}</span>
             </div>
             <ul className="mt-4 space-y-1.5 text-sm text-fg-soft-2">
@@ -63,7 +67,7 @@ export default function PricingPage() {
 
           {/* thin chic divider + calculator */}
           <div className="border-t border-hairline-strong p-6 lg:border-l lg:border-t-0">
-            <CostEstimator bare />
+            {BACKEND ? <HubCostEstimator bare /> : <CostEstimator bare />}
           </div>
         </div>
 
@@ -73,10 +77,10 @@ export default function PricingPage() {
             Per-model rates
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Credits are spent per second. The dollar column assumes 1 credit ≈ $0.01.
+            {BACKEND ? "Live rates, billed per second of output. Failed generations are refunded." : "Credits are spent per second. The dollar column assumes 1 credit ≈ $0.01."}
           </p>
           <div className="mt-4">
-            <ModelPricingTable />
+            {BACKEND ? <HubModelPricingTable /> : <ModelPricingTable />}
           </div>
         </div>
       </main>

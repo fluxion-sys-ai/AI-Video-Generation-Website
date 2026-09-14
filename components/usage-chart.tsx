@@ -23,13 +23,16 @@ function niceTop(max: number): number {
 export function UsageChart({
   className = "",
   data = DEFAULT,
+  labels: labelsProp,
   plotHeight = 150,
 }: {
   className?: string;
   data?: number[];
+  /** Day labels matching `data`; defaults to a fixed demo range. */
+  labels?: string[];
   plotHeight?: number;
 }) {
-  const labels = dayLabels(data.length);
+  const labels = labelsProp ?? dayLabels(data.length);
   const top = niceTop(Math.max(...data, 1));
   const ticks = [top, (top * 3) / 4, top / 2, top / 4, 0];
   // Only label ~every Nth day (plus the last) so labels never crowd/wrap when

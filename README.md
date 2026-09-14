@@ -2,11 +2,16 @@
 
 **Live demo:** https://fluxion-sys-ai.github.io/AI-Video-Generation-Website/
 
-A polished, **frontend-only** AI video generator — choose a model, write a
-prompt, set options, generate, watch, and export. There is **no real backend or
-AI inference**: all accounts, credits, payments, and "generation" are mocked in
-the browser (`localStorage` + a swappable data layer). It replays sample clips
-instead of generating anything.
+A polished AI video generator — choose a model, write a prompt, set options,
+generate, watch, and export. It runs in two modes:
+
+- **Demo mode (default).** Frontend-only: accounts, credits, payments, and
+  "generation" are mocked in the browser (`localStorage`), and it replays sample
+  clips. The GitHub Pages demo runs this mode.
+- **Backend mode (`NEXT_PUBLIC_BACKEND=1`).** Accounts, API keys, credit balance,
+  generation, history, and the video library come from the Fluxion model hub, a
+  [new-api](https://github.com/QuantumNous/new-api) deployment kept in the
+  companion `fluxion-backend` project. See [Backend mode](#backend-mode).
 
 Styled to match [Fluxion](https://fluxion-sys.ai): **JetBrains Mono** for
 headings/UI (all buttons use it too), **Geist** for body, **Sora** for the logo
@@ -15,6 +20,45 @@ wordmark. Sky-blue (`#7CBDF2`) accent with a warm gold/orange (`#E0A24E` /
 blue-grey **light** UI (`#eef2f8` canvas); decorative glows are warm
 orange/yellow in light mode. All of it is token-driven — see
 [Design tokens & theming](#design-tokens--theming).
+
+---
+
+## Backend mode
+
+Set `NEXT_PUBLIC_BACKEND=1` at build or dev time. The site then talks to the hub
+through `lib/api.ts`:
+
+| Feature | Backend API |
+| --- | --- |
+| Sign up with an emailed code, log in with email, sign out | `/api/verification`, `/api/user/register`, `/api/user/login`, `/api/user/auth/*` (15-minute access token plus refresh cookie) |
+| Forgot password (`/forgot`, `/user/reset`) | `/api/reset_password`, `/api/user/reset`, then `/api/verify` + `PUT /api/user/self` to set the chosen password |
+| Generate | `POST /v1/videos`, then poll `GET /v1/videos/{id}` |
+| Result playback, Library → Videos | `/media/videos/{id}` (stored copy in Google Cloud Storage), falling back to `/api/task/{id}/artifacts` |
+| Billing and Usage tabs | `/billing/summary` (balance, net spend by day and model, top-ups), `/api/task/self` (history) |
+| Add credits | `/api/user/topup/info`, `/api/user/stripe/amount`, `/api/user/stripe/pay` → Stripe Checkout (card, Link, …) |
+| Low-balance email alert | `PUT /api/user/setting` |
+| Pricing page, estimator, rate table | `/api/pricing` (prices stored in the hub database; parsed by `lib/pricing-expr.ts`) |
+
+The site and the backend must share one origin, because the hub's account routes
+send no CORS headers and its refresh cookie is `SameSite=Strict`:
+
+- **Dev:** `NEXT_PUBLIC_BACKEND=1 npm run dev` proxies `/api`, `/v1`, `/media`,
+  `/billing` and `/events` to `FLUXION_HUB_URL` (default `http://localhost:8088`,
+  the backend's front door).
+- **Production:** `NEXT_PUBLIC_BACKEND=1 npm run build`, then serve `out/` behind
+  the `fluxion-backend` Caddyfile, which routes those paths to the gateway and
+  sidecar.
+
+Still mocked in backend mode: saved payment methods (Payment tab), profile edits
+and account deletion (local only), and library images and folders
+(browser-local). Google sign-in, two-factor sign-in and auto top-up are intentionally not offered.
+
+| Env var | Used by | Meaning |
+| --- | --- | --- |
+| `NEXT_PUBLIC_BACKEND` | build, dev | `1` turns on backend mode |
+| `FLUXION_HUB_URL` | dev only | where `next dev` proxies `/api` and `/v1` |
+| `GITHUB_PAGES` | build | `1` builds under `/AI-Video-Generation-Website/` for the Pages demo |
+| `NEXT_PUBLIC_SITE_URL` | build | canonical URL for Open Graph metadata |
 
 ---
 
@@ -49,7 +93,9 @@ The same header switches between two "modes":
 | `/generate?model=<slug>` | Generation playground | Form + live preview + **multi-image upload** (thumbnails, lightbox, hover-to-delete) + **floating refine chatbot**; **API** tab with code snippets |
 | `/pricing` | Pricing | Pay-as-you-go rate + **cost estimator** + per-model rate table |
 | `/docs` | Documentation | fal.ai-style docs: section sidebar + quickstart/auth/API/etc. |
-| `/login` | Mock auth | Email/Google (mock) — sets a `localStorage` flag |
+| `/login` | Log in | Backend mode: email + password, "Forgot password?" link. Demo mode: mock email/Google |
+| `/forgot` | Forgot password | Backend mode: emails a reset link |
+| `/user/reset` | Choose a new password | Target of the reset email (`?email=&token=`) |
 | `/signup` | **Guided onboarding slideshow** | Multi-step wizard: account → name (email autofilled) → who-are-you → payment + billing (optional) → add credits (optional) → dashboard |
 | `/info` | Info + contact | Placeholder contact links |
 | `/dashboard` | **App** dashboard | Getting-started checklist, quick actions, snapshot, recents + favorites |
@@ -81,10 +127,10 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | **Aspect-ratio use labels** (YouTube, Reels/TikTok…) | guesses | `app/generate/page.tsx` → `ASPECT_USE` |
 | **Library items, generation history, dashboard recents seed** | invented prompts | `app/library/page.tsx`, `app/profile/page.tsx` (`mockHistory`) |
 | **Billing / payment / usage numbers** (`$0.00`, Visa •••• 4242, dates) | fake | `app/profile/page.tsx` |
-| **Docs content** (endpoints, code snippets, `api.fluxion-sys.ai`) | illustrative | `app/docs/page.tsx`, `components/api-docs.tsx` |
+| **Docs content** (code snippets, `api.fluxion-sys.ai` host) | endpoints match the hub (`/v1/videos`); the host is a placeholder | `app/docs/page.tsx`, `components/api-docs.tsx` |
 | **Contact email / links** (`hello@fluxion-sys.ai`) | placeholder | `app/info/page.tsx`, `components/site-footer.tsx` |
-| **Generated result video** | replays the model's sample clip (no real AI) | mock in `app/generate/page.tsx` |
-| **Sign in / accounts / credits / favorites** | fake (`localStorage`) | `lib/auth.ts`, `lib/prefs.ts` |
+| **Generated result video** | demo mode replays the model's sample clip; backend mode plays the hub's output | `app/generate/page.tsx` |
+| **Sign in / accounts / credits / favorites** | fake (`localStorage`) in demo mode; accounts and balance are real in backend mode, favorites stay local | `lib/auth.ts`, `lib/api.ts`, `lib/prefs.ts` |
 | **Sign-up onboarding** (persona list, credit presets, card entry) | mock, nothing sent anywhere | `components/onboarding.tsx` |
 
 ### `localStorage` keys used
@@ -103,6 +149,9 @@ Nothing here is real. Replace this made-up sample content before showing it as r
 | `fluxion.pendingImages` | images handed off from the library to a model's playground | `lib/prefs.ts` |
 | `fluxion.libraryImages` | persisted library images (samples + uploads, incl. those uploaded to a model) | `lib/prefs.ts` |
 | `fluxion.libraryFolders` | user-created image folders `{ id, name, imageIds[] }` | `app/library/page.tsx` |
+| `fluxion.session` | backend mode: hub access token and expiry | `lib/api.ts` |
+| `fluxion.apiKey` | backend mode: the user's `fluxion-web` API key for generation | `lib/api.ts` |
+| `fluxion.prompts` | backend mode: prompt per job, fallback for history | `lib/api.ts` |
 
 ---
 
@@ -233,12 +282,16 @@ components/              Reusable UI
   reveal.tsx             Scroll-in animation wrapper
   brand.tsx              Logo mark + wordmark
   onboarding.tsx         Sign-up "slideshow" wizard (account → name → persona → payment → credits)
-  auth-form.tsx          Mock login form (used by /login)
+  auth-form.tsx          Login form (used by /login)
+  forgot-password-form.tsx, reset-password-form.tsx   Password reset pages (backend mode)
+  hub-pricing.tsx        Live rate table, estimator and "from" price (backend mode)
   spotlight.tsx          Cursor-following glow + OS-theme sync
   avatar-editor.tsx      Profile-photo editor (crop/zoom/rotate + filters → PNG)
 lib/
   models.ts              Model data (edit me)
-  auth.ts                Mock auth + form draft
+  api.ts                 Backend client: session, API key, videos, history, billing, top-ups, pricing
+  pricing-expr.ts        Parses the hub's per-model price expressions (adapted from new-api's admin UI)
+  auth.ts                Sign-in state (hub accounts in backend mode, mock otherwise) + form draft
   prefs.ts               Favorites + recently-used (localStorage)
 public/
   reels/slotN/           Hero reel videos (a/b/c.mp4)
@@ -253,7 +306,7 @@ public/
 
 - **Next.js 16** (App Router), **React 19**, **TypeScript**
 - **Tailwind CSS v4**
-- **Static export** (`output: "export"`) deployed to **GitHub Pages**
+- **Static export** (`output: "export"`), deployed to **GitHub Pages** (demo) or behind the hub's reverse proxy (backend mode)
 
 Fonts are loaded with `next/font` (JetBrains Mono, Geist, Sora). No animation
 libraries — reveals use `IntersectionObserver`, backgrounds use SVG + CSS.
@@ -269,8 +322,14 @@ npm run dev
 
 Then open the local URL Next prints (usually `http://localhost:3000`).
 
-`basePath`/`assetPrefix` are only applied in production
-(`next.config.ts`), so local dev serves from `/`.
+`basePath`/`assetPrefix` apply only to `GITHUB_PAGES=1` builds
+(`next.config.ts`), so local dev and other hosts serve from `/`.
+
+To develop against a running hub:
+
+```bash
+NEXT_PUBLIC_BACKEND=1 npm run dev   # proxies /api and /v1 to http://localhost:3100
+```
 
 ---
 
@@ -280,7 +339,7 @@ The site is a **static export** served from the **`gh-pages`** branch (this
 repo's token can't push GitHub Actions workflows, so deploys are manual):
 
 ```bash
-npm run build          # emits ./out (static site)
+GITHUB_PAGES=1 npm run build   # emits ./out under the repo sub-path
 # publish ./out to the gh-pages branch, e.g. via a worktree:
 git fetch origin gh-pages
 git worktree add /tmp/ghpages gh-pages
@@ -297,6 +356,7 @@ git worktree remove /tmp/ghpages --force
 
 ## Note
 
-Frontend demo only: no real authentication, payments, storage, API, or video
-generation. To make it real, swap the mock layers (`lib/auth.ts`,
-`lib/models.ts`, the generate/billing mocks) for calls to an actual service.
+Demo mode has no real authentication, payments, storage, API, or video
+generation. Backend mode makes accounts, email verification, password reset,
+generation, stored videos, Stripe top-ups, billing, and pricing real through the
+`fluxion-backend` project; saved cards and library image storage are still mocked.

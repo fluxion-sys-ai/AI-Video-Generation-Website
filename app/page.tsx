@@ -52,7 +52,8 @@ function SectionHeading({
   );
 }
 
-const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
+// Set by next.config.ts ("" unless building for GitHub Pages).
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 export default function Home() {
   return (

@@ -24,7 +24,7 @@ const sora = Sora({
 
 const SITE = "Fluxion AI Video";
 const DESC = "AI video generator — choose a model, write a prompt, and generate.";
-const SITE_URL = "https://fluxion-sys-ai.github.io/AI-Video-Generation-Website/";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://fluxion-sys-ai.github.io/AI-Video-Generation-Website/";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

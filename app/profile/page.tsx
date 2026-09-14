@@ -8,8 +8,23 @@ import { SiteFooter } from "@/components/site-footer";
 import { GlowBlobs } from "@/components/glow-blobs";
 import { UsageChart } from "@/components/usage-chart";
 import { AvatarEditor } from "@/components/avatar-editor";
-import { isSignedIn, getUser, setUser, signOut } from "@/lib/auth";
-import { getModels } from "@/lib/models";
+import { isSignedIn, getUser, setUser, signOut, fetchAccount } from "@/lib/auth";
+import {
+  BACKEND_ENABLED,
+  QUOTA_PER_USD,
+  getBillingSummary,
+  getTopupInfo,
+  listGenerations,
+  quoteTopup,
+  quotaToUsd,
+  setLowBalanceAlert,
+  startTopupCheckout,
+  type BillingSummary,
+  type HubUser,
+  type TopupInfo,
+} from "@/lib/api";
+import { timeAgo } from "@/lib/utils";
+import { getModels, getModel } from "@/lib/models";
 import { getTheme, applyTheme, getSettings, saveSettings, type Theme } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { toast } from "@/lib/toast";
@@ -63,7 +78,7 @@ function ThemeIcon({ theme }: { theme: Theme }) {
 
 // Mock list of past generations. Intentionally long so the history panel
 // demonstrates scrolling + search (see the Usage tab).
-function mockHistory() {
+function mockHistory(): HistoryItem[] {
   const models = getModels();
   const prompts = [
     "Aerial pull-back over a coastal town at golden hour",
@@ -90,6 +105,10 @@ function mockHistory() {
   });
 }
 
+type HistoryItem = { id: string | number; prompt: string; model: string; slug: string; poster: string; when: string };
+
+const usd = (n: number) => `$${n.toFixed(2)}`;
+
 type Tab = "account" | "billing" | "payment" | "usage" | "preferences";
 const TABS: Tab[] = ["account", "billing", "payment", "usage", "preferences"];
 
@@ -98,6 +117,9 @@ function ProfileInner() {
   const search = useSearchParams();
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<Tab>("account");
+  // Live account data from the hub (null in mock mode or until loaded).
+  const [account, setAccount] = useState<HubUser | null>(null);
+  const [hubHistory, setHubHistory] = useState<HistoryItem[] | null>(null);
 
   // Open the tab named in ?tab= (e.g. from the header avatar menu).
   useEffect(() => {
@@ -120,6 +142,58 @@ function ProfileInner() {
   const [alertThreshold, setAlertThreshold] = useState(10);
   const [addOpen, setAddOpen] = useState(false);
   const [addAmount, setAddAmount] = useState(25);
+
+  // Live billing (backend mode): summary from the sidecar, top-ups through Stripe Checkout.
+  const [summary, setSummary] = useState<BillingSummary | null>(null);
+  const [topupInfo, setTopupInfo] = useState<TopupInfo | null>(null);
+  const [quote, setQuote] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!BACKEND_ENABLED || !addOpen || !topupInfo?.enable_stripe_topup || !addAmount) return;
+    let alive = true;
+    const timer = setTimeout(() => {
+      quoteTopup(addAmount)
+        .then((q) => {
+          if (alive) setQuote(q);
+        })
+        .catch(() => {
+          if (alive) setQuote(null);
+        });
+    }, 300);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [addOpen, addAmount, topupInfo]);
+
+  async function checkout() {
+    setPayError(null);
+    if (!topupInfo?.enable_stripe_topup) {
+      setPayError("Top-ups are not available yet.");
+      return;
+    }
+    if (addAmount < (topupInfo.stripe_min_topup || 1)) {
+      setPayError(`The minimum top-up is $${topupInfo.stripe_min_topup}.`);
+      return;
+    }
+    setPaying(true);
+    try {
+      window.location.href = await startTopupCheckout(addAmount);
+    } catch (err) {
+      setPayError(err instanceof Error ? err.message : "Payment could not be started.");
+      setPaying(false);
+    }
+  }
+
+  async function saveAlert(enabled: boolean) {
+    try {
+      await setLowBalanceAlert({ enabled, thresholdUsd: alertThreshold, email: account?.email || email });
+      toast(enabled ? "Low-balance alert set" : "Low-balance alert off");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Could not save the alert");
+    }
+  }
 
   // payment methods (mock)
   type Card = { id: number; brand: string; last4: string; exp: string; primary: boolean };
@@ -178,6 +252,52 @@ function ProfileInner() {
       setAvatar(u.avatar);
     }
     setReady(true);
+    if (BACKEND_ENABLED) {
+      fetchAccount()
+        .then((a) => {
+          setAccount(a);
+          try {
+            const setting = JSON.parse(a?.setting || "{}") as { quota_warning_threshold?: number };
+            const threshold = Number(setting.quota_warning_threshold || 0);
+            if (threshold > 1) {
+              setAlertOn(true);
+              setAlertThreshold(Math.round((threshold / QUOTA_PER_USD) * 100) / 100);
+            }
+          } catch {
+            /* no saved notification settings */
+          }
+        })
+        .catch(() => {});
+      getBillingSummary(30).then(setSummary).catch(() => {});
+      getTopupInfo()
+        .then((info) => {
+          setTopupInfo(info);
+          const options = info.amount_options?.length ? info.amount_options : [10, 25, 50];
+          setAddAmount(Math.max(options[1] ?? options[0], info.stripe_min_topup || 1));
+        })
+        .catch(() => {});
+      const topup = new URLSearchParams(window.location.search).get("topup");
+      if (topup === "success") toast("Payment received. Credits appear as soon as Stripe confirms it.");
+      if (topup === "cancelled") toast("Checkout cancelled. No charge was made.");
+      listGenerations(1, 50)
+        .then(({ items }) =>
+          setHubHistory(
+            items.map((g) => {
+              const m = getModel(g.model);
+              const state = g.status === "failed" ? " · failed" : g.status === "completed" ? "" : " · generating";
+              return {
+                id: g.id,
+                prompt: g.prompt || "(no prompt)",
+                model: m?.name || g.model,
+                slug: m?.slug || g.model,
+                poster: m?.poster || getModels()[0].poster,
+                when: `${timeAgo(g.createdAt)}${state}`,
+              };
+            }),
+          ),
+        )
+        .catch(() => setHubHistory([]));
+    }
   }, [router]);
 
   function persist(next?: Partial<{ avatar: string | undefined }>) {
@@ -250,7 +370,7 @@ function ProfileInner() {
 
   // Generation-history search box (Usage tab). Filters by prompt or model name.
   const [historyQuery, setHistoryQuery] = useState("");
-  const history = mockHistory();
+  const history = BACKEND_ENABLED ? hubHistory ?? [] : mockHistory();
   const q = historyQuery.trim().toLowerCase();
   const filteredHistory = q
     ? history.filter((h) => `${h.prompt} ${h.model}`.toLowerCase().includes(q))
@@ -349,8 +469,8 @@ function ProfileInner() {
                 <div className="col-span-4 row-span-2 flex flex-col justify-between border-l border-t border-line p-6 sm:col-span-2">
                   <div>
                     <p className="text-xs uppercase tracking-[0.06em] text-muted">Current balance</p>
-                    <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold text-accent">$0.00</p>
-                    <p className="mt-2 text-xs text-dim">Balance may lag recent usage by up to an hour.</p>
+                    <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-5xl font-semibold text-accent">{summary ? usd(summary.balance_usd) : account ? usd(quotaToUsd(account.quota)) : "$0.00"}</p>
+                    <p className="mt-2 text-xs text-dim">{BACKEND_ENABLED ? "Updates as each generation settles." : "Balance may lag recent usage by up to an hour."}</p>
                   </div>
                   <div className="mt-5">
                     <button onClick={() => setAddOpen(true)} className={btnPrimary}>Add credits</button>
@@ -359,17 +479,36 @@ function ProfileInner() {
 
                 {/* expiring */}
                 <div className="col-span-2 border-l border-t border-line p-5">
-                  <p className="text-xs uppercase tracking-[0.06em] text-muted">Credits expiring in the next 30 days</p>
-                  <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">$0.00</p>
+                  <p className="text-xs uppercase tracking-[0.06em] text-muted">{BACKEND_ENABLED ? "Top-ups, last 30 days" : "Credits expiring in the next 30 days"}</p>
+                  <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{summary ? usd(summary.period.topups_usd) : "$0.00"}</p>
                 </div>
 
                 {/* usage this month */}
                 <div className="col-span-2 border-l border-t border-line p-5">
-                  <p className="text-xs uppercase tracking-[0.06em] text-muted">Usage this month</p>
-                  <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">$0.00</p>
-                  <p className="mt-1 text-xs text-dim">$0.00 daily average</p>
+                  <p className="text-xs uppercase tracking-[0.06em] text-muted">{BACKEND_ENABLED ? "Spend, last 30 days" : "Usage this month"}</p>
+                  <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{summary ? usd(summary.period.spend_usd) : "$0.00"}</p>
+                  <p className="mt-1 text-xs text-dim">{summary ? usd(summary.period.spend_usd / summary.period.days) : "$0.00"} daily average</p>
                 </div>
 
+                {BACKEND_ENABLED ? (
+                  <div className="col-span-4 border-l border-t border-line p-5 sm:col-span-2">
+                    <p className="text-sm text-fg">Recent top-ups</p>
+                    {summary && summary.topups.length > 0 ? (
+                      <ul className="mt-3 space-y-1.5 text-sm">
+                        {summary.topups.slice(0, 5).map((t) => (
+                          <li key={t.trade_no} className="flex items-center justify-between gap-3">
+                            <span className="text-muted">{new Date((t.completed_at || t.created_at) * 1000).toLocaleDateString()}</span>
+                            <span className="font-[family-name:var(--font-jetbrains)] text-fg">{usd(t.credit_usd)}</span>
+                            <span className={t.status === "success" ? "text-gold" : "text-dim"}>{t.status === "success" ? "Paid" : t.status}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-xs text-dim">No top-ups yet.</p>
+                    )}
+                  </div>
+                ) : (
+                  <>
                 {/* auto top-up */}
                 <div className="col-span-4 border-l border-t border-line p-5 sm:col-span-2">
                   <div className="flex items-center justify-between gap-4">
@@ -403,6 +542,9 @@ function ProfileInner() {
                   )}
                 </div>
 
+                  </>
+                )}
+
                 {/* low-balance alert */}
                 <div className="col-span-4 border-l border-t border-line p-5 sm:col-span-2">
                   <div className="flex items-center justify-between gap-4">
@@ -410,7 +552,7 @@ function ProfileInner() {
                       <p className="text-sm text-fg">Low-balance alert</p>
                       <p className="text-xs text-dim">Email me below a set threshold.</p>
                     </div>
-                    <Toggle on={alertOn} onClick={() => setAlertOn((v) => !v)} />
+                    <Toggle on={alertOn} onClick={() => { const next = !alertOn; setAlertOn(next); if (BACKEND_ENABLED && !next) void saveAlert(false); }} />
                   </div>
                   <div className="mt-3 flex items-end gap-3">
                     <div>
@@ -425,7 +567,7 @@ function ProfileInner() {
 
                 {/* footer strip */}
                 <div className="col-span-4 border-l border-t border-line px-5 py-3 text-xs text-dim">
-                  Billing period: Sep 1 to Sep 30, 2026
+                  {BACKEND_ENABLED ? (summary ? `Last ${summary.period.days} days, since ${summary.period.start}. Credits never expire.` : "Loading…") : "Billing period: Sep 1 to Sep 30, 2026"}
                 </div>
               </div>
             )}
@@ -516,14 +658,23 @@ function ProfileInner() {
                       <p className="text-xs uppercase tracking-[0.06em] text-muted">Daily usage</p>
                       <p className="text-xs text-dim">Last 20 days</p>
                     </div>
-                    <UsageChart className="mt-4" plotHeight={150} />
+                    <UsageChart
+                      className="mt-4"
+                      plotHeight={150}
+                      {...(BACKEND_ENABLED && summary
+                        ? {
+                            data: summary.daily.slice(-20).map((d) => d.spend_usd),
+                            labels: summary.daily.slice(-20).map((d) => `${Number(d.date.slice(5, 7))}/${Number(d.date.slice(8, 10))}`),
+                          }
+                        : {})}
+                    />
                   </div>
                   {[
-                    ["Current invoice due", "$0.00", "", "col-span-2"],
-                    ["Credit balance", "$0.00", "May lag usage", ""],
-                    ["Subtotal (pre-discount)", "$0.00", "Selected period", ""],
-                    ["Daily burn", "$0.00", "Avg over period", ""],
-                    ["Model API usage", "$0.00", "This period", ""],
+                    [BACKEND_ENABLED ? "Spend, last 30 days" : "Current invoice due", summary ? usd(summary.period.spend_usd) : "$0.00", "", "col-span-2"],
+                    ["Credit balance", account ? usd(quotaToUsd(account.quota)) : "$0.00", BACKEND_ENABLED ? "Live" : "May lag usage", ""],
+                    [BACKEND_ENABLED ? "Top-ups, last 30 days" : "Subtotal (pre-discount)", summary ? usd(summary.period.topups_usd) : "$0.00", BACKEND_ENABLED ? "Credits added" : "Selected period", ""],
+                    ["Daily burn", summary ? usd(summary.period.spend_usd / summary.period.days) : "$0.00", "Avg over period", ""],
+                    ["Model API usage", account ? usd(quotaToUsd(account.used_quota)) : "$0.00", BACKEND_ENABLED ? "All time" : "This period", ""],
                   ].map(([t, v, s, span]) => (
                     <div key={t} className={`min-w-0 border-l border-t border-line p-4 sm:p-5 ${span}`}>
                       <p className="text-xs uppercase leading-snug tracking-[0.06em] text-muted">{t}</p>
@@ -555,7 +706,7 @@ function ProfileInner() {
                   {/* scrollable list (max height ≈ 5 rows, then scrolls) */}
                   <div className="mt-3 flex max-h-[22rem] flex-col overflow-y-auto border border-line">
                     {filteredHistory.length === 0 ? (
-                      <p className="p-4 text-sm text-dim">No generations match “{historyQuery}”.</p>
+                      <p className="p-4 text-sm text-dim">{history.length > 0 ? <>No generations match “{historyQuery}”.</> : BACKEND_ENABLED && hubHistory === null ? "Loading…" : "No generations yet."}</p>
                     ) : (
                       filteredHistory.map((h, i) => (
                         <Link
@@ -671,7 +822,7 @@ function ProfileInner() {
             <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Add credits</h3>
             <p className="mt-1 text-xs text-dim">Pick a preset or enter an amount.</p>
             <div className="mt-4 grid grid-cols-3 gap-2">
-              {[10, 25, 50].map((a) => (
+              {(BACKEND_ENABLED && topupInfo?.amount_options?.length ? topupInfo.amount_options.slice(0, 3) : [10, 25, 50]).map((a) => (
                 <button
                   key={a}
                   onClick={() => setAddAmount(a)}
@@ -695,9 +846,19 @@ function ProfileInner() {
                 className={inputClass}
               />
             </div>
-            <button onClick={() => setAddOpen(false)} className={`${btnPrimary} mt-5 w-full`}>
-              Buy ${addAmount || 0} in credits
-            </button>
+            {BACKEND_ENABLED ? (
+              <>
+                {payError && <p role="alert" className="mt-3 text-sm text-danger">{payError}</p>}
+                <button onClick={checkout} disabled={paying} className={`${btnPrimary} mt-5 w-full disabled:opacity-60`}>
+                  {paying ? "Opening checkout…" : `Pay${quote ? ` $${quote}` : ""} for $${addAmount || 0} in credits`}
+                </button>
+                <p className="mt-2 text-center text-xs text-dim">Secure checkout by Stripe: card, Link, and other methods.</p>
+              </>
+            ) : (
+              <button onClick={() => setAddOpen(false)} className={`${btnPrimary} mt-5 w-full`}>
+                Buy ${addAmount || 0} in credits
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -754,7 +915,7 @@ function ProfileInner() {
             </dl>
             <div className="mt-6 flex gap-3">
               <button
-                onClick={() => { setAlertOpen(false); toast("Low-balance alert set"); }}
+                onClick={() => { setAlertOpen(false); if (BACKEND_ENABLED) void saveAlert(true); else toast("Low-balance alert set"); }}
                 className={`${btnPrimary} flex-1`}
               >
                 Confirm
