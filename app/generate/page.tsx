@@ -238,7 +238,9 @@ function GenerateInner() {
     // Gate 2: must be able to pay. With a backend that means holding credit;
     // in the demo it means a saved card. The hub enforces this server-side too.
     if (!hasPaymentMethod()) {
-      toast(BACKEND_ENABLED ? "Add credits to start generating." : "Add a payment method to start generating.");
+      // Billing explains where credit comes from, which differs while payments
+      // are closed, so the toast stays neutral and the page does the talking.
+      toast(BACKEND_ENABLED ? "You are out of credit." : "Add a payment method to start generating.");
       router.push(BACKEND_ENABLED ? "/profile?tab=billing" : "/profile?tab=payment");
       return;
     }

@@ -24,7 +24,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { completeEmailSignup, getUser, setUser, startEmailSignup } from "@/lib/auth";
-import { acceptLegal, BACKEND_ENABLED } from "@/lib/hub";
+import { acceptLegal, BACKEND_ENABLED, getSelf, getTopupInfo, quotaToUsd } from "@/lib/hub";
 import { toast } from "@/lib/toast";
 import { addCard, addCredits, saveCards } from "@/lib/billing";
 
@@ -55,13 +55,26 @@ function nameFromEmail(email: string): string {
   return local ? local.replace(/\b\w/g, (c) => c.toUpperCase()) : "";
 }
 // The ordered slides. `optional` steps show a "Skip" control.
-const STEPS = [
+//
+// Demo mode collects a card and a credit amount locally, which is the point of
+// the demo. With a backend there is nothing to collect: cards live at Stripe, so
+// the card form would go nowhere, and the balance comes from the trial credit
+// the hub grants on signup. The last slide there just says where the customer
+// stands.
+const DEMO_STEPS = [
   { key: "account", title: "Create your account", optional: false },
   { key: "name", title: "What should we call you?", optional: false },
   { key: "persona", title: "Who are you?", optional: true },
   { key: "payment", title: "Add a payment method", optional: true },
   { key: "credits", title: "Add credits to get started", optional: true },
 ] as const;
+const BACKEND_STEPS = [
+  { key: "account", title: "Create your account", optional: false },
+  { key: "name", title: "What should we call you?", optional: false },
+  { key: "persona", title: "Who are you?", optional: true },
+  { key: "ready", title: "You are ready to generate", optional: false },
+] as const;
+const STEPS: readonly { key: string; title: string; optional: boolean }[] = BACKEND_ENABLED ? BACKEND_STEPS : DEMO_STEPS;
 
 export function Onboarding() {
   const router = useRouter();
@@ -89,6 +102,9 @@ export function Onboarding() {
   const [resendIn, setResendIn] = useState(0);
   const [creating, setCreating] = useState(false);
   const [accountCreated, setAccountCreated] = useState(false);
+  // What the new account can actually spend, and whether it can top itself up.
+  const [balanceUsd, setBalanceUsd] = useState<number | null>(null);
+  const [topupsOpen, setTopupsOpen] = useState(false);
   // Accepting the terms is a condition of having an account, so it gates the
   // first slide and is recorded against the version shown (see lib/hub.ts).
   const [agreed, setAgreed] = useState(false);
@@ -137,6 +153,14 @@ export function Onboarding() {
         // Record the acceptance now that there is an account to attach it to.
         // A failure here must not cost the customer their new account.
         acceptLegal().catch(() => {});
+        // Read the trial credit the hub just granted, and whether top-ups are
+        // open, so the last slide can tell the truth about both.
+        getSelf()
+          .then((me) => setBalanceUsd(quotaToUsd(me.quota)))
+          .catch(() => {});
+        getTopupInfo()
+          .then((info) => setTopupsOpen(Boolean(info.enable_stripe_topup)))
+          .catch(() => setTopupsOpen(false));
       } catch (err) {
         setSignupError(err instanceof Error ? err.message : "Could not create your account. Try again.");
         return;
@@ -408,6 +432,32 @@ export function Onboarding() {
               <label htmlFor="ob-credits" className={labelClass}>Custom amount ($)</label>
               <input id="ob-credits" type="number" min={0} value={credits} onChange={(e) => setCredits(Number(e.target.value))} className={inputClass} />
             </div>
+          </div>
+        )}
+
+        {/* ---- Backend mode last slide: what you can spend ---------------- */}
+        {current.key === "ready" && (
+          <div className="mt-8 space-y-5">
+            <p className="text-sm text-muted">
+              Your account is ready. Generation is prepaid, and every clip is priced per second by the
+              model and resolution you pick.
+            </p>
+            <div className="border border-line-strong p-5">
+              <p className="text-xs uppercase tracking-[0.06em] text-muted">Credit on your account</p>
+              <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-3xl font-semibold text-accent-ink">
+                {balanceUsd === null ? "—" : `$${balanceUsd.toFixed(2)}`}
+              </p>
+              <p className="mt-2 text-xs text-dim">
+                {topupsOpen
+                  ? "Top up any time from Billing, in your profile."
+                  : "During the beta, credit is granted by the Fluxion team: email beta@fluxion-sys.ai when you need more."}
+              </p>
+            </div>
+            <p className="text-sm text-muted">
+              Next: pick a model on{" "}
+              <Link href="/models" className="text-blue hover:text-gold-soft">Models</Link>, or start writing on{" "}
+              <Link href="/generate" className="text-blue hover:text-gold-soft">Generate</Link>.
+            </p>
           </div>
         )}
       </div>

@@ -489,17 +489,37 @@ function ProfileInner() {
                     )}
                   </div>
                   <div className="mt-5">
-                    <button onClick={() => setAddOpen(true)} className={btnPrimary}>Add credits</button>
+                    {!BACKEND_ENABLED || topupInfo?.enable_stripe_topup ? (
+                      <button onClick={() => setAddOpen(true)} className={btnPrimary}>Add credits</button>
+                    ) : (
+                      // Payments are not open yet: say who to ask instead of
+                      // opening a checkout that cannot complete.
+                      <p className="text-sm text-muted">
+                        Credit is granted by the Fluxion team during the beta. Email{" "}
+                        <a href="mailto:beta@fluxion-sys.ai" className="text-blue hover:text-gold-soft">beta@fluxion-sys.ai</a>{" "}
+                        when you need more.
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* expiring */}
                 <div className="col-span-2 border-l border-t border-line p-5">
+                  {/* With payments off there are no top-ups to report, so this
+                      tile shows the free credit still on the balance instead. */}
                   <p className="text-xs uppercase tracking-[0.06em] text-muted">
-                    {BACKEND_ENABLED ? "Top-ups, last 30 days" : "Credits expiring in the next 30 days"}
+                    {!BACKEND_ENABLED
+                      ? "Credits expiring in the next 30 days"
+                      : topupInfo && !topupInfo.enable_stripe_topup
+                        ? "Free credit on your balance"
+                        : "Top-ups, last 30 days"}
                   </p>
                   <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">
-                    {summary ? usd(summary.period.topups_usd) : "$0.00"}
+                    {!summary
+                      ? "$0.00"
+                      : BACKEND_ENABLED && topupInfo && !topupInfo.enable_stripe_topup
+                        ? usd(summary.promotional.active_usd)
+                        : usd(summary.period.topups_usd)}
                   </p>
                 </div>
 
