@@ -6,7 +6,7 @@ Adapted from new-api's web/src/features/pricing/lib/billing-expr.ts
 admin UI uses to show and edit per-model prices. Prices are stored in the hub's
 database as expressions like
 
-  u("resolution") == "2K" ? tier("2K", u("seconds") * 0.13) : tier("768P", u("seconds") * 0.08)
+  u("resolution") == "1080p" ? tier("1080p", u("seconds") * 0.3) : tier("720p", u("seconds") * 0.12)
 
 This module parses that shape into tiers, so the site renders the same prices
 the hub bills, and estimates a cost for given usage facts. Request-rule

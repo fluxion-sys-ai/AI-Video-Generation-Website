@@ -157,7 +157,7 @@ curl -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
               <li><code className="text-gold-2">image_url</code>, optional image to animate (image-to-video).</li>
               <li><code className="text-gold-2">seconds</code>, clip length; each model lists the values it accepts.</li>
               <li><code className="text-gold-2">aspect_ratio</code>, e.g. 16:9, 9:16, 1:1.</li>
-              <li><code className="text-gold-2">resolution</code>, per model, e.g. 768P or 2K on MiniMax H3.</li>
+              <li><code className="text-gold-2">resolution</code>, per model; each model&apos;s page lists the ones it accepts.</li>
               <li><code className="text-gold-2">audio</code>, generate sound, on models that support it.</li>
               <li><code className="text-gold-2">seed</code>, for reproducible output, on models that support it.</li>
             </ul>

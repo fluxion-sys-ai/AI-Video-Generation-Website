@@ -23,7 +23,9 @@ import { Stats } from "@/components/landing/stats";
 import { ModelPricingTable } from "@/components/models/model-pricing-table";
 import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { PlansDots } from "@/components/decor/plans-dots";
-import { getModels, type Model } from "@/lib/models";
+import { getAvailableModels, refreshCatalog, type Model } from "@/lib/models";
+import { BACKEND_ENABLED } from "@/lib/hub";
+import { useLive } from "@/lib/live";
 import { isFavorite, toggleFavorite, isAutoplay } from "@/lib/prefs";
 
 const BASE = process.env.NODE_ENV === "production" ? "/AI-Video-Generation-Website" : "";
@@ -224,25 +226,29 @@ function IgPost({ model }: { model: Model }) {
 
 /* ------------------------------------------------------------- EDITORIAL ---- */
 export function LandingEditorial() {
-  const models = getModels();
-  const byslug = (s: string) => models.find((m) => m.slug === s) ?? models[0];
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
+  const models = getAvailableModels();
+  // This landing names demo models in its copy, so with a real catalogue it
+  // falls back to whatever is first. It is not the shipped look; see
+  // lib/prefs.ts FORCED_SKIN.
+  const byslug = (s: string): Model | undefined => models.find((m) => m.slug === s) ?? models[0];
   const features = [
     {
       h: "Text to video in seconds",
       b: "Describe a shot and Aurora renders cinematic motion, steady camera moves, coherent scenes, and sound on demand.",
-      img: byslug("aurora").poster,
+      img: byslug("aurora")?.poster ?? "",
       href: "/generate?model=aurora",
     },
     {
       h: "Animate any still image",
       b: "Bring a photo to life with Volt. Keep your subject, add natural motion, and export a finished clip in one click.",
-      img: byslug("volt").poster,
+      img: byslug("volt")?.poster ?? "",
       href: "/generate?model=volt",
     },
     {
       h: "Finish in high resolution",
       b: "Take a draft all the way to a polished 1080p cut with Nova, crisp detail for the shots that matter.",
-      img: byslug("nova").poster,
+      img: byslug("nova")?.poster ?? "",
       href: "/generate?model=nova",
     },
   ];
@@ -264,7 +270,7 @@ export function LandingEditorial() {
         </div>
         <div className="relative">
           <div className="bg-surface p-3 shadow-lg">
-            <ModelCard model={models[0]} />
+            {models[0] && <ModelCard model={models[0]} />}
           </div>
         </div>
       </section>
@@ -335,7 +341,8 @@ function GoldPill({ href, children, ghost = false }: { href: string; children: R
 }
 
 export function LandingLuxury() {
-  const models = getModels();
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
+  const models = getAvailableModels();
   return (
     <div className="min-h-screen bg-base">
       <Backdrop />
@@ -346,8 +353,8 @@ export function LandingLuxury() {
         <video
           aria-hidden="true"
           className="absolute inset-0 h-full w-full object-cover"
-          src={models[3]?.demoVideo ?? models[0].demoVideo}
-          poster={models[3]?.poster ?? models[0].poster}
+          src={models[3]?.demoVideo ?? models[0]?.demoVideo}
+          poster={models[3]?.poster ?? models[0]?.poster}
           autoPlay
           muted
           loop
@@ -393,8 +400,8 @@ export function LandingLuxury() {
           <video
             aria-hidden="true"
             className="absolute inset-0 h-full w-full object-cover"
-            src={models[1]?.demoVideo ?? models[0].demoVideo}
-            poster={models[1]?.poster ?? models[0].poster}
+            src={models[1]?.demoVideo ?? models[0]?.demoVideo}
+            poster={models[1]?.poster ?? models[0]?.poster}
             autoPlay muted loop playsInline preload="auto"
           />
           <div aria-hidden="true" className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(10,16,36,0.82), rgba(10,16,36,0.7))" }} />
@@ -499,7 +506,8 @@ function EdgeBlock({ style }: { style: React.CSSProperties }) {
 }
 
 export function LandingPlayful() {
-  const models = getModels();
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
+  const models = getAvailableModels();
   return (
     <div className="min-h-screen overflow-x-clip bg-base">
       <Backdrop />
@@ -612,7 +620,8 @@ export function LandingPlayful() {
 // horizontally with scroll-snap; the wheel is mapped to horizontal motion so a
 // mouse can drive it too. The starfield backdrop (CosmosBackdrop) sits behind.
 export function LandingCosmos() {
-  const models = getModels();
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
+  const models = getAvailableModels();
   const deck = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

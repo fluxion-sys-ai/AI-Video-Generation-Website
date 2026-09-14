@@ -8,7 +8,7 @@
 // and the panel says so.
 
 import { useEffect, useState } from "react";
-import { getModels, refreshCatalog } from "@/lib/models";
+import { getAvailableModels, refreshCatalog } from "@/lib/models";
 import { BACKEND_ENABLED } from "@/lib/hub";
 import { useLive } from "@/lib/live";
 import { estimateCost, money, ratesFor, useRateCard } from "@/lib/rate-card";
@@ -19,18 +19,30 @@ const sel =
 export function CostEstimator({ bare = false }: { bare?: boolean }) {
   useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const { card } = useRateCard();
-  const models = getModels();
-  const [slug, setSlug] = useState(models[0].slug);
-  const model = models.find((m) => m.slug === slug) || models[0];
+  const models = getAvailableModels();
+  const [slug, setSlug] = useState("");
+  const model = models.find((m) => m.slug === slug) ?? models[0];
   // Kept as text so clearing the box leaves it empty rather than snapping to 0.
-  const [duration, setDuration] = useState(String(model.durations[0]));
-  const [resolution, setResolution] = useState(model.popularResolutions[0] || model.resolutions[0]);
+  const [duration, setDuration] = useState("");
+  const [resolution, setResolution] = useState("");
 
+  // Follow whichever model is selected, and adopt the first one the catalogue
+  // offers once it arrives.
   useEffect(() => {
+    if (!model) return;
+    if (slug !== model.slug) setSlug(model.slug);
     setDuration(String(model.durations[0]));
     setResolution(model.popularResolutions[0] || model.resolutions[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [model?.slug]);
+
+  if (!model) {
+    return (
+      <div className={bare ? "" : "border border-line bg-surface/70 p-6 backdrop-blur-sm"}>
+        <p className="text-sm text-muted">Loading the catalogue…</p>
+      </div>
+    );
+  }
 
   const seconds = Number(duration);
   const valid = duration.trim() !== "" && Number.isFinite(seconds) && seconds > 0;

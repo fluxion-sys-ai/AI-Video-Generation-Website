@@ -69,10 +69,14 @@ function GenerateInner() {
   const router = useRouter();
   const params = useSearchParams();
   // No ?model → use the saved default model (Settings), else the first model.
-  const slug = params.get("model") || getSettings().defaultModel || getModels()[0].slug;
-  const model: Model = getModel(slug) || getModels()[0];
+  const catalogue = getModels();
+  const slug = params.get("model") || getSettings().defaultModel || catalogue[0]?.slug || "";
+  // Undefined until the catalogue arrives, or when a link names a model that no
+  // longer exists; the screen holds back rather than inventing one.
+  const model: Model | undefined = getModel(slug) ?? catalogue[0];
   // Prefer the saved default resolution when this model supports it.
   const preferredRes = () => {
+    if (!model) return "";
     const d = getSettings().defaultResolution;
     return model.resolutions.includes(d) ? d : model.popularResolutions[0] || model.resolutions[0];
   };
@@ -90,12 +94,12 @@ function GenerateInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
-  const [aspect, setAspect] = useState(model.aspectRatios[0]);
+  const [aspect, setAspect] = useState(model?.aspectRatios[0] ?? "16:9");
   const [resolution, setResolution] = useState(preferredRes);
-  const [duration, setDuration] = useState(model.durations[0]);
+  const [duration, setDuration] = useState(model?.durations[0] ?? 0);
   // Raw text for the duration input, so typing "10" isn't coerced mid-entry
   // (which caused the caret to jump / digits to reorder). Clamped on blur.
-  const [durationStr, setDurationStr] = useState(String(model.durations[0]));
+  const [durationStr, setDurationStr] = useState(model ? String(model.durations[0]) : "");
   const [audio, setAudio] = useState(false);
   const [prompt, setPrompt] = useState("");
   // Uploaded reference images (multiple). Each holds an object URL for the
@@ -199,7 +203,13 @@ function GenerateInner() {
   }, [slug]);
 
   // Keep the prompt, but drop any generated video / refine session.
+  //
+  // Keyed on the model object, not the slug in the URL: with a backend the
+  // catalogue arrives after the first render, so a page opened at
+  // ?model=pulse has the same slug throughout while the model itself goes from
+  // undefined to real. Keying on the slug left these options unset.
   useEffect(() => {
+    if (!model) return;
     setAspect(model.aspectRatios[0]);
     setResolution(preferredRes());
     setDuration(model.durations[0]);
@@ -210,7 +220,7 @@ function GenerateInner() {
     setSession(false);
     setChat([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [model?.slug]);
 
   // Pick up images handed off from the library ("upload to this model"), if any.
   // Runs per model so it works whether the page mounts fresh or just re-routes.
@@ -273,7 +283,7 @@ function GenerateInner() {
         setStatus("complete");
         setSession(true);
         // Record it so it shows up in the Library + Profile history.
-        addGeneration({ slug, prompt, videoUrl: r.videoUrl, poster: model.poster });
+        addGeneration({ slug, prompt, videoUrl: r.videoUrl, poster: model?.poster ?? "" });
       })
       .catch((err) => {
         if (id !== genId.current) return;
@@ -342,12 +352,21 @@ function GenerateInner() {
 
   const [aw, ah] = aspect.split(":").map(Number);
   const portrait = ah > aw;
-  const minDuration = Math.min(...model.durations);
-  const maxDuration = Math.max(...model.durations);
 
   // Hold the screen back until the gate above has decided, so a signed-out
   // visitor never sees the editor flash before the redirect.
   if (signedIn !== true) return <div className="px-6 py-6" />;
+  if (!model) {
+    return (
+      <div className="px-6 py-6 text-sm text-muted">
+        {catalogue.length === 0 ? "Loading the catalogue…" : "That model is not available."}
+      </div>
+    );
+  }
+
+  // Safe from here: the screen only renders with a model.
+  const minDuration = Math.min(...model.durations);
+  const maxDuration = Math.max(...model.durations);
 
   return (
     <div className="px-6 py-6">

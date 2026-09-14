@@ -93,9 +93,16 @@ export const MODELS: Model[] = [
 ];
 
 export function getModels(): Model[] {
-  // `live` is filled by refreshCatalog() in backend mode; MODELS is the demo catalog
-  // and the fallback while the request is in flight.
-  return live && live.length ? live : MODELS;
+  // With a backend the catalogue is the only source: before it arrives this is
+  // empty, and callers render a loading state. Falling back to the demo list
+  // here put four models that do not exist in front of customers.
+  if (BACKEND_ENABLED) return live ?? [];
+  return MODELS;
+}
+
+/** Models a customer can actually pick: catalogued, and served by a provider. */
+export function getAvailableModels(): Model[] {
+  return getModels().filter((m) => m.available !== false);
 }
 
 export function getModel(slug: string): Model | undefined {

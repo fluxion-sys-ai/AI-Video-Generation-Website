@@ -142,7 +142,9 @@ function ProfileInner() {
   const [cardCvc, setCardCvc] = useState("");
 
   // preferences (persisted via lib/prefs settings)
-  const [prefModelSlug, setPrefModelSlug] = useState(() => getModels()[0].slug);
+  // Empty until the catalogue arrives (backend mode); the select shows whatever
+  // it then offers.
+  const [prefModelSlug, setPrefModelSlug] = useState(() => getModels()[0]?.slug ?? "");
   const [prefRes, setPrefRes] = useState("720p");
   const [autoplay, setAutoplay] = useState(true);
   const [emailUpdates, setEmailUpdates] = useState(false);
@@ -386,7 +388,7 @@ function ProfileInner() {
   const sortedCards = [...cards].sort((a, b) => Number(b.primary) - Number(a.primary));
 
   const prefModels = getModels();
-  const prefModel = prefModels.find((m) => m.slug === prefModelSlug) || prefModels[0];
+  const prefModel = prefModels.find((m) => m.slug === prefModelSlug) ?? prefModels[0];
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -857,7 +859,7 @@ function ProfileInner() {
                     <div>
                       <label className={label}>Default resolution</label>
                       <select value={prefRes} onChange={(e) => setPrefRes(e.target.value)} className={inputClass}>
-                        {prefModel.resolutions.map((r) => <option key={r} value={r}>{r}</option>)}
+                        {(prefModel?.resolutions ?? []).map((r) => <option key={r} value={r}>{r}</option>)}
                       </select>
                     </div>
                   </div>

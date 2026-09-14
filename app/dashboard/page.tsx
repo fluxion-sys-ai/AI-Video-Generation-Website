@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isSignedIn, getUser } from "@/lib/auth";
-import { getModels } from "@/lib/models";
+import { getAvailableModels, refreshCatalog } from "@/lib/models";
+import { BACKEND_ENABLED } from "@/lib/hub";
+import { useLive } from "@/lib/live";
 import { getFavorites, getRecents } from "@/lib/prefs";
 import { useSkin } from "@/lib/use-skin";
 import { DashboardOG, DashboardEditorial, DashboardLuxury, DashboardPlayful, DashboardCosmos } from "@/components/skins/dashboards";
 
 export default function DashboardPage() {
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const router = useRouter();
   const skin = useSkin();
   const [ready, setReady] = useState(false);
@@ -29,7 +32,7 @@ export default function DashboardPage() {
 
   if (!ready) return <div className="min-h-screen" />;
 
-  const data = { name, favs, recents, models: getModels() };
+  const data = { name, favs, recents, models: getAvailableModels() };
   if (skin === "editorial") return <DashboardEditorial {...data} />;
   if (skin === "luxury") return <DashboardLuxury {...data} />;
   if (skin === "playful") return <DashboardPlayful {...data} />;
