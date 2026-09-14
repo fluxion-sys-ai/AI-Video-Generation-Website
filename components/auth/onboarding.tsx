@@ -22,8 +22,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { completeEmailSignup, getUser, setUser, startEmailSignup } from "@/lib/auth";
-import { BACKEND_ENABLED } from "@/lib/hub";
+import { acceptLegal, BACKEND_ENABLED } from "@/lib/hub";
 import { toast } from "@/lib/toast";
 import { addCard, addCredits, saveCards } from "@/lib/billing";
 
@@ -88,6 +89,9 @@ export function Onboarding() {
   const [resendIn, setResendIn] = useState(0);
   const [creating, setCreating] = useState(false);
   const [accountCreated, setAccountCreated] = useState(false);
+  // Accepting the terms is a condition of having an account, so it gates the
+  // first slide and is recorded against the version shown (see lib/hub.ts).
+  const [agreed, setAgreed] = useState(false);
   useEffect(() => {
     if (resendIn <= 0) return;
     const timer = setTimeout(() => setResendIn((s) => s - 1), 1000);
@@ -100,7 +104,9 @@ export function Onboarding() {
   // Slide 0 (account) needs an email before you can continue.
   const emailValid = /\S+@\S+\.\S+/.test(email);
   const canAdvance =
-    step === 0 ? emailValid && (!BACKEND_ENABLED || accountCreated || (password.length >= 8 && code.trim().length >= 4)) : true;
+    step === 0
+      ? emailValid && (accountCreated || agreed) && (!BACKEND_ENABLED || accountCreated || (password.length >= 8 && code.trim().length >= 4))
+      : true;
 
   async function sendCode() {
     setSignupError(null);
@@ -128,6 +134,9 @@ export function Onboarding() {
       try {
         await completeEmailSignup({ email, password, code, name: nameFromEmail(email) });
         setAccountCreated(true);
+        // Record the acceptance now that there is an account to attach it to.
+        // A failure here must not cost the customer their new account.
+        acceptLegal().catch(() => {});
       } catch (err) {
         setSignupError(err instanceof Error ? err.message : "Could not create your account. Try again.");
         return;
@@ -265,6 +274,25 @@ export function Onboarding() {
                   </button>
                 </div>
                 {accountCreated && <p className="mt-1.5 text-xs text-dim">Account created. You are signed in.</p>}
+              </div>
+            )}
+            {!accountCreated && (
+              <div className="mt-4">
+                <label className="flex items-start gap-2.5 text-xs text-muted">
+                  <input
+                    id="ob-agree"
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 accent-[var(--c-accent)]"
+                  />
+                  <span>
+                    I agree to the{" "}
+                    <Link href="/terms" target="_blank" className="text-blue hover:text-gold-soft">Terms of Service</Link>,{" "}
+                    <Link href="/privacy" target="_blank" className="text-blue hover:text-gold-soft">Privacy Policy</Link> and{" "}
+                    <Link href="/refunds" target="_blank" className="text-blue hover:text-gold-soft">Refund Policy</Link>.
+                  </span>
+                </label>
               </div>
             )}
             {signupError && <p role="alert" className="text-sm text-danger">{signupError}</p>}

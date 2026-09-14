@@ -331,6 +331,31 @@ async function apiKey(): Promise<string> {
   return key;
 }
 
+// ---- legal documents and consent --------------------------------------------
+
+export type LegalDocument = { slug: string; title: string; markdown: string; version: string; published: boolean };
+
+/** The sidecar answers with the document itself, not the hub's {success, data} envelope. */
+async function legalGet<T>(path: string): Promise<T> {
+  const res = await fetch(path, { credentials: "same-origin" });
+  const body = await parseBody(res);
+  if (!res.ok || !body) throw errorFrom(res, body);
+  return body as T;
+}
+
+export function getLegalDocument(slug: string): Promise<LegalDocument> {
+  return legalGet<LegalDocument>(`/legal/${slug}`);
+}
+
+export function getLegalDocuments(): Promise<{ documents: LegalDocument[] }> {
+  return legalGet<{ documents: LegalDocument[] }>("/legal");
+}
+
+/** Records that the signed-in account accepted the documents shown at signup. */
+export function acceptLegal(documents: string[] = ["terms", "privacy", "refunds"]): Promise<unknown> {
+  return sidecar("POST", "/legal/consent", { documents });
+}
+
 // ---- developer API keys (Profile -> API keys) --------------------------------
 
 export type ApiKeyRow = {

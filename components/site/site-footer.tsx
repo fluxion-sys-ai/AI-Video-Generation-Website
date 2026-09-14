@@ -9,6 +9,9 @@ export function SiteFooter() {
         <div className="flex items-center gap-5">
           <Link href="/info" className="transition-colors hover:text-gold-soft">Info</Link>
           <Link href="/pricing" className="transition-colors hover:text-gold-soft">Pricing</Link>
+          <Link href="/terms" className="transition-colors hover:text-gold-soft">Terms</Link>
+          <Link href="/privacy" className="transition-colors hover:text-gold-soft">Privacy</Link>
+          <Link href="/refunds" className="transition-colors hover:text-gold-soft">Refunds</Link>
           <span>© {new Date().getFullYear()} Fluxion</span>
         </div>
       </div>
