@@ -478,6 +478,15 @@ function ProfileInner() {
                     <p className="mt-2 text-xs text-dim">
                       {BACKEND_ENABLED ? "Updates as each generation settles." : "Balance may lag recent usage by up to an hour."}
                     </p>
+                    {summary && summary.promotional.active_usd > 0 && (
+                      <p className="mt-2 text-xs text-gold">
+                        Includes {usd(summary.promotional.active_usd)} free credit
+                        {summary.promotional.next_expiry
+                          ? `, expiring ${new Date(summary.promotional.next_expiry).toLocaleDateString()}`
+                          : ""}
+                        .
+                      </p>
+                    )}
                   </div>
                   <div className="mt-5">
                     <button onClick={() => setAddOpen(true)} className={btnPrimary}>Add credits</button>

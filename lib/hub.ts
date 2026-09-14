@@ -641,6 +641,8 @@ export type BillingSummary = {
   daily: { date: string; spend_usd: number; by_model: Record<string, number> }[];
   by_model: { model: string; spend_usd: number; jobs: number; failed_jobs: number }[];
   topups: { trade_no: string; credit_usd: number; units: number; method: string; status: string; created_at: number; completed_at: number | null }[];
+  /** How much of the balance is free credit an operator granted, and when the earliest of it expires. */
+  promotional: { active_usd: number; next_expiry: string | null };
 };
 
 export function getBillingSummary(days = 30): Promise<BillingSummary> {
