@@ -22,7 +22,7 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
     group: "Models",
     items: [
       { id: "models", label: "Overview", body: "each model has its own strengths supported durations resolutions per-second pricing browse the model catalog" },
-      { id: "generating", label: "Generating video", body: "send a prompt and options response includes the output video url and timing longer clips and higher resolutions cost more credits curl post aurora" },
+      { id: "generating", label: "Generating video", body: "send a prompt and options response includes the output video url and timing longer clips and higher resolutions cost more dollars per second curl post" },
       { id: "parameters", label: "Parameters", body: "prompt image_url duration aspect_ratio resolution image-to-video required seconds of output" },
     ],
   },
@@ -37,7 +37,7 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
   {
     group: "Account",
     items: [
-      { id: "billing", label: "Billing", body: "pay per second of generated video add credits and manage limits credits never expire" },
+      { id: "billing", label: "Billing", body: "pay per second of generated video in dollars priced per model and resolution balance never expires" },
       { id: "keys", label: "API keys", body: "generate name and revoke keys from your account treat keys like passwords" },
     ],
   },
@@ -120,7 +120,7 @@ curl -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
             </p>
             <Code>{`export FLUXION_API_KEY="sk-xxxxxxxxxxxxxxxxxxxx"`}</Code>
             <p className="text-muted">
-              Never ship a key in client-side code. Keys carry your credit balance, so rotate or revoke
+              Never ship a key in client-side code. Keys spend your balance, so rotate or revoke
               them from the same page if one leaks.
             </p>
           </section>
@@ -136,17 +136,17 @@ curl -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
           <section className="space-y-3">
             <H id="generating">Generating video</H>
             <p className="text-muted">
-              Generation is asynchronous. <code className="text-gold-2">POST /v1/videos</code> holds the credits and
+              Generation is asynchronous. <code className="text-gold-2">POST /v1/videos</code> holds the cost and
               returns a video id with <code className="text-gold-2">&quot;status&quot;: &quot;queued&quot;</code>;
               <code className="text-gold-2"> GET /v1/videos/&#123;id&#125;</code> reports progress until it is{" "}
               <code className="text-gold-2">completed</code> or <code className="text-gold-2">failed</code>;
               <code className="text-gold-2"> GET /v1/videos/&#123;id&#125;/content</code> streams the MP4 and honours
-              Range requests. A failed job returns its credits.
+              Range requests. A failed job returns what it held.
             </p>
             <p className="text-muted">
               For image-to-video, pass <code className="text-gold-2">image_url</code>, or post the same fields as
               <code className="text-gold-2"> multipart/form-data</code> with an <code className="text-gold-2">image</code> part.
-              Longer clips and higher resolutions cost more credits.
+              Longer clips and higher resolutions cost more.
             </p>
           </section>
 

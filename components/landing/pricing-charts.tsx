@@ -1,6 +1,7 @@
 "use client";
 
 import { getModels, refreshCatalog } from "@/lib/models";
+import { money } from "@/lib/rate-card";
 import { BACKEND_ENABLED } from "@/lib/hub";
 import { useLive } from "@/lib/live";
 
@@ -23,16 +24,16 @@ function BarRow({ label, value, max, display }: { label: string; value: number; 
 export function PricingCharts() {
   useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const models = getModels();
-  const maxCps = Math.max(...models.map((m) => m.creditsPerSecond));
+  const maxRate = Math.max(...models.map((m) => m.usdPerSecond));
 
   return (
     <div>
       <h3 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">
-        Credits / second by model
+        Price per second by model
       </h3>
       <div className="mt-4 space-y-3">
         {models.map((m) => (
-          <BarRow key={m.slug} label={m.name} value={m.creditsPerSecond} max={maxCps} display={`${m.creditsPerSecond}`} />
+          <BarRow key={m.slug} label={m.name} value={m.usdPerSecond} max={maxRate} display={money(m.usdPerSecond)} />
         ))}
       </div>
     </div>

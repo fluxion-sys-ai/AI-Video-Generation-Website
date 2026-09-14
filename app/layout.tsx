@@ -4,7 +4,6 @@ import "./globals.css";
 import { Spotlight } from "@/components/decor/spotlight";
 import { Toaster } from "@/components/ui/toaster";
 import { CatalogSync } from "@/components/site/catalog-sync";
-import { SkinSwitcher } from "@/components/skins/skin-switcher";
 import { CosmosBackdrop } from "@/components/skins/cosmos-backdrop";
 
 const geistSans = Geist({
@@ -78,13 +77,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{var t=localStorage.getItem('fluxion.theme');if(t==='light'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.classList.add('light');var s=localStorage.getItem('fluxion.skin');if(s==='editorial'||s==='luxury'||s==='playful'||s==='cosmos')document.documentElement.classList.add('skin-'+s)}catch(e){}",
+              // One skin ships (lib/prefs.ts FORCED_SKIN). Light/dark is not
+              // offered either: the skin defines its own palette and overrides
+              // .light on specificity, so the toggle would do nothing.
+              "try{document.documentElement.classList.add('skin-playful')}catch(e){}",
           }}
         />
         <Spotlight />
         <CosmosBackdrop />
         {children}
-        <SkinSwitcher />
         <CatalogSync />
         <Toaster />
       </body>

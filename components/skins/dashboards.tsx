@@ -21,7 +21,7 @@ export type DashData = {
 const STEPS = [
   { title: "Create account", desc: "You're signed in and ready.", href: "/profile?tab=account", done: true },
   { title: "Set up billing", desc: "Add a payment method.", href: "/profile?tab=payment", done: false },
-  { title: "Get credits", desc: "Top up your balance.", href: "/profile?tab=billing", done: false },
+  { title: "Your balance", desc: "See what you can spend.", href: "/profile?tab=billing", done: false },
   { title: "Get API key", desc: "Generate video over HTTP.", href: "/docs#keys", done: false },
 ];
 

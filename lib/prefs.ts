@@ -204,7 +204,13 @@ export function applyTheme(t: Theme) {
 const SKIN_KEY = "fluxion.skin";
 export type Skin = "og" | "editorial" | "luxury" | "playful" | "cosmos";
 
+// The look the product ships with. The other skins stay in the code and in
+// globals.css; set this to null to let people choose again, which re-enables
+// the switcher in app/layout.tsx and the boot script's saved-skin branch.
+export const FORCED_SKIN: Skin | null = "playful";
+
 export function getSkin(): Skin {
+  if (FORCED_SKIN) return FORCED_SKIN;
   if (typeof window === "undefined") return "og";
   const v = localStorage.getItem(SKIN_KEY);
   return v === "editorial" || v === "luxury" || v === "playful" || v === "cosmos" ? v : "og";

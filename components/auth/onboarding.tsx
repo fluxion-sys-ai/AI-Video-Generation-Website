@@ -9,7 +9,7 @@
      1. Your name     , name (pre-filled from the email), email shown read-only
      2. Who are you    , pick a persona (student, developer, …) [optional]
      3. Payment method , card + billing address                 [optional / skip]
-     4. Add credits    , preset or custom top-up                 [optional / skip]
+     4. Add funds      , preset or custom top-up                 [optional / skip]
 
    Everything is mocked (frontend-only, see lib/auth.ts). On finish we sign the
    user in, save their profile, stash the extra answers in localStorage, and
@@ -66,7 +66,7 @@ const DEMO_STEPS = [
   { key: "name", title: "What should we call you?", optional: false },
   { key: "persona", title: "Who are you?", optional: true },
   { key: "payment", title: "Add a payment method", optional: true },
-  { key: "credits", title: "Add credits to get started", optional: true },
+  { key: "credits", title: "Add funds to get started", optional: true },
 ] as const;
 const BACKEND_STEPS = [
   { key: "account", title: "Create your account", optional: false },

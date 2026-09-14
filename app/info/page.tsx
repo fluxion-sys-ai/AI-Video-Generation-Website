@@ -20,7 +20,7 @@ const STEPS: [string, string, string][] = [
 ];
 const FAQ: [string, string][] = [
   ["Is this a real video generator?", "This is a frontend demo. The flows are real, but generation is mocked."],
-  ["How is pricing calculated?", "Each model has a credits-per-second rate; the dollar figure assumes 1 credit ≈ $0.01."],
+  ["How is pricing calculated?", "Each model has a price per second of output, set per resolution. You pay that rate for the seconds you generate."],
   ["Do I need an account?", "You can browse freely. Generating and saving ask you to sign in first."],
   ["Which formats can I export?", "MP4 today. WebM and GIF are shown as coming-soon options."],
 ];

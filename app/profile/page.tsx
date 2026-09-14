@@ -34,6 +34,9 @@ import { Search } from "lucide-react";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { toast } from "@/lib/toast";
 
+// Light/dark is not offered while one skin ships: see the note by the control.
+const THEME_CHOICE_ENABLED = false;
+
 const inputClass =
   "w-full rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none focus:border-blue focus:ring-1 focus:ring-blue";
 const label = "mb-1.5 block text-xs uppercase tracking-[0.06em] text-muted";
@@ -791,25 +794,31 @@ function ProfileInner() {
             {/* PREFERENCES (settings), condensed to fit without scrolling */}
             {tab === "preferences" && (
               <div className="max-w-3xl space-y-5">
-                <section>
-                  <div>
-                    <label className={label}>Theme</label>
-                    <div className="inline-flex border border-line-strong font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
-                      {(["system", "dark", "light"] as Theme[]).map((t) => (
-                        <button
-                          key={t}
-                          onClick={() => chooseTheme(t)}
-                          className={`flex items-center gap-2 px-4 py-2 transition-colors ${
-                            theme === t ? "bg-accent text-ink" : "text-muted hover:text-fg"
-                          }`}
-                        >
-                          <ThemeIcon theme={t} />
-                          {t}
-                        </button>
-                      ))}
+                {/* The shipped skin defines its own palette and overrides
+                    .light on specificity, so a light/dark choice would change
+                    nothing on screen. The control (and chooseTheme, ThemeIcon,
+                    lib/prefs applyTheme) stays for when a skin supports both. */}
+                {THEME_CHOICE_ENABLED && (
+                  <section>
+                    <div>
+                      <label className={label}>Theme</label>
+                      <div className="inline-flex border border-line-strong font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em]">
+                        {(["system", "dark", "light"] as Theme[]).map((t) => (
+                          <button
+                            key={t}
+                            onClick={() => chooseTheme(t)}
+                            className={`flex items-center gap-2 px-4 py-2 transition-colors ${
+                              theme === t ? "bg-accent text-ink" : "text-muted hover:text-fg"
+                            }`}
+                          >
+                            <ThemeIcon theme={t} />
+                            {t}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </section>
+                  </section>
+                )}
 
                 {/* Toggle settings, 2-up grid */}
                 <div className="grid gap-2.5 sm:grid-cols-2">

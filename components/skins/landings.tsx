@@ -9,6 +9,7 @@
    app/page.tsx picks one via useSkin(). Shared chrome (header/footer) is reused.
    ============================================================================ */
 
+import { money } from "@/lib/rate-card";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Heart } from "lucide-react";
@@ -418,7 +419,7 @@ export function LandingLuxury() {
               <div className="relative aspect-[4/3] overflow-hidden bg-black">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.poster} alt={m.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <span className="absolute right-3 top-3 rounded-full bg-black/45 px-3 py-1 text-xs text-accent-ink backdrop-blur">{m.creditsPerSecond} cr/s</span>
+                <span className="absolute right-3 top-3 rounded-full bg-black/45 px-3 py-1 text-xs text-accent-ink backdrop-blur">{money(m.usdPerSecond)} / s</span>
               </div>
               <div className="p-5">
                 <div className="flex items-baseline justify-between gap-3">
@@ -661,7 +662,7 @@ export function LandingCosmos() {
                 <div className="p-4">
                   <h3 className="font-[family-name:var(--font-space)] text-base text-fg-strong">{m.name}</h3>
                   <p className="mt-1 text-xs text-muted">{m.tagline}</p>
-                  <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-xs text-accent-ink">{m.creditsPerSecond} cr/s →</p>
+                  <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-xs text-accent-ink">{money(m.usdPerSecond)} / s →</p>
                 </div>
               </Link>
             ))}
@@ -676,7 +677,7 @@ export function LandingCosmos() {
             {models.map((m) => (
               <div key={m.slug} className="rounded-[12px] border border-hairline bg-surface p-5">
                 <p className="font-[family-name:var(--font-space)] text-sm text-fg-strong">{m.name}</p>
-                <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl text-accent-ink">${(m.creditsPerSecond * 5 * 0.01).toFixed(2)}</p>
+                <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl text-accent-ink">{money(m.usdPerSecond)}</p>
                 <p className="text-xs text-muted">/ 5s clip</p>
               </div>
             ))}

@@ -69,13 +69,26 @@ function GenerateInner() {
   const router = useRouter();
   const params = useSearchParams();
   // No ?model → use the saved default model (Settings), else the first model.
-  const slug = params.get("model") || getSettings().defaultModel || "aurora";
+  const slug = params.get("model") || getSettings().defaultModel || getModels()[0].slug;
   const model: Model = getModel(slug) || getModels()[0];
   // Prefer the saved default resolution when this model supports it.
   const preferredRes = () => {
     const d = getSettings().defaultResolution;
     return model.resolutions.includes(d) ? d : model.popularResolutions[0] || model.resolutions[0];
   };
+
+  // Generation needs an account, so the screen that configures it does too:
+  // every model link in the site leads here, which makes this the one gate.
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  useEffect(() => {
+    const ok = isSignedIn();
+    // Reading the session is a browser-only fact, so it has to land in state
+    // from an effect; the page renders nothing until it does.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSignedIn(ok);
+    if (!ok) router.replace(`/login?next=${encodeURIComponent(`/generate?model=${slug}`)}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
 
   const [aspect, setAspect] = useState(model.aspectRatios[0]);
   const [resolution, setResolution] = useState(preferredRes);
@@ -229,6 +242,12 @@ function GenerateInner() {
   }
 
   function onGenerate() {
+    // Gate 0: a duration has to be chosen. The field is left empty when it is
+    // cleared, rather than refilled, so this is where that is caught.
+    if (durationStr.trim() === "" || !Number.isFinite(Number(durationStr))) {
+      toast("Enter a duration in seconds.");
+      return;
+    }
     // Gate 1: must be signed in (save the form so sign-in doesn't lose it).
     if (!isSignedIn()) {
       saveDraft(draft());
@@ -323,6 +342,12 @@ function GenerateInner() {
 
   const [aw, ah] = aspect.split(":").map(Number);
   const portrait = ah > aw;
+  const minDuration = Math.min(...model.durations);
+  const maxDuration = Math.max(...model.durations);
+
+  // Hold the screen back until the gate above has decided, so a signed-out
+  // visitor never sees the editor flash before the redirect.
+  if (signedIn !== true) return <div className="px-6 py-6" />;
 
   return (
     <div className="px-6 py-6">
@@ -594,13 +619,14 @@ function GenerateInner() {
               </select>
             </Field>
 
-            <Field label="Duration" hint="3-15 sec">
+            <Field label="Duration" hint={`${minDuration}-${maxDuration} sec`}>
               <input
                 type="number"
-                min={3}
-                max={15}
+                min={minDuration}
+                max={maxDuration}
                 inputMode="numeric"
                 value={durationStr}
+                aria-invalid={durationStr.trim() === ""}
                 onChange={(e) => {
                   const s = e.target.value;
                   setDurationStr(s);
@@ -608,9 +634,10 @@ function GenerateInner() {
                   if (s !== "" && !Number.isNaN(n)) setDuration(n);
                 }}
                 onBlur={() => {
-                  let n = Number(durationStr);
-                  if (Number.isNaN(n) || durationStr === "") n = model.durations[0];
-                  n = Math.min(15, Math.max(3, Math.round(n)));
+                  // An empty box stays empty: putting a number back would hide
+                  // that nothing was chosen. Generate asks for one instead.
+                  if (durationStr.trim() === "") return;
+                  const n = Math.min(maxDuration, Math.max(minDuration, Math.round(Number(durationStr))));
                   setDuration(n);
                   setDurationStr(String(n));
                 }}

@@ -1,5 +1,6 @@
 "use client";
 
+import { money } from "@/lib/rate-card";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
@@ -91,8 +92,8 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
     const matchesTags = tags.size === 0 || m.capabilities.some((c) => tags.has(c));
     return matchesQuery && matchesTags;
   });
-  if (sort === "price-asc") list = [...list].sort((a, b) => a.creditsPerSecond - b.creditsPerSecond);
-  else if (sort === "price-desc") list = [...list].sort((a, b) => b.creditsPerSecond - a.creditsPerSecond);
+  if (sort === "price-asc") list = [...list].sort((a, b) => a.usdPerSecond - b.usdPerSecond);
+  else if (sort === "price-desc") list = [...list].sort((a, b) => b.usdPerSecond - a.usdPerSecond);
   else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
 
   const empty = <p className="mt-8 text-sm text-dim">No models match your filters.</p>;
@@ -158,7 +159,7 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                   <span className="block font-[family-name:var(--font-playfair)] text-xl text-fg-strong">{m.name}</span>
                   <span className="text-sm text-muted">{m.tagline} · up to {m.resolutions[m.resolutions.length - 1]}</span>
                 </div>
-                <span className="hidden font-[family-name:var(--font-jetbrains)] text-sm text-gold sm:block">{m.creditsPerSecond} cr/s</span>
+                <span className="hidden font-[family-name:var(--font-jetbrains)] text-sm text-gold sm:block">{money(m.usdPerSecond)} / s</span>
                 <FavHeart slug={m.slug} />
                 <span className="text-accent-ink transition-transform group-hover:translate-x-1">→</span>
               </Link>
@@ -225,7 +226,7 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                 <div className="p-4">
                   <h3 className="font-[family-name:var(--font-space)] text-lg font-semibold text-fg-strong">{m.name}</h3>
                   <p className="mt-1 text-sm text-muted">{m.tagline}</p>
-                  <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-accent-ink">{m.creditsPerSecond} cr/s · {m.resolutions[m.resolutions.length - 1]} →</p>
+                  <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-accent-ink">{money(m.usdPerSecond)} / s · {m.resolutions[m.resolutions.length - 1]} →</p>
                 </div>
               </Link>
             ))}

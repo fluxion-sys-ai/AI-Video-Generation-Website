@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Brand } from "@/components/site/brand";
-import { getModels } from "@/lib/models";
+import { getModels, refreshCatalog } from "@/lib/models";
+import { BACKEND_ENABLED } from "@/lib/hub";
+import { useLive } from "@/lib/live";
 import { getUser, isSignedIn, type User } from "@/lib/auth";
 import { getFavorites } from "@/lib/prefs";
-import { BACKEND_ENABLED } from "@/lib/hub";
 import { Settings } from "lucide-react";
 
-const models = getModels();
 
 /* Hover/click dropdown - no extra deps, keyboard + outside-click aware.
    With `href`, clicking the label navigates (hover still opens the menu). */
@@ -231,7 +231,7 @@ function profileTabs() {
 // Marketing routes always show the public bar; app routes always show the
 // dashboard bar. Shared routes (/profile, /generate, /models) inherit the last
 // mode, so clicking the avatar from a public page keeps you in public mode.
-const ALWAYS_PUBLIC = ["/", "/pricing", "/info", "/login", "/signup"];
+const ALWAYS_PUBLIC = ["/", "/pricing", "/login", "/signup"];
 const ALWAYS_DASH = ["/dashboard", "/library", "/settings"];
 const MODE_KEY = "fluxion.mode";
 
@@ -287,6 +287,10 @@ function SubLink({ href, onNavigate, children }: { href: string; onNavigate: () 
 
 export function SiteHeader() {
   const pathname = usePathname();
+  // The menus list whatever the catalogue says exists, so they cannot drift
+  // from the models page or from what generation will accept.
+  useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
+  const models = getModels().filter((m) => m.available !== false);
   const [user, setUser] = useState<User | null>(null);
   const [mode, setMode] = useState<"public" | "dashboard">("public");
   const [ready, setReady] = useState(false);
@@ -347,14 +351,6 @@ export function SiteHeader() {
                   <MenuItem href="/library?tab=videos" title="Videos" icon={<TabChip><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="3.5" width="9" height="9" rx="1.5" /><path d="M11 7 L14 5.2 V10.8 L11 9" strokeLinecap="round" strokeLinejoin="round" /></svg></TabChip>} />
                 </NavMenu>
                 <NavLink href="/docs" label="Docs" active={pathname.startsWith("/docs")} />
-                <Link
-                  href="/info"
-                  aria-label="Info"
-                  title="Info and contact"
-                  className="hit flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(148,170,200,0.4)] text-[11px] text-fg-soft-2 transition-colors hover:border-gold-soft hover:text-gold-soft"
-                >
-                  i
-                </Link>
               </>
             ) : (
               <>
@@ -393,14 +389,6 @@ export function SiteHeader() {
               className="text-sm uppercase tracking-[0.06em] text-fg-soft-2 transition-colors hover:text-gold-soft"
             >
               Docs
-            </Link>
-            <Link
-              href="/info"
-              aria-label="Info"
-              title="Info and contact"
-              className="hit flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(148,170,200,0.4)] text-[11px] text-fg-soft-2 transition-colors hover:border-gold-soft hover:text-gold-soft"
-            >
-              i
             </Link>
               </>
             )}
@@ -494,7 +482,6 @@ export function SiteHeader() {
                     <SubLink key={t.key} href={`/profile?tab=${t.key}`} onNavigate={closeMobile}>{t.title}</SubLink>
                   ))}
                 </MobileGroup>
-                <MobileLink href="/info" onNavigate={closeMobile}>Info</MobileLink>
               </>
             ) : (
               <>
@@ -506,7 +493,6 @@ export function SiteHeader() {
                 </MobileGroup>
                 <MobileLink href="/pricing" onNavigate={closeMobile}>Pricing</MobileLink>
                 <MobileLink href="/docs" onNavigate={closeMobile}>Docs</MobileLink>
-                <MobileLink href="/info" onNavigate={closeMobile}>Info</MobileLink>
                 {ready && user && <MobileLink href="/dashboard" onNavigate={closeMobile}>Create</MobileLink>}
                 {ready && !user && (
                   <>

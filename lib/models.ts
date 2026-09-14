@@ -13,7 +13,9 @@ export type Model = {
   aspectRatios: string[]; // e.g. "16:9"
   popularResolutions: string[]; // highlighted in the dropdown
   supports: { image: boolean; audio: boolean; seed: boolean };
-  creditsPerSecond: number;
+  /** Cheapest price per output second, in dollars. Backend mode reads it from
+   *  the hub's rate card; the demo list carries its own figures. */
+  usdPerSecond: number;
   demoVideo: string;
   poster: string;
 };
@@ -39,7 +41,7 @@ export const MODELS: Model[] = [
     aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
     popularResolutions: ["480p", "720p"],
     supports: { image: true, audio: true, seed: true },
-    creditsPerSecond: 8,
+    usdPerSecond: 0.08,
     demoVideo: thumb("aurora"),
     poster: poster("aurora"),
   },
@@ -54,7 +56,7 @@ export const MODELS: Model[] = [
     aspectRatios: ["16:9", "9:16", "1:1", "4:3"],
     popularResolutions: ["480p"],
     supports: { image: false, audio: false, seed: true },
-    creditsPerSecond: 3,
+    usdPerSecond: 0.03,
     demoVideo: thumb("pulse"),
     poster: poster("pulse"),
   },
@@ -69,7 +71,7 @@ export const MODELS: Model[] = [
     aspectRatios: ["16:9", "9:16", "1:1", "4:3"],
     popularResolutions: ["720p"],
     supports: { image: true, audio: false, seed: true },
-    creditsPerSecond: 6,
+    usdPerSecond: 0.06,
     demoVideo: thumb("volt"),
     poster: poster("volt"),
   },
@@ -84,7 +86,7 @@ export const MODELS: Model[] = [
     aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
     popularResolutions: ["720p"],
     supports: { image: true, audio: true, seed: true },
-    creditsPerSecond: 12,
+    usdPerSecond: 0.12,
     demoVideo: thumb("nova"),
     poster: poster("nova"),
   },
@@ -133,8 +135,7 @@ function toModel(entry: Awaited<ReturnType<typeof getCatalog>>[number]): Model {
       audio: Boolean(entry.supports?.audio),
       seed: Boolean(entry.supports?.seed),
     },
-    // Credits are the site's unit at $0.01 each, so charts and sorting stay meaningful.
-    creditsPerSecond: perSecond !== null ? Math.round((perSecond / 0.01) * 1000) / 1000 : 0,
+    usdPerSecond: perSecond ?? 0,
     demoVideo: entry.demoVideo || `${BASE}/models/${entry.slug}.mp4`,
     poster: entry.poster || `${BASE}/models/${entry.slug}.jpg`,
   };

@@ -154,7 +154,7 @@ curl -L -o out.mp4 ${host}/v1/videos/$VIDEO_ID/content \\
       <section className="mt-8">
         <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">2. Submit, poll, download</h2>
         <p className="mt-2 text-sm text-muted">
-          Generation is asynchronous: submitting returns a video id and holds the credits, then you
+          Generation is asynchronous: submitting returns a video id and holds its cost against your balance, then you
           poll that id until its status is <code className="text-gold-2">completed</code> and fetch the MP4.
         </p>
         <div className="mt-3 flex gap-4 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em]">
@@ -215,7 +215,7 @@ curl -L -o out.mp4 ${host}/v1/videos/$VIDEO_ID/content \\
         </div>
         <p className="mt-3 text-xs text-dim">
           A job that fails comes back as <code className="text-gold-2">&quot;status&quot;: &quot;failed&quot;</code> with an{" "}
-          <code className="text-gold-2">error.message</code>, and the held credits are returned.
+          <code className="text-gold-2">error.message</code>, and the amount held is returned.
         </p>
       </section>
     </div>
