@@ -408,14 +408,9 @@ export function SiteHeader() {
         <div className="flex items-center gap-4 text-sm uppercase tracking-[0.06em]">
           {ready && user ? (
             <>
-              {!dashMode && (
-                <Link
-                  href="/dashboard"
-                  className="hidden items-center border border-accent-border px-3 py-1.5 text-xs uppercase tracking-[0.08em] text-accent-ink transition-colors hover:bg-accent-soft sm:flex"
-                >
-                  Create
-                </Link>
-              )}
+              {/* No "Create" button: the mark leads to the dashboard when
+                  signed in, and the nav already has Generate. A third way to
+                  the same place is one more thing to read. */}
               {/* The avatar menu already lists every profile tab, so there is no
                   settings gear beside it: two controls opening the same menu is
                   one more thing to read and nothing more to do. */}
@@ -488,7 +483,9 @@ export function SiteHeader() {
                 </MobileGroup>
                 <MobileLink href="/pricing" onNavigate={closeMobile}>Pricing</MobileLink>
                 <MobileLink href="/docs" onNavigate={closeMobile}>Docs</MobileLink>
-                {ready && user && <MobileLink href="/dashboard" onNavigate={closeMobile}>Create</MobileLink>}
+                {/* Named for where it goes. On a small screen this is the only
+                    labelled route to the dashboard; the mark is the other. */}
+                {ready && user && <MobileLink href="/dashboard" onNavigate={closeMobile}>Dashboard</MobileLink>}
                 {ready && !user && (
                   <>
                     <MobileLink href="/login" onNavigate={closeMobile}>Login</MobileLink>

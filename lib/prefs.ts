@@ -395,8 +395,10 @@ export async function uploadLibraryImage(file: Blob, opts: { name?: string; mode
   return saved;
 }
 
-export async function removeLibraryImages(ids: string[]): Promise<void> {
-  await Promise.all(ids.map((id) => deleteLibraryImage(id)));
+export async function removeLibraryImages(ids: string[], confirm = false): Promise<void> {
+  // The backend refuses (409) a file some generation was made from unless the
+  // caller has been told and said yes; the page turns that into a question.
+  await Promise.all(ids.map((id) => deleteLibraryImage(id, confirm)));
   await refreshLibrary();
 }
 

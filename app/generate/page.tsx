@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useLive } from "@/lib/live";
 import { Heart, GripHorizontal } from "lucide-react";
@@ -222,7 +223,6 @@ function GenerateInner() {
 
   // Refine session: appears automatically after the first generation.
   const [session, setSession] = useState(false);
-  const [chat, setChat] = useState<string[]>([]);
   const [refineInput, setRefineInput] = useState("");
 
   // Draggable floating refine bar: offset (px) from its default bottom-center
@@ -301,7 +301,6 @@ function GenerateInner() {
     setStatus("idle");
     setResultUrl(null);
     setSession(false);
-    setChat([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model?.slug]);
 
@@ -328,6 +327,28 @@ function GenerateInner() {
 
   // Ignore any in-flight generation once the component unmounts.
   useEffect(() => () => { genId.current++; }, []);
+
+  /**
+   * Back to an empty form, for something unrelated. The finished video is not
+   * lost by this - it is in the library - so nothing here asks twice.
+   */
+  function startOver() {
+    genId.current++;
+    setPrompt("");
+    setRefineInput("");
+    setImages([]);
+    setRefVideos([]);
+    setRefAudios([]);
+    setResultUrl(null);
+    setStatus("idle");
+    setSession(false);
+    if (model) {
+      setAspect(model.aspectRatios[0]);
+      setResolution(preferredRes());
+      setDuration(model.durations[0]);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   function draft(): Draft {
     return { slug, aspect, resolution, duration: duration ?? model?.durations[0] ?? 0, audio, prompt };
@@ -387,15 +408,12 @@ function GenerateInner() {
   // Re-generate from the current prompt + all refinements (the latest edits
   // applied on top of the last result).
   /**
-   * Re-generate with the refinements applied.
-   *
-   * The list is passed in rather than read from state: React has not re-rendered
-   * yet when the button handler runs, so reading `chat` here sent the *previous*
-   * set of instructions - the first refinement went upstream as a plain re-roll
-   * of the original prompt, and every one after it was one behind. Each of those
-   * was a full-price generation, so the mistake cost money as well as accuracy.
+   * Re-generate from a prompt, passed in rather than read from state: React has
+   * not re-rendered when the handler runs, so reading it here would send the
+   * text as it was *before* the edit - which is exactly how refinements used to
+   * arrive one behind, each one a full-price generation.
    */
-  function regen(refinements: string[] = chat) {
+  function regen(withPrompt: string = prompt) {
     const id = ++genId.current;
     setResultUrl(null);
     setStatus("generating");
@@ -406,7 +424,7 @@ function GenerateInner() {
     refineVideo(
       {
         slug,
-        prompt,
+        prompt: withPrompt,
         aspect,
         resolution,
         duration,
@@ -415,7 +433,7 @@ function GenerateInner() {
         referenceVideoIds: refVideos.map((i) => i.id),
         referenceAudioIds: refAudios.map((i) => i.id),
       },
-      refinements,
+      [],
     )
       .then((r) => {
         if (id !== genId.current) return;
@@ -429,22 +447,19 @@ function GenerateInner() {
         if (err instanceof Error && err.message) toast(err.message);
       });
   }
+  /**
+   * An edit becomes part of the prompt, in the box, where it can be read and
+   * changed. The prompt is then the only description of what will be made -
+   * there is no second list of instructions to fall out of step with it, which
+   * is what made refinements arrive one behind.
+   */
   function sendRefine() {
     const text = refineInput.trim();
     if (!text) return;
-    const next = [...chat, text];
-    setChat(next);
+    const next = `${prompt.trim()}\n${text}`.trim();
+    setPrompt(next);
     setRefineInput("");
     regen(next);
-  }
-  function undoRefine() {
-    const next = chat.slice(0, -1);
-    setChat(next);
-    regen(next);
-  }
-  function restartRefine() {
-    setChat([]);
-    regen([]);
   }
 
   // Real download: fetch the result and save it as a file (works for the mock
@@ -921,13 +936,20 @@ function GenerateInner() {
               <button disabled title="Coming soon" className="cursor-not-allowed rounded-none border border-hairline-strong px-4 py-2 text-sm opacity-40">
                 GIF
               </button>
-              {/* Regenerate keeps the edits made so far; passing the handler
-                  directly would hand it the click event as the refinements. */}
+              {/* Regenerate re-runs the prompt as it stands; passing the
+                  handler directly would hand it the click event as the prompt. */}
               <button onClick={() => regen()} className="rounded-none border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
                 Regenerate
               </button>
+              <button onClick={startOver} title="Clear everything and begin something different" className="rounded-none border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
+                Start over
+              </button>
             </div>
-            <p className="text-xs text-dim">WebM &amp; GIF export coming soon.</p>
+            <p className="text-xs text-dim">
+              Saved to your{" "}
+              <Link href="/library?tab=generated" className="text-blue hover:text-gold-soft">library</Link>
+              {" "}· kept in cloud storage, which costs by the gigabyte-month. WebM &amp; GIF export coming soon.
+            </p>
           </div>
         )}
         </div>
@@ -953,21 +975,8 @@ function GenerateInner() {
               <GripHorizontal size={14} className="text-dim" />
               Refine session
             </span>
-            <div className="flex items-center gap-3 font-[family-name:var(--font-jetbrains)] text-xs">
-              <button onClick={undoRefine} disabled={chat.length === 0} className="cursor-pointer text-muted hover:text-fg disabled:opacity-40">Undo</button>
-              <button onClick={restartRefine} className="cursor-pointer text-muted hover:text-fg">Restart</button>
-            </div>
-          </div>
 
-          {chat.length > 0 && (
-            <div className="mb-2 max-h-32 space-y-2 overflow-y-auto px-1">
-              {chat.map((m, i) => (
-                <div key={i} className="ml-auto max-w-[85%] rounded-[8px] bg-blue-chip px-3 py-1.5 text-sm text-fg">
-                  {m}
-                </div>
-              ))}
-            </div>
-          )}
+          </div>
 
           <div className="flex gap-2">
             <input
@@ -989,8 +998,8 @@ function GenerateInner() {
               one, at the same price. Saying so here is the difference between a
               tool and a surprise on the bill. */}
           <p className="mt-2 px-1 text-xs text-dim">
-            Each edit renders a new clip{estimate !== null ? ` at ${money(estimate.total)}` : ""}, with your prompt and
-            every edit so far.
+            Your edit is added to the prompt above and the whole thing is rendered again
+            {estimate !== null ? ` at ${money(estimate.total)}` : ""} — no provider edits an existing clip.
           </p>
         </div>
       )}

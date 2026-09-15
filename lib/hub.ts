@@ -860,8 +860,10 @@ export function updateLibraryImage(
   return sidecar<LibraryItem>("PATCH", `/media/library/media/${encodeURIComponent(id)}`, patch);
 }
 
-export async function deleteLibraryImage(id: string): Promise<void> {
-  await sidecar<unknown>("DELETE", `/media/library/media/${encodeURIComponent(id)}`);
+export async function deleteLibraryImage(id: string, confirm = false): Promise<void> {
+  // Without `confirm` the backend refuses (409) a file a generation was made
+  // from, and says which ones, so the customer can be asked rather than told.
+  await sidecar<unknown>("DELETE", `/media/library/media/${encodeURIComponent(id)}${confirm ? "?confirm=1" : ""}`);
 }
 
 export function setLibraryOrder(ids: string[]): Promise<unknown> {
@@ -1055,6 +1057,44 @@ export type CatalogModel = {
     billing_usage_schema?: import("./pricing-expr").BillingUsageSchema;
   } | null;
 };
+
+// ---- how a video was made --------------------------------------------------------
+
+/**
+ * The request a generation was made with, and the library files that went into
+ * it. The backend reads this back out of its own behaviour log, so it is what
+ * was actually sent rather than what the page thinks it sent.
+ */
+export type GenerationInput = {
+  role: string;
+  item_id: string | null;
+  url: string | null;
+  name: string | null;
+  kind: MediaKind | null;
+  /** False when the file has since been deleted. The video still plays. */
+  available: boolean;
+};
+
+export type GenerationRecord = {
+  task_id: string;
+  requested_at: string;
+  /** Verbatim, as recorded. */
+  request: Record<string, unknown>;
+  inputs: GenerationInput[];
+  /** The same request with expired links replaced, safe to copy. */
+  copyable?: Record<string, unknown>;
+  curl: string;
+  links_expired: boolean;
+};
+
+export function getGeneration(taskId: string): Promise<GenerationRecord> {
+  return sidecar<GenerationRecord>("GET", `/media/generations/${encodeURIComponent(taskId)}`);
+}
+
+/** Removes a generated video and stops paying to store it. */
+export function deleteVideo(taskId: string): Promise<{ deleted: boolean; already?: boolean }> {
+  return sidecar<{ deleted: boolean; already?: boolean }>("DELETE", `/media/videos/${encodeURIComponent(taskId)}`);
+}
 
 // ---- getting started ------------------------------------------------------------
 

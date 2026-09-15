@@ -10,8 +10,8 @@
  * depends on; nothing else in the app talks to a backend for generation.
  */
 
-import { getModel } from "./models";
-import { ApiError, BACKEND_ENABLED, checkReferences, createVideo, libraryImageLink, videoUrl, waitForVideo } from "./hub";
+import { getModel, getModels } from "./models";
+import { ApiError, BACKEND_ENABLED, checkReferences, createVideo, getGeneration, libraryImageLink, videoUrl, waitForVideo } from "./hub";
 import { refreshBilling } from "./billing";
 import { refreshGenerations } from "./generations";
 import { uploadLibraryImage } from "./prefs";
@@ -123,6 +123,69 @@ async function run(params: GenerateParams, refinements: string[] = []): Promise<
   void refreshGenerations().catch(() => {});
   void refreshBilling().catch(() => {});
   return { videoUrl: url };
+}
+
+/**
+ * Run a past generation again, exactly as it was asked for.
+ *
+ * The recorded request carries links that have since expired, so the files it
+ * used are minted afresh from the library by id. A file that has been deleted
+ * cannot be minted, and that is an error rather than a quiet substitution: the
+ * customer asked for *this* generation again, not a different one.
+ */
+export async function regenerateFrom(taskId: string): Promise<GenerateResult> {
+  if (!BACKEND_ENABLED) throw new ApiError("Repeating a generation needs the backend.", 400);
+  const record = await getGeneration(taskId);
+  const request = { ...record.request } as Record<string, unknown>;
+
+  const missing = record.inputs.filter((i) => !i.available);
+  if (missing.length) {
+    const names = missing.map((i) => i.name || i.role).join(", ");
+    throw new ApiError(
+      `This used ${missing.length} file that is no longer in your library (${names}). Upload it again, or start from the prompt.`,
+      409,
+    );
+  }
+
+  // Fresh links for whatever it used, judged against the model's rules again.
+  const byRole: Record<string, string[]> = {};
+  for (const input of record.inputs) {
+    if (!input.item_id) continue;
+    const field =
+      input.role === "reference video" ? "reference_video"
+      : input.role === "reference audio" ? "reference_audio"
+      : input.role === "reference image" ? "reference_image"
+      : input.role === "last frame" ? "last_frame"
+      : "first_frame";
+    (byRole[field] ||= []).push(input.item_id);
+  }
+  const model = String(request.model || "");
+  if (Object.keys(byRole).length) {
+    const checked = await checkReferences({ model: modelSlugFor(model), ...byRole });
+    const metadata = { ...((request.metadata as Record<string, unknown>) || {}) };
+    for (const [field, urls] of Object.entries(checked.urls)) {
+      if (field === "first_frame" || field === "last_frame") {
+        if (field === "first_frame") request.image = urls as string;
+        else metadata.last_frame_image = urls as string;
+      } else {
+        metadata[field] = urls;
+      }
+    }
+    request.metadata = metadata;
+  }
+
+  const created = await createVideo(request as unknown as Parameters<typeof createVideo>[0]);
+  const done = await waitForVideo(created.id);
+  if (done.status !== "completed") throw new ApiError(done.error?.message || "Generation failed. Try again.", 502);
+  const url = await videoUrl(done.id);
+  void refreshGenerations().catch(() => {});
+  void refreshBilling().catch(() => {});
+  return { videoUrl: url };
+}
+
+/** The catalogue slug for a hub model name, which the references call wants. */
+function modelSlugFor(hubModel: string): string {
+  return getModels().find((m) => (m.hubModel || m.slug) === hubModel)?.slug || hubModel;
 }
 
 /** Generate a video from a prompt. */

@@ -811,7 +811,9 @@ function ProfileInner() {
                       filteredHistory.map((h, i) => (
                         <Link
                           key={h.id}
-                          href={`/generate?model=${h.slug}`}
+                          // A history entry opens the video it made, not an
+                          // empty playground: its clip, its inputs, its request.
+                          href={`/library?tab=generated&video=${encodeURIComponent(h.id)}`}
                           className={`flex items-center gap-3 p-3 transition-colors hover:bg-raised ${
                             i > 0 ? "border-t border-line" : ""
                           }`}

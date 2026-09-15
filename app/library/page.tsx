@@ -9,7 +9,7 @@ import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
 import { getModels, getModel, type Model, refreshCatalog } from "@/lib/models";
 import { getGenerations, refreshGenerations, formatWhen, type Generation } from "@/lib/generations";
-import { BACKEND_ENABLED } from "@/lib/hub";
+import { ApiError, BACKEND_ENABLED } from "@/lib/hub";
 import { useLive } from "@/lib/live";
 import {
   getFavorites,
@@ -41,20 +41,24 @@ import { toast } from "@/lib/toast";
 import { money } from "@/lib/rate-card";
 import { Heart, ImageIcon, FolderOpen, Search, Clapperboard, Music, Film } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { GenerationRecordPanel } from "@/components/library/generation-record";
 import { SkeletonImg } from "@/components/ui/skeleton";
 
 // Video card: the poster is an <img> thumbnail that always loads; the actual
 // clip is only mounted (and plays) while hovering, so it never covers the
 // thumbnail with a black first frame.
-function VideoThumb({ g }: { g: Generation }) {
+function VideoThumb({ g, onOpen }: { g: Generation; onOpen: (g: Generation) => void }) {
   const [hover, setHover] = useState(false);
   const modelName = getModel(g.slug)?.name ?? g.slug;
   return (
-    <Link
-      href={`/generate?model=${g.slug}`}
+    // A history entry opens the record of *this* video - the clip, what it was
+    // made from, and the request that made it - rather than an empty playground.
+    <button
+      type="button"
+      onClick={() => onOpen(g)}
       onMouseEnter={() => { if (isAutoplay()) setHover(true); }}
       onMouseLeave={() => setHover(false)}
-      className="group border border-line p-3 transition-colors hover:border-blue-line"
+      className="group border border-line p-3 text-left transition-colors hover:border-blue-line"
     >
       <div className="relative aspect-video w-full overflow-hidden bg-black">
         <SkeletonImg src={g.poster} imgClassName="h-full w-full object-cover" />
@@ -72,7 +76,7 @@ function VideoThumb({ g }: { g: Generation }) {
       </div>
       <p className="mt-3 truncate text-sm text-fg">{g.prompt}</p>
       <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">{modelName} · {formatWhen(g.createdAt)}</p>
-    </Link>
+    </button>
   );
 }
 
@@ -164,8 +168,14 @@ function LibraryInner() {
   // Renaming a file or a folder (the same dialog; the only thing a customer can
   // edit about either).
   const [renaming, setRenaming] = useState<{ id: string; name: string; target: "upload" | "folder" } | null>(null);
-  // Past generations (the Videos tab). Source of truth: lib/generations.
+  // Raised when the backend says a file about to be deleted was used to make a
+  // video; deleting anyway is a second, informed click.
+  const [usedWarning, setUsedWarning] = useState<{ ids: string[]; message: string } | null>(null);
+  // Past generations (the Generated tab). Source of truth: lib/generations.
   const [gens, setGens] = useState<Generation[]>([]);
+  // The generated video whose record is open, if any. ?video=<task id> opens
+  // one directly, which is what a usage-history entry links to.
+  const [record, setRecord] = useState<Generation | null>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
 
   // Delete confirmation (holds the ids queued for deletion).
@@ -216,6 +226,8 @@ function LibraryInner() {
     const t = search.get("tab");
     if (t === "generated" || t === "videos") setTab("generated");
     else if (t === "uploaded" || t === "images" || t === "reference") setTab("uploaded");
+    const video = search.get("video");
+    if (video) setTab("generated");
   }, [search]);
 
   // Backend mode: images, folders and videos come from the server. These hooks
@@ -231,7 +243,10 @@ function LibraryInner() {
     /* eslint-disable react-hooks/set-state-in-effect */
     setUploads(getUploads());
     setFolders(getLibraryFolders());
-    setGens(getGenerations());
+    const loaded = getGenerations();
+    setGens(loaded);
+    const wanted = search.get("video");
+    if (wanted) setRecord(loaded.find((g) => g.id === wanted) ?? null);
     setReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [libraryVersion, generationsVersion]);
@@ -426,9 +441,20 @@ function LibraryInner() {
     });
     e.target.value = "";
   }
-  function deleteImages(ids: string[]) {
+  function deleteImages(ids: string[], confirm = false) {
     if (BACKEND_ENABLED) {
-      void removeLibraryImages(ids).catch(() => toast("Could not delete those images."));
+      void removeLibraryImages(ids, confirm)
+        .then(() => {
+          setUploads(getUploads());
+          setUsedWarning(null);
+        })
+        .catch((err) => {
+          // The backend refuses a file that a generation was made from, and
+          // says which ones. That is a question for the customer, not an error.
+          const detail = err instanceof ApiError && err.status === 409 ? err.message : null;
+          if (detail) setUsedWarning({ ids, message: detail });
+          else toast(err instanceof Error ? err.message : "Could not delete those files.");
+        });
       setSelected(new Set());
       setDeleteIds(null);
       return;
@@ -579,7 +605,7 @@ function LibraryInner() {
           ) : (
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {gens.map((g) => (
-                <VideoThumb key={g.id} g={g} />
+                <VideoThumb key={g.id} g={g} onOpen={setRecord} />
               ))}
             </div>
           )
@@ -988,6 +1014,39 @@ function LibraryInner() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* A file that made a video: say so before it goes */}
+      {usedWarning && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6" onClick={() => setUsedWarning(null)}>
+          <div className="w-full max-w-md rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Used to make a video</h3>
+            <p className="mt-2 text-sm text-muted">{usedWarning.message}</p>
+            <p className="mt-2 text-xs text-dim">
+              Those videos keep playing — each is its own copy. What is lost is the ability to generate them again from
+              this file.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setUsedWarning(null)} className="rounded-none border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Keep it</button>
+              <button
+                onClick={() => deleteImages(usedWarning.ids, true)}
+                className="rounded-none bg-danger px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-danger-hover"
+              >
+                Delete anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* One generated video: what it is, what made it, and what to do next */}
+      {record && (
+        <GenerationRecordPanel
+          key={record.id}
+          generation={record}
+          onClose={() => setRecord(null)}
+          onDeleted={(id) => setGens((prev) => prev.filter((g) => g.id !== id))}
+        />
       )}
 
       {/* Rename an upload */}
