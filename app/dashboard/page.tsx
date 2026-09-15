@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isSignedIn, getUser } from "@/lib/auth";
 import { refreshCatalog } from "@/lib/models";
-import { BACKEND_ENABLED, getBillingSummary, getTopupInfo, quotaToUsd, getSelf } from "@/lib/hub";
+import { BACKEND_ENABLED, getBillingSummary, getOnboarding, getTopupInfo, quotaToUsd, getSelf } from "@/lib/hub";
 import { useLive } from "@/lib/live";
 import { getGenerations, refreshGenerations } from "@/lib/generations";
-import { getCredits, refreshBilling } from "@/lib/billing";
+import { getCards, getCredits, refreshBilling } from "@/lib/billing";
 import { getFavorites, getRecents } from "@/lib/prefs";
 import { useSkin } from "@/lib/use-skin";
 import { DashboardOG, DashboardEditorial, DashboardLuxury, DashboardPlayful, DashboardCosmos } from "@/components/skins/dashboards";
@@ -29,6 +29,9 @@ export default function DashboardPage() {
   // getting-started card neither invites a customer into a checkout that
   // cannot complete nor calls the feature "coming soon" once it has arrived.
   const [paymentsOpen, setPaymentsOpen] = useState<boolean | null>(null);
+  // Getting-started milestones, latched by the backend so they belong to the
+  // account rather than to this browser. Null until it answers.
+  const [progress, setProgress] = useState<Record<string, boolean> | null>(null);
 
   useEffect(() => {
     if (!isSignedIn()) {
@@ -54,6 +57,9 @@ export default function DashboardPage() {
     getTopupInfo()
       .then((info) => setPaymentsOpen(Boolean(info.enable_stripe_topup)))
       .catch(() => {});
+    getOnboarding()
+      .then((p) => setProgress(Object.fromEntries(p.steps.map((s) => [s.key, s.reached]))))
+      .catch(() => {});
   }, [billingVersion, generationsVersion]);
 
   const snapshot = BACKEND_ENABLED
@@ -62,8 +68,19 @@ export default function DashboardPage() {
 
   if (!ready) return <div className="min-h-screen" />;
 
-  // Without a backend the Payment tab is a working mock, so billing is "open".
-  const data = { name, favs, recents, snapshot, paymentsOpen: BACKEND_ENABLED ? paymentsOpen : true };
+  // Without a backend the Payment tab is a working mock, so billing is "open",
+  // there is nowhere to hold an API key, and progress is whatever this browser
+  // has done.
+  const demoProgress = { account: true, billing: getCards().length > 0, balance: getCredits() > 0 };
+  const data = {
+    name,
+    favs,
+    recents,
+    snapshot,
+    paymentsOpen: BACKEND_ENABLED ? paymentsOpen : true,
+    progress: BACKEND_ENABLED ? progress : demoProgress,
+    apiKeysAvailable: BACKEND_ENABLED,
+  };
   if (skin === "editorial") return <DashboardEditorial {...data} />;
   if (skin === "luxury") return <DashboardLuxury {...data} />;
   if (skin === "playful") return <DashboardPlayful {...data} />;

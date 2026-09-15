@@ -1050,6 +1050,26 @@ export type CatalogModel = {
   } | null;
 };
 
+// ---- getting started ------------------------------------------------------------
+
+/**
+ * What this account has already done, from the account rather than the browser.
+ *
+ * Each milestone is latched by the backend the first time it is seen, so a tick
+ * never disappears - the balance can be spent and the key deleted and both
+ * steps stay done. `complete` is the signal to stop showing the checklist.
+ */
+export type Onboarding = {
+  steps: { key: "account" | "billing" | "balance" | "api_key"; reached: boolean; reached_at: string | null }[];
+  reached: number;
+  total: number;
+  complete: boolean;
+};
+
+export function getOnboarding(): Promise<Onboarding> {
+  return sidecar<Onboarding>("GET", "/onboarding");
+}
+
 /** Prices that are not per-model: what storage costs. Public, like the catalogue. */
 export type PlatformRates = {
   currency: string;

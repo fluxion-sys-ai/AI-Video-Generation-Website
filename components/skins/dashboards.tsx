@@ -23,24 +23,61 @@ export type DashData = {
   };
   /** Whether a customer can pay yet. Null while the backend is still answering. */
   paymentsOpen?: boolean | null;
+  /** Latched getting-started milestones by key; null until the backend answers. */
+  progress?: Record<string, boolean> | null;
+  /** API keys only exist with a backend to hold them. */
+  apiKeysAvailable?: boolean;
 };
 
 type Step = { title: string; desc: string; href: string | null; done: boolean; soon?: boolean };
 
-// Getting started. Billing is only a step when paying is actually possible:
-// while it is closed, inviting someone into a checkout that cannot complete is
-// worse than saying so, and the card stops being a link. The API key step goes
-// to the page that issues keys, not to the documentation about them.
-function steps(paymentsOpen: boolean | null | undefined): Step[] {
-  const canPay = paymentsOpen !== false;
-  return [
-    { title: "Create account", desc: "You're signed in and ready.", href: "/profile?tab=account", done: true },
+/**
+ * Getting started, against what the account has actually done.
+ *
+ * `done` comes from the backend's latched milestones (lib/hub.getOnboarding),
+ * so a step that has been completed once stays completed - spending the
+ * balance or deleting the key does not un-tick anything - and the same
+ * progress shows on every device.
+ *
+ * Billing is only a step when paying is actually possible: while it is closed,
+ * inviting someone into a checkout that cannot complete is worse than saying
+ * so, and the card stops being a link. The API key step goes to the page that
+ * issues keys, and only exists where keys do.
+ */
+function steps(data: DashData): Step[] {
+  const canPay = data.paymentsOpen !== false;
+  const done = (key: string) => Boolean(data.progress?.[key]);
+  const list: Step[] = [
+    { title: "Create account", desc: "You're signed in and ready.", href: "/profile?tab=account", done: done("account") },
     canPay
-      ? { title: "Set up billing", desc: "Add a payment method.", href: "/profile?tab=payment", done: false }
-      : { title: "Set up billing", desc: "Paying for credit yourself is coming soon.", href: null, done: false, soon: true },
-    { title: "Your balance", desc: "See what you can spend.", href: "/profile?tab=billing", done: false },
-    { title: "Get API key", desc: "Generate video over HTTP.", href: "/profile?tab=keys", done: false },
+      ? { title: "Set up billing", desc: "Add a payment method.", href: "/profile?tab=payment", done: done("billing") }
+      : {
+          title: "Set up billing",
+          desc: "Paying for credit yourself is coming soon.",
+          href: null,
+          done: done("billing"),
+          soon: true,
+        },
+    { title: "Your balance", desc: "Add credit to spend.", href: "/profile?tab=billing", done: done("balance") },
   ];
+  if (data.apiKeysAvailable !== false) {
+    list.push({ title: "Get API key", desc: "Generate video over HTTP.", href: "/profile?tab=keys", done: done("api_key") });
+  }
+  return list;
+}
+
+/** Whether the checklist has anything left to say. */
+function gettingStartedDone(data: DashData): boolean {
+  const list = steps(data);
+  // Nothing is known yet (the backend has not answered): keep showing it, so a
+  // slow request never makes a customer's progress vanish.
+  if (!data.progress) return false;
+  return list.every((s) => s.done);
+}
+
+function progressLabel(data: DashData): string {
+  const list = steps(data);
+  return `${list.filter((s) => s.done).length} of ${list.length} done`;
 }
 
 /**
@@ -123,12 +160,14 @@ export function DashboardOG(data: DashData) {
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-gold">Dashboard</span>
         <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-3xl font-medium uppercase tracking-[0.01em]">Let&apos;s create something, {name}</h1>
 
+        {!gettingStartedDone(data) && (
+        <>
         <div className="mt-6 flex items-center justify-between">
           <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Getting started</h2>
-          <span className="font-[family-name:var(--font-jetbrains)] text-xs text-dim">1 of 4 done</span>
+          <span className="font-[family-name:var(--font-jetbrains)] text-xs text-dim">{progressLabel(data)}</span>
         </div>
         <div className="mt-3 grid grid-cols-2 border-b border-r border-line sm:grid-cols-4">
-          {steps(data.paymentsOpen).map((s, i) => (
+          {steps(data).map((s, i) => (
               <StepCard key={s.title} step={s} className="group border-l border-t border-line p-4 transition-colors hover:bg-hover">
               <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold ${s.done ? "bg-accent text-ink" : "border border-line-strong font-[family-name:var(--font-jetbrains)] text-muted"}`}>{s.done ? "✓" : i + 1}</span>
               <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.04em] text-fg transition-colors group-hover:text-gold-soft">{s.title}</p>
@@ -136,6 +175,8 @@ export function DashboardOG(data: DashData) {
             </StepCard>
           ))}
         </div>
+        </>
+        )}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[2fr_1fr] lg:items-start">
           <div>
@@ -204,13 +245,14 @@ export function DashboardEditorial(data: DashData) {
         <h1 className="mt-2 text-[clamp(34px,5vw,56px)] font-semibold leading-tight tracking-[-0.02em] text-fg-strong">Let&apos;s create something, {name}.</h1>
 
         {/* Getting started, horizontal progress of rounded pill cards */}
+        {!gettingStartedDone(data) && (
         <div className="mt-10">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-fg-strong">Getting started</h2>
-            <span className="text-sm text-muted">1 of 4 done</span>
+            <span className="text-sm text-muted">{progressLabel(data)}</span>
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {steps(data.paymentsOpen).map((s, i) => (
+            {steps(data).map((s, i) => (
               <StepCard key={s.title} step={s} className="rounded-2xl bg-surface p-5 shadow-lg transition-transform hover:-translate-y-1">
                 <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${s.done ? "bg-accent text-ink" : "border border-line-strong text-muted"}`}>{s.done ? "✓" : i + 1}</span>
                 <p className="mt-3 font-semibold text-fg-strong">{s.title}</p>
@@ -219,6 +261,7 @@ export function DashboardEditorial(data: DashData) {
             ))}
           </div>
         </div>
+        )}
 
         {/* Snapshot as soft stat tiles */}
         <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -288,12 +331,14 @@ export function DashboardLuxury(data: DashData) {
         {/* Getting started, refined checklist + overview card */}
         <div className="mt-10 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:items-start">
           <div>
+            {!gettingStartedDone(data) && (
+            <>
             <div className="flex items-center justify-between">
               <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Getting started</h2>
-              <span className="font-[family-name:var(--font-jetbrains)] text-xs text-dim">1 / 4</span>
+              <span className="font-[family-name:var(--font-jetbrains)] text-xs text-dim">{progressLabel(data)}</span>
             </div>
             <div className="mt-4">
-              {steps(data.paymentsOpen).map((s, i) => (
+              {steps(data).map((s, i) => (
               <StepCard key={s.title} step={s} className="group flex items-center gap-4 border-t border-line py-4 last:border-b hover:bg-hover">
                   <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${s.done ? "bg-accent text-ink" : "border border-line-strong text-muted"}`}>{s.done ? "✓" : i + 1}</span>
                   <div className="flex-1">
@@ -304,6 +349,8 @@ export function DashboardLuxury(data: DashData) {
                 </StepCard>
               ))}
             </div>
+            </>
+            )}
           </div>
 
           {/* Overview, dark semi-transparent stat card */}
@@ -377,10 +424,15 @@ export function DashboardPlayful(data: DashData) {
         <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-ink">Your studio</span>
         <h1 className="mt-4 text-[clamp(34px,5vw,56px)] font-bold leading-tight text-fg-strong">Hey {name}, let&apos;s make something.</h1>
 
-        {/* Getting started, pastel cards */}
-        <h2 className="mt-10 text-lg font-bold text-fg-strong">Getting started</h2>
+        {/* Getting started, pastel cards. Gone once every step is behind them. */}
+        {!gettingStartedDone(data) && (
+        <>
+        <div className="mt-10 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-lg font-bold text-fg-strong">Getting started</h2>
+          <span className="text-sm text-muted">{progressLabel(data)}</span>
+        </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {steps(data.paymentsOpen).map((s, i) => (
+          {steps(data).map((s, i) => (
             <StepCard
               key={s.title}
               step={s}
@@ -393,6 +445,8 @@ export function DashboardPlayful(data: DashData) {
             </StepCard>
           ))}
         </div>
+        </>
+        )}
 
         {/* Snapshot, pastel stat tiles */}
         <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -471,9 +525,14 @@ export function DashboardCosmos(data: DashData) {
         <div className="mt-10 grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-start">
           {/* Systems check (getting started) */}
           <div>
-            <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Getting started</h2>
+            {!gettingStartedDone(data) && (
+            <>
+            <div className="flex items-center justify-between">
+              <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Getting started</h2>
+              <span className="font-[family-name:var(--font-jetbrains)] text-xs text-dim">{progressLabel(data)}</span>
+            </div>
             <div className="mt-4 space-y-2">
-              {steps(data.paymentsOpen).map((s, i) => (
+              {steps(data).map((s, i) => (
               <StepCard key={s.title} step={s} className="group flex items-center gap-4 rounded-[10px] border border-hairline bg-surface px-4 py-3 hover:-translate-y-0.5 transition-transform">
                   <span className={`flex h-8 w-8 items-center justify-center rounded-full font-[family-name:var(--font-jetbrains)] text-xs ${s.done ? "bg-accent text-ink" : "border border-line-strong text-muted"}`}>{s.done ? "✓" : i + 1}</span>
                   <div className="flex-1">
@@ -484,6 +543,8 @@ export function DashboardCosmos(data: DashData) {
                 </StepCard>
               ))}
             </div>
+            </>
+            )}
           </div>
           {/* Launch pads (quick actions) */}
           <div>
