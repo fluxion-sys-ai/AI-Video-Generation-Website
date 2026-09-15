@@ -125,18 +125,27 @@ function errorFrom(res: Response, body: unknown): ApiError {
 
 let refreshing: Promise<Session | null> | null = null;
 
-/** Trades the refresh cookie for a new access token. Concurrent callers share one request. */
+/**
+ * Trades the refresh cookie for a new access token. Concurrent callers share
+ * one request.
+ *
+ * Returns null only when the hub *answers* that the session is over. A request
+ * that never got an answer - a navigation cancelled it, the network blinked -
+ * throws instead, because "I could not ask" is not "you are signed out".
+ * Treating the two alike logged customers out mid-navigation: the aborted
+ * refresh showed up in the gateway log as a 499 and the next page load went to
+ * the login screen.
+ */
 async function refreshSession(): Promise<Session | null> {
   if (!refreshing) {
     refreshing = (async () => {
-      try {
-        const res = await fetch("/api/user/auth/refresh", { method: "POST", credentials: "same-origin" });
-        const body = (await parseBody(res)) as Envelope<AuthData> | null;
-        if (!res.ok || !body?.success || !body.data?.access_token) return null;
-        return storeSession(body.data);
-      } catch {
-        return null;
+      const res = await fetch("/api/user/auth/refresh", { method: "POST", credentials: "same-origin" });
+      const body = (await parseBody(res)) as Envelope<AuthData> | null;
+      if (res.status === 401 || res.status === 403) return null; // the hub says it is over
+      if (!res.ok || !body?.success || !body.data?.access_token) {
+        throw new ApiError(`Could not renew the session (${res.status}).`, res.status);
       }
+      return storeSession(body.data);
     })().finally(() => {
       refreshing = null;
     });
