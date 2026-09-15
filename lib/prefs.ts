@@ -104,7 +104,9 @@ export function addLibraryImages(items: LibImage[]) {
 // selected images here, then routes to /generate?model=…; the playground reads
 // and clears them on load (see app/generate/page.tsx).
 const PENDING_IMAGES_KEY = "fluxion.pendingImages";
-export type PendingImage = { url: string; name: string };
+/** An image handed to the playground from the library. The id is what lets the
+ *  playground select it as reference material; the url alone can only be shown. */
+export type PendingImage = { id?: string; url: string; name: string };
 
 export function setPendingImages(list: PendingImage[]) {
   if (typeof window === "undefined") return;

@@ -133,6 +133,12 @@ function GenerateInner() {
   // H3 treats reference material and frame images as two different modes and
   // refuses a request that mixes them, so the form does not offer the mix.
   const exclusive = Boolean(rules?.mutually_exclusive_with_frames);
+  // Where a model takes reference images, they are the image control. A first
+  // frame is a different thing - the output opens on that exact picture - and
+  // the provider treats it as a separate mode, so offering both side by side
+  // read as two boxes for one job. The API still accepts first_frame; the
+  // playground does not ask for it.
+  const takesReferenceImages = Boolean(rules?.image);
   const framesBlocked = exclusive && hasReference;
   const referenceBlocked = exclusive && images.length > 0;
   // With nothing selected there is nothing to judge, so the verdict is derived
@@ -315,8 +321,28 @@ function GenerateInner() {
   // Runs per model so it works whether the page mounts fresh or just re-routes.
   useEffect(() => {
     const pending = takePendingImages();
-    if (pending.length) setImages(pending);
-  }, [slug]);
+    if (!pending.length) return;
+    if (!takesReferenceImages) {
+      setImages(pending);
+      return;
+    }
+    // This model follows reference images rather than opening on a still, so
+    // the files are selected as references - which needs the stored item, not
+    // just its URL.
+    let alive = true;
+    const wanted = new Set(pending.map((i) => i.id).filter(Boolean) as string[]);
+    if (!wanted.size) return;
+    void (async () => {
+      const listing = await listLibrary("image").catch(() => null);
+      if (!alive) return;
+      const picked = (listing?.items || []).filter((i) => wanted.has(i.id));
+      if (picked.length) setRefImages(picked);
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, takesReferenceImages]);
 
   /**
    * Reopen a past generation, handed over by its record in the library.
@@ -360,6 +386,7 @@ function GenerateInner() {
       const stills: LibraryItem[] = [];
       const frames: { url: string; name: string }[] = [];
       const gone: string[] = [];
+      const reframed: string[] = [];
       for (const input of wanted) {
         const item = byId.get(input.item_id as string);
         if (!item) {
@@ -371,13 +398,23 @@ function GenerateInner() {
         // are different modes the provider refuses to mix.
         if (item.kind === "video") videos.push(item);
         else if (item.kind === "audio") audios.push(item);
-        else if (input.role === "reference image") stills.push(item);
-        else frames.push({ url: item.url, name: item.name });
+        else if (input.role === "reference image" || takesReferenceImages) {
+          // A frame image from an older request lands here, because this
+          // playground no longer pins frames - the toast below says so rather
+          // than letting the request come back quietly changed.
+          if (input.role !== "reference image") reframed.push(input.name || "an image");
+          stills.push(item);
+        } else frames.push({ url: item.url, name: item.name });
       }
       setRefVideos(videos);
       setRefAudios(audios);
       setRefImages(stills);
       if (frames.length) setImages(frames);
+      if (reframed.length) {
+        toast(
+          `${reframed.join(", ")} was the first frame of that generation. It is here as a reference image, which guides the shot rather than starting it.`,
+        );
+      }
       if (gone.length) {
         toast(
           gone.length === 1
@@ -791,7 +828,7 @@ function GenerateInner() {
               handed over from the library), regardless of the model - unless
               reference material is in play, which the provider treats as a
               different mode. */}
-          {framesBlocked ? (
+          {takesReferenceImages ? null : framesBlocked ? (
             <Field label="Images" hint="not with reference material">
               <p className="text-sm text-muted">
                 {model.name} animates either a still you provide or the reference material below, not both.

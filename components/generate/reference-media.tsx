@@ -183,7 +183,7 @@ export function ReferenceMedia({
   const label = kind === "video" ? "Reference video" : kind === "audio" ? "Reference audio" : "Reference images";
 
   return (
-    <div>
+    <div data-reference={kind}>
       <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">
         <label className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.06em] text-fg-soft">
           {label}

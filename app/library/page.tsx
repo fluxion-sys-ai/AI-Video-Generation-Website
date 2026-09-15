@@ -521,11 +521,12 @@ function LibraryInner() {
   }
   // Queue selected images for the chosen model, then open its playground.
   function uploadTo(model: Model) {
-    // Only images can start a generation as a first frame; reference video and
-    // audio are chosen on the Generate page itself, against a model's rules.
+    // Only images travel this way; reference video and audio are chosen on the
+    // Generate page itself, against a model's rules. The id goes with them so
+    // the playground can select the stored file, not just display it.
     const chosen = uploads
       .filter((img) => selected.has(img.id) && img.kind === "image")
-      .map((img) => ({ url: img.url, name: img.name }));
+      .map((img) => ({ id: img.id, url: img.url, name: img.name }));
     setPendingImages(chosen);
     if (BACKEND_ENABLED) {
       void Promise.all([...selected].map((id) => markImageUsed(id))).catch(() => {});
