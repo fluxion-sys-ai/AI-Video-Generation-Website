@@ -319,7 +319,9 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-hairline bg-transparent backdrop-blur-md">
       <nav className="flex h-20 items-center justify-between px-10 font-[family-name:var(--font-jetbrains)]">
         <div className="flex items-center gap-8">
-          <Brand />
+          {/* Signed in, the mark is the way back to your own dashboard; signed
+              out it is the way back to the front page. */}
+          <Brand href={ready && user ? "/dashboard" : "/"} />
           <div className="hidden items-center gap-7 md:flex">
             {dashMode ? (
               <>
