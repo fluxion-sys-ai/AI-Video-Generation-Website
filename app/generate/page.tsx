@@ -9,6 +9,7 @@ import { ApiDocs } from "@/components/docs/api-docs";
 import { SiteFooter } from "@/components/site/site-footer";
 import { getModels, getModel, type Model, refreshCatalog } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
+import { NumberField, isPositive } from "@/components/ui/number-field";
 import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings, uploadLibraryImage } from "@/lib/prefs";
 import { BACKEND_ENABLED } from "@/lib/hub";
 import { useEscapeKey } from "@/lib/use-escape-key";
@@ -96,10 +97,7 @@ function GenerateInner() {
 
   const [aspect, setAspect] = useState(model?.aspectRatios[0] ?? "16:9");
   const [resolution, setResolution] = useState(preferredRes);
-  const [duration, setDuration] = useState(model?.durations[0] ?? 0);
-  // Raw text for the duration input, so typing "10" isn't coerced mid-entry
-  // (which caused the caret to jump / digits to reorder). Clamped on blur.
-  const [durationStr, setDurationStr] = useState(model ? String(model.durations[0]) : "");
+  const [duration, setDuration] = useState<number | null>(model?.durations[0] ?? null);
   const [audio, setAudio] = useState(false);
   const [prompt, setPrompt] = useState("");
   // Uploaded reference images (multiple). Each holds an object URL for the
@@ -213,7 +211,6 @@ function GenerateInner() {
     setAspect(model.aspectRatios[0]);
     setResolution(preferredRes());
     setDuration(model.durations[0]);
-    setDurationStr(String(model.durations[0]));
     if (!model.supports.audio) setAudio(false);
     setStatus("idle");
     setResultUrl(null);
@@ -236,7 +233,6 @@ function GenerateInner() {
       setAspect(d.aspect);
       setResolution(d.resolution);
       setDuration(d.duration);
-      setDurationStr(String(d.duration));
       setAudio(d.audio);
       setPrompt(d.prompt);
       clearDraft();
@@ -248,13 +244,13 @@ function GenerateInner() {
   useEffect(() => () => { genId.current++; }, []);
 
   function draft(): Draft {
-    return { slug, aspect, resolution, duration, audio, prompt };
+    return { slug, aspect, resolution, duration: duration ?? model?.durations[0] ?? 0, audio, prompt };
   }
 
   function onGenerate() {
     // Gate 0: a duration has to be chosen. The field is left empty when it is
     // cleared, rather than refilled, so this is where that is caught.
-    if (durationStr.trim() === "" || !Number.isFinite(Number(durationStr))) {
+    if (!isPositive(duration)) {
       toast("Enter a duration in seconds.");
       return;
     }
@@ -298,6 +294,10 @@ function GenerateInner() {
     const id = ++genId.current;
     setResultUrl(null);
     setStatus("generating");
+    if (!isPositive(duration)) {
+      toast("Enter a duration in seconds.");
+      return;
+    }
     refineVideo({ slug, prompt, aspect, resolution, duration, audio, images: images.map((i) => i.url) }, chat)
       .then((r) => {
         if (id !== genId.current) return;
@@ -639,26 +639,18 @@ function GenerateInner() {
             </Field>
 
             <Field label="Duration" hint={`${minDuration}-${maxDuration} sec`}>
-              <input
-                type="number"
+              <NumberField
+                id="pg-duration"
                 min={minDuration}
                 max={maxDuration}
-                inputMode="numeric"
-                value={durationStr}
-                aria-invalid={durationStr.trim() === ""}
-                onChange={(e) => {
-                  const s = e.target.value;
-                  setDurationStr(s);
-                  const n = Number(s);
-                  if (s !== "" && !Number.isNaN(n)) setDuration(n);
-                }}
+                value={duration}
+                onValueChange={setDuration}
                 onBlur={() => {
-                  // An empty box stays empty: putting a number back would hide
-                  // that nothing was chosen. Generate asks for one instead.
-                  if (durationStr.trim() === "") return;
-                  const n = Math.min(maxDuration, Math.max(minDuration, Math.round(Number(durationStr))));
-                  setDuration(n);
-                  setDurationStr(String(n));
+                  // Clamp what was typed, but leave an empty box empty: putting
+                  // a number back would hide that nothing was chosen. Generate
+                  // asks for one instead.
+                  if (!isPositive(duration)) return;
+                  setDuration(Math.min(maxDuration, Math.max(minDuration, Math.round(duration))));
                 }}
                 className={`${compactInput} w-20`}
               />

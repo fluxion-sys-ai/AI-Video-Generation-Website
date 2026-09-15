@@ -26,6 +26,7 @@ import Link from "next/link";
 import { completeEmailSignup, getUser, setUser, startEmailSignup } from "@/lib/auth";
 import { acceptLegal, BACKEND_ENABLED, getSelf, getTopupInfo, quotaToUsd } from "@/lib/hub";
 import { toast } from "@/lib/toast";
+import { NumberField, isPositive } from "@/components/ui/number-field";
 import { addCard, addCredits, saveCards } from "@/lib/billing";
 
 // ---- shared class strings (kept token-driven) -------------------------------
@@ -92,7 +93,7 @@ export function Onboarding() {
   const [addr, setAddr] = useState("");
   const [city, setCity] = useState("");
   const [postal, setPostal] = useState("");
-  const [credits, setCredits] = useState(25);
+  const [credits, setCredits] = useState<number | null>(25);
   const [finishing, setFinishing] = useState(false);
   const [signupError, setSignupError] = useState<string | null>(null);
   // Backend mode: the account is created on the first slide with an emailed code.
@@ -205,7 +206,7 @@ export function Onboarding() {
       } else {
         saveCards([]); // user skipped payment, start with no method
       }
-      if (credits > 0) addCredits(credits);
+      if (isPositive(credits)) addCredits(credits);
     } catch {
       /* localStorage may be unavailable; non-critical for the mock. */
     }
@@ -430,7 +431,7 @@ export function Onboarding() {
             </div>
             <div>
               <label htmlFor="ob-credits" className={labelClass}>Custom amount ($)</label>
-              <input id="ob-credits" type="number" min={0} value={credits} onChange={(e) => setCredits(Number(e.target.value))} className={inputClass} />
+              <NumberField id="ob-credits" min={1} value={credits} onValueChange={setCredits} className={inputClass} />
             </div>
           </div>
         )}

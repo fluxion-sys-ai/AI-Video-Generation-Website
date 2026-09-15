@@ -12,6 +12,7 @@ import { getAvailableModels, refreshCatalog } from "@/lib/models";
 import { BACKEND_ENABLED } from "@/lib/hub";
 import { useLive } from "@/lib/live";
 import { estimateCost, money, ratesFor, useRateCard } from "@/lib/rate-card";
+import { NumberField, isPositive } from "@/components/ui/number-field";
 
 const sel =
   "rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue";
@@ -22,8 +23,7 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
   const models = getAvailableModels();
   const [slug, setSlug] = useState("");
   const model = models.find((m) => m.slug === slug) ?? models[0];
-  // Kept as text so clearing the box leaves it empty rather than snapping to 0.
-  const [duration, setDuration] = useState("");
+  const [duration, setDuration] = useState<number | null>(null);
   const [resolution, setResolution] = useState("");
 
   // Follow whichever model is selected, and adopt the first one the catalogue
@@ -31,7 +31,7 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
   useEffect(() => {
     if (!model) return;
     if (slug !== model.slug) setSlug(model.slug);
-    setDuration(String(model.durations[0]));
+    setDuration(model.durations[0]);
     setResolution(model.popularResolutions[0] || model.resolutions[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model?.slug]);
@@ -44,8 +44,8 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
     );
   }
 
-  const seconds = Number(duration);
-  const valid = duration.trim() !== "" && Number.isFinite(seconds) && seconds > 0;
+  const seconds = duration;
+  const valid = isPositive(seconds);
   const tiers = ratesFor(card, model);
   const live = valid && tiers ? estimateCost(tiers, { seconds, resolution, input_video_seconds: 0 }) : null;
   // The demo catalogue carries one rate per model; the backend prices by resolution.
@@ -67,14 +67,12 @@ export function CostEstimator({ bare = false }: { bare?: boolean }) {
         </div>
         <div>
           <label htmlFor="est-duration" className="mb-1.5 block text-xs uppercase tracking-[0.06em] text-muted">Duration (sec)</label>
-          <input
+          <NumberField
             id="est-duration"
-            type="number"
-            inputMode="numeric"
             min={Math.min(...model.durations)}
             max={Math.max(...model.durations)}
             value={duration}
-            onChange={(e) => setDuration(e.target.value)}
+            onValueChange={setDuration}
             className={`${sel} w-full`}
           />
         </div>

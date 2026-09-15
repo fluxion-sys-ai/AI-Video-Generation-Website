@@ -29,6 +29,7 @@ import { getGenerations, refreshGenerations, formatWhen, type Generation } from 
 import { getTheme, applyTheme, getSettings, saveSettings, type Theme } from "@/lib/prefs";
 import { getCards, addCard as billAddCard, removeCard as billRemoveCard, saveCards, cardsSupported, refreshBilling, startTopup } from "@/lib/billing";
 import { ApiKeys } from "@/components/profile/api-keys";
+import { NumberField, isPositive } from "@/components/ui/number-field";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Search } from "lucide-react";
 import { useEscapeKey } from "@/lib/use-escape-key";
@@ -122,12 +123,12 @@ function ProfileInner() {
 
   // billing (mock)
   const [autoTopup, setAutoTopup] = useState(false);
-  const [topupAmount, setTopupAmount] = useState(25);
-  const [spendLimit, setSpendLimit] = useState(100);
+  const [topupAmount, setTopupAmount] = useState<number | null>(25);
+  const [spendLimit, setSpendLimit] = useState<number | null>(100);
   const [alertOn, setAlertOn] = useState(false);
-  const [alertThreshold, setAlertThreshold] = useState(10);
+  const [alertThreshold, setAlertThreshold] = useState<number | null>(10);
   const [addOpen, setAddOpen] = useState(false);
-  const [addAmount, setAddAmount] = useState(25);
+  const [addAmount, setAddAmount] = useState<number | null>(25);
 
   // payment methods (mock)
   type Card = { id: number; brand: string; last4: string; exp: string; primary: boolean };
@@ -262,6 +263,10 @@ function ProfileInner() {
       setPayError("Top-ups are not available yet.");
       return;
     }
+    if (!isPositive(addAmount)) {
+      setPayError("Enter how much credit to buy.");
+      return;
+    }
     if (addAmount < (topupInfo.stripe_min_topup || 1)) {
       setPayError(`The minimum top-up is $${topupInfo.stripe_min_topup}.`);
       return;
@@ -276,8 +281,12 @@ function ProfileInner() {
   }
 
   async function saveAlert(enabled: boolean) {
+    if (enabled && !isPositive(alertThreshold)) {
+      toast("Enter the balance to warn you at.");
+      return;
+    }
     try {
-      await setLowBalanceAlert({ enabled, thresholdUsd: alertThreshold, email: account?.email || email });
+      await setLowBalanceAlert({ enabled, thresholdUsd: alertThreshold ?? 0, email: account?.email || email });
       toast(enabled ? "Low-balance alert set" : "Low-balance alert off");
     } catch (err) {
       toast(err instanceof Error ? err.message : "Could not save the alert");
@@ -574,11 +583,11 @@ function ProfileInner() {
                       <div className="mt-3 grid grid-cols-2 gap-3">
                         <div>
                           <label className={label}>Top-up ($)</label>
-                          <input type="number" min={5} value={topupAmount} onChange={(e) => setTopupAmount(Number(e.target.value))} className={inputClass} />
+                          <NumberField min={5} value={topupAmount} onValueChange={setTopupAmount} className={inputClass} />
                         </div>
                         <div>
                           <label className={label}>Limit ($)</label>
-                          <input type="number" min={0} value={spendLimit} onChange={(e) => setSpendLimit(Number(e.target.value))} className={inputClass} />
+                          <NumberField min={1} value={spendLimit} onValueChange={setSpendLimit} className={inputClass} />
                         </div>
                       </div>
                       <div className="mt-3 flex items-center gap-3">
@@ -608,7 +617,7 @@ function ProfileInner() {
                   <div className="mt-3 flex items-end gap-3">
                     <div>
                       <label className={label}>Threshold ($)</label>
-                      <input type="number" min={0} value={alertThreshold} onChange={(e) => setAlertThreshold(Number(e.target.value))} className={`${inputClass} w-28`} disabled={!alertOn} />
+                      <NumberField id="alert-threshold" min={1} value={alertThreshold} onValueChange={setAlertThreshold} className={`${inputClass} w-28`} disabled={!alertOn} />
                     </div>
                     <button onClick={() => setAlertOpen(true)} disabled={!alertOn} className={`${btnPrimary} disabled:opacity-40`}>
                       Set
@@ -905,26 +914,24 @@ function ProfileInner() {
               ))}
             </div>
             <div className="mt-3">
-              <label className={label}>Enter amount ($)</label>
-              <input
-                type="number"
-                min={1}
-                value={addAmount}
-                onChange={(e) => setAddAmount(Number(e.target.value))}
-                className={inputClass}
-              />
+              <label className={label} htmlFor="topup-amount">Enter amount ($)</label>
+              <NumberField id="topup-amount" min={1} value={addAmount} onValueChange={setAddAmount} className={inputClass} />
             </div>
             {BACKEND_ENABLED ? (
               <>
                 {payError && <p role="alert" className="mt-3 text-sm text-danger">{payError}</p>}
                 <button onClick={checkout} disabled={paying} className={`${btnPrimary} mt-5 w-full disabled:opacity-60`}>
-                  {paying ? "Opening checkout…" : `Pay${quote ? ` $${quote}` : ""} for $${addAmount || 0} in credits`}
+                  {paying
+                    ? "Opening checkout…"
+                    : isPositive(addAmount)
+                      ? `Pay${quote ? ` $${quote}` : ""} for $${addAmount} in credit`
+                      : "Enter an amount"}
                 </button>
                 <p className="mt-2 text-center text-xs text-dim">Secure checkout by Stripe: card, Link, and other methods.</p>
               </>
             ) : (
               <button onClick={() => setAddOpen(false)} className={`${btnPrimary} mt-5 w-full`}>
-                Buy ${addAmount || 0} in credits
+                {isPositive(addAmount) ? `Buy $${addAmount} in credit` : "Enter an amount"}
               </button>
             )}
           </div>
@@ -974,7 +981,7 @@ function ProfileInner() {
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-4">
                 <dt className="text-muted">Threshold</dt>
-                <dd className="font-[family-name:var(--font-jetbrains)] text-accent-ink">${alertThreshold}</dd>
+                <dd className="font-[family-name:var(--font-jetbrains)] text-accent-ink">{isPositive(alertThreshold) ? `$${alertThreshold}` : "—"}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
                 <dt className="text-muted">Email</dt>
