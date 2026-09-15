@@ -11,7 +11,7 @@
  */
 
 import { getModel } from "./models";
-import { ApiError, BACKEND_ENABLED, createVideo, libraryImageLink, videoUrl, waitForVideo } from "./hub";
+import { ApiError, BACKEND_ENABLED, checkReferences, createVideo, libraryImageLink, videoUrl, waitForVideo } from "./hub";
 import { refreshBilling } from "./billing";
 import { refreshGenerations } from "./generations";
 import { uploadLibraryImage } from "./prefs";
@@ -24,6 +24,9 @@ export type GenerateParams = {
   duration: number; // seconds
   audio: boolean;
   images?: string[]; // optional image-to-video inputs
+  /** Library media to use as reference material, by id (see lib/hub.checkReferences). */
+  referenceVideoIds?: string[];
+  referenceAudioIds?: string[];
 };
 
 export type GenerateResult = {
@@ -49,7 +52,29 @@ function mockRun(slug: string, delay: number): Promise<GenerateResult> {
   });
 }
 
-const LIBRARY_CONTENT = /\/media\/library\/images\/([0-9a-f]{8,})\/content/;
+const LIBRARY_CONTENT = /\/media\/library\/(?:media|images)\/([0-9a-f]{8,})\/content/;
+
+/**
+ * Reference material, checked and turned into URLs the provider will fetch.
+ *
+ * The check is the backend's, not the browser's: it decides whether these files
+ * may be used for this model, and a refusal surfaces as the message a customer
+ * needs to fix it. Nothing is minted until it passes.
+ */
+async function referenceMetadata(params: GenerateParams, model: ReturnType<typeof getModel>): Promise<Record<string, unknown>> {
+  const videos = params.referenceVideoIds || [];
+  const audios = params.referenceAudioIds || [];
+  if (!model || (!videos.length && !audios.length)) return {};
+  const checked = await checkReferences({
+    model: model.slug,
+    ...(videos.length ? { reference_video: videos } : {}),
+    ...(audios.length ? { reference_audio: audios } : {}),
+  });
+  const metadata: Record<string, unknown> = {};
+  if (checked.urls.reference_video) metadata.reference_video = checked.urls.reference_video;
+  if (checked.urls.reference_audio) metadata.reference_audio = checked.urls.reference_audio;
+  return metadata;
+}
 
 /**
  * A URL the video provider can fetch. Stored library images are handed over as a
@@ -78,6 +103,7 @@ async function run(params: GenerateParams, refinements: string[] = []): Promise<
   const prompt = [params.prompt.trim(), ...refinements.map((r) => `Refinement: ${r}`)].filter(Boolean).join("\n");
   if (!prompt) throw new ApiError("Write a prompt first.", 400);
 
+  const metadata = await referenceMetadata(params, model);
   const created = await createVideo({
     model: model.hubModel || model.slug,
     prompt,
@@ -85,7 +111,10 @@ async function run(params: GenerateParams, refinements: string[] = []): Promise<
     resolution: params.resolution,
     aspect_ratio: params.aspect,
     ...(model.supports.audio ? { audio: params.audio } : {}),
-    imageUrl: await providerImageUrl(params.images, model),
+    // Reference material and a first frame are different modes upstream, so a
+    // selection that carries reference media never also sends an image.
+    imageUrl: Object.keys(metadata).length ? undefined : await providerImageUrl(params.images, model),
+    metadata,
   });
 
   const done = await waitForVideo(created.id);

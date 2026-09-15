@@ -14,6 +14,7 @@ import {
   QUOTA_PER_USD,
   getBillingSummary,
   getProfileMedia,
+  getStorageUsage,
   getTopupInfo,
   quoteTopup,
   quotaToUsd,
@@ -21,6 +22,7 @@ import {
   uploadAvatar,
   type BillingSummary,
   type HubUser,
+  type StorageUsage,
   type TopupInfo,
 } from "@/lib/hub";
 import { useLive } from "@/lib/live";
@@ -112,6 +114,8 @@ function ProfileInner() {
   const [account, setAccount] = useState<HubUser | null>(null);
   const [summary, setSummary] = useState<BillingSummary | null>(null);
   const [topupInfo, setTopupInfo] = useState<TopupInfo | null>(null);
+  // What this account keeps in storage, and what that costs each month.
+  const [storage, setStorage] = useState<StorageUsage | null>(null);
   const [quote, setQuote] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
@@ -212,6 +216,9 @@ function ProfileInner() {
         .then((media) => {
           if (media.avatar_url) setAvatar(media.avatar_url);
         })
+        .catch(() => {});
+      getStorageUsage()
+        .then((usage) => setStorage(usage))
         .catch(() => {});
       getTopupInfo()
         .then((info) => {
@@ -549,6 +556,26 @@ function ProfileInner() {
                     {summary ? usd(summary.period.spend_usd / summary.period.days) : "$0.00"} daily average
                   </p>
                 </div>
+
+                {/* storage: charged for as long as it is kept, so it is worth
+                    seeing next to spend rather than buried in an invoice. */}
+                {BACKEND_ENABLED && storage && (
+                  <div className="col-span-4 border-l border-t border-line p-5 sm:col-span-2">
+                    <p className="text-xs uppercase tracking-[0.06em] text-muted">Storage</p>
+                    <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">
+                      {usd(storage.monthly_usd)}
+                      <span className="ml-2 text-sm font-normal text-muted">a month</span>
+                    </p>
+                    <p className="mt-1 text-xs text-dim">
+                      {(storage.bytes / 1048576).toFixed(1)} MB kept at {usd(storage.usd_per_gb_month)} per GB per month
+                      {storage.charged_usd > 0 ? `, ${usd(storage.charged_usd)} charged so far` : ""}
+                      {storage.owed_usd > 0 ? `, ${usd(storage.owed_usd)} owed while the balance is empty` : ""}.
+                    </p>
+                    <Link href="/library?tab=reference" className="mt-2 inline-block text-xs text-blue hover:text-gold-soft">
+                      Manage what you keep
+                    </Link>
+                  </div>
+                )}
 
                 {BACKEND_ENABLED ? (
                   <div className="col-span-4 border-l border-t border-line p-5 sm:col-span-2">

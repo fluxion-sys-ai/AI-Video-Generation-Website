@@ -12,7 +12,10 @@ export type Model = {
   resolutions: string[]; // e.g. "720p"
   aspectRatios: string[]; // e.g. "16:9"
   popularResolutions: string[]; // highlighted in the dropdown
-  supports: { image: boolean; audio: boolean; seed: boolean };
+  supports: { image: boolean; audio: boolean; seed: boolean; videoReference?: boolean; audioReference?: boolean; imageReference?: boolean };
+  /** What this model takes as reference material, and what each file must be.
+   *  From the catalogue row in the backend, so nothing here is hardcoded. */
+  reference?: ReferenceRules;
   /** Cheapest price per output second, in dollars. Backend mode reads it from
    *  the hub's rate card; the demo list carries its own figures. */
   usdPerSecond: number;
@@ -113,7 +116,7 @@ export function getModel(slug: string): Model | undefined {
 // In demo mode MODELS above is the catalog. With a backend, the catalog lives in
 // the database: display metadata, capabilities and prices are edited there, not here.
 
-import { BACKEND_ENABLED, getCatalog } from "./hub";
+import { BACKEND_ENABLED, getCatalog, type ReferenceRules } from "./hub";
 import { notify } from "./live";
 import { parseTaskTiers, perSecondPrice } from "./pricing-expr";
 
@@ -141,7 +144,11 @@ function toModel(entry: Awaited<ReturnType<typeof getCatalog>>[number]): Model {
       image: Boolean(entry.supports?.image),
       audio: Boolean(entry.supports?.audio),
       seed: Boolean(entry.supports?.seed),
+      videoReference: Boolean(entry.supports?.video_reference || entry.supports?.reference?.video),
+      audioReference: Boolean(entry.supports?.audio_reference || entry.supports?.reference?.audio),
+      imageReference: Boolean(entry.supports?.image_reference || entry.supports?.reference?.image),
     },
+    reference: entry.supports?.reference,
     usdPerSecond: perSecond ?? 0,
     demoVideo: entry.demoVideo || `${BASE}/models/${entry.slug}.mp4`,
     poster: entry.poster || `${BASE}/models/${entry.slug}.jpg`,

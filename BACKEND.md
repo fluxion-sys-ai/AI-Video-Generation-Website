@@ -28,8 +28,14 @@ The single place a render backend plugs in. Two functions, both async:
 | `generateVideo(params)` | `app/generate/page.tsx` → `onGenerate()` | `POST /api/generate`, poll the job, resolve `{ videoUrl }` |
 | `refineVideo(params, refinements)` | `app/generate/page.tsx` → `regen()` | `POST /api/refine` with the prior job id + new instructions |
 
-`params` (`GenerateParams`): `{ slug, prompt, aspect, resolution, duration, audio, images? }`
+`params` (`GenerateParams`): `{ slug, prompt, aspect, resolution, duration, audio, images?, referenceVideoIds?, referenceAudioIds? }`
 Return (`GenerateResult`): `{ videoUrl }`
+
+The reference ids name media stored by the backend (`lib/hub.ts`:
+`uploadLibraryMedia`, `checkReferences`). `lib/api.ts` has the backend check them
+against the model's rules and turn them into URLs the provider fetches, because
+that check also decides what the reference costs - see the Fluxion backend's
+README, "Customer media" and "Storage rent".
 
 The mock resolves the model's sample clip after a random delay. Swap the body for
 a real request and the whole playground (progress state, preview, refine loop,

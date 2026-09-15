@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { getPricing } from "./hub";
-import { estimateCost, parseTaskTiers, perSecondPrice, type ParsedTaskTier } from "./pricing-expr";
+import { estimateCost, matchTier, parseTaskTiers, perSecondPrice, type ParsedTaskTier } from "./pricing-expr";
 
 /** Tiers keyed by the hub's model name. */
 export type RateCard = Record<string, ParsedTaskTier[]>;
@@ -70,6 +70,31 @@ export function rateRange(tiers: ParsedTaskTier[] | undefined, resolutions: stri
   const lo = Math.min(...rates);
   const hi = Math.max(...rates);
   return lo === hi ? money(lo) : `${money(lo)}-${money(hi)}`;
+}
+
+/**
+ * What each priced fact contributes to a price, so a customer can be shown why
+ * a generation costs what it does: output seconds, reference video seconds, and
+ * images past the free allowance are all separate terms in the hub's
+ * expression, and this splits the total back into them.
+ */
+export function costBreakdown(
+  tiers: ParsedTaskTier[] | undefined,
+  facts: Record<string, string | number | boolean>,
+): { total: number; lines: { field: string; units: number; usd: number }[] } | null {
+  if (!tiers) return null;
+  const tier = matchTier(tiers, facts);
+  if (!tier) return null;
+  const lines: { field: string; units: number; usd: number }[] = [];
+  let total = tier.constant;
+  for (const [field, price] of Object.entries(tier.unitPrices)) {
+    const units = Number(facts[field] ?? 0);
+    if (!Number.isFinite(units) || units <= 0) continue;
+    const usd = units * price;
+    total += usd;
+    lines.push({ field, units, usd });
+  }
+  return { total, lines };
 }
 
 export { estimateCost, perSecondPrice };

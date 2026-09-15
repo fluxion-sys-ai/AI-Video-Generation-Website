@@ -192,7 +192,14 @@ async function sidecar<T>(method: string, path: string, body?: unknown): Promise
   const res = await authedFetch(method, path, body);
   const payload = await parseBody(res);
   if (!res.ok) {
-    const detail = payload && typeof payload === "object" ? (payload as { detail?: string }).detail : undefined;
+    const raw = payload && typeof payload === "object" ? (payload as { detail?: unknown }).detail : undefined;
+    // A validation refusal comes back as {message, problems}; plain errors as a string.
+    const detail =
+      typeof raw === "string"
+        ? raw
+        : raw && typeof raw === "object"
+          ? String((raw as { message?: unknown }).message || "")
+          : "";
     throw new ApiError(detail || `Request failed (${res.status}).`, res.status);
   }
   return payload as T;
@@ -499,6 +506,12 @@ export type VideoRequest = {
   imageName?: string;
   /** ...or as a URL the provider fetches itself (a stored library image). */
   imageUrl?: string;
+  /**
+   * Reference material the provider fetches: video, audio and images that drive
+   * the whole clip rather than pinning its ends. The URLs come from
+   * checkReferences(), which has already judged them against the model's rules.
+   */
+  metadata?: Record<string, unknown>;
 };
 
 function rememberPrompt(taskId: string, prompt: string) {
@@ -521,15 +534,19 @@ export async function createVideo(req: VideoRequest): Promise<Video> {
   if (req.audio !== undefined) fields.audio = req.audio;
   if (req.seed !== undefined) fields.seed = req.seed;
   if (req.imageUrl) fields.image = req.imageUrl;
+  const metadata = req.metadata && Object.keys(req.metadata).length ? req.metadata : null;
 
   let video: Video;
   if (req.image) {
     const form = new FormData();
     for (const [name, value] of Object.entries(fields)) form.append(name, String(value));
+    // Multipart fields are flat, so metadata rides as JSON text; the API accepts
+    // either shape (see plugins/fluxion-minimax).
+    if (metadata) form.append("metadata", JSON.stringify(metadata));
     form.append("image", req.image, req.imageName || "reference.png");
     video = await relay<Video>("POST", "/v1/videos", { form });
   } else {
-    video = await relay<Video>("POST", "/v1/videos", { json: fields });
+    video = await relay<Video>("POST", "/v1/videos", { json: metadata ? { ...fields, metadata } : fields });
   }
   rememberPrompt(video.id, req.prompt);
   return video;
@@ -754,11 +771,16 @@ export function setLowBalanceAlert(input: { thresholdUsd: number; email: string;
   });
 }
 
-// ---- customer media: reference images, folders, profile photo ---------------------
+// ---- customer media: reference images, video, audio, folders, profile photo -------
 // Stored in the backend's bucket so they follow the customer across devices.
+// Uploading is permissive - any video, any audio, images we can serve - and the
+// provider's rules are checked when a file is used (checkReferences below).
 
-export type LibraryImage = {
+export type MediaKind = "image" | "video" | "audio";
+
+export type LibraryItem = {
   id: string;
+  kind: MediaKind;
   name: string;
   content_type: string;
   bytes: number;
@@ -766,49 +788,137 @@ export type LibraryImage = {
   folder_id: string | null;
   favourite: boolean;
   uses: number;
+  /** What the file measures, as far as the backend could read it. Null is "unknown". */
+  container: string;
+  codec: string;
+  audio_codec: string;
+  duration_seconds: number | null;
+  width: number | null;
+  height: number | null;
   created_at: string;
   /** Short-lived URL for display. */
   url: string;
 };
 
+/** The old name, kept so image-only callers read naturally. */
+export type LibraryImage = LibraryItem;
+
 export type LibraryFolder = { id: string; name: string; created_at: string };
 
-export type LibraryListing = {
-  items: LibraryImage[];
-  folders: LibraryFolder[];
-  limits: { max_images: number; max_bytes_per_image: number };
+export type LibraryLimits = {
+  max_images: number;
+  max_videos: number;
+  max_audios: number;
+  max_bytes_per_image: number;
+  max_bytes_per_video: number;
+  max_bytes_per_audio: number;
+  max_bytes_total: number;
+  /** What a stored gigabyte costs per month, at the bucket's own price. */
+  storage_usd_per_gb_month: number;
 };
 
-export function listLibrary(): Promise<LibraryListing> {
-  return sidecar<LibraryListing>("GET", "/media/library/images");
+export type LibraryListing = {
+  items: LibraryItem[];
+  folders: LibraryFolder[];
+  limits: LibraryLimits;
+  usage?: Partial<Record<MediaKind, { count: number; bytes: number }>>;
+};
+
+export function listLibrary(kind?: MediaKind): Promise<LibraryListing> {
+  return sidecar<LibraryListing>("GET", `/media/library/media${kind ? `?kind=${kind}` : ""}`);
 }
 
-export function uploadLibraryImage(file: Blob, opts: { name?: string; model?: string; folderId?: string } = {}): Promise<LibraryImage> {
+export function uploadLibraryMedia(
+  file: Blob,
+  opts: { name?: string; model?: string; folderId?: string } = {},
+): Promise<LibraryItem> {
   const form = new FormData();
-  form.append("file", file, opts.name || "image.png");
+  form.append("file", file, opts.name || "upload");
   if (opts.model) form.append("model", opts.model);
   if (opts.folderId) form.append("folder_id", opts.folderId);
-  return sidecar<LibraryImage>("POST", "/media/library/images", form);
+  return sidecar<LibraryItem>("POST", "/media/library/media", form);
+}
+
+/** Uploading an image is the same call; the backend classifies the file. */
+export function uploadLibraryImage(file: Blob, opts: { name?: string; model?: string; folderId?: string } = {}): Promise<LibraryItem> {
+  return uploadLibraryMedia(file, { ...opts, name: opts.name || "image.png" });
 }
 
 export function updateLibraryImage(
   id: string,
   patch: { favourite?: boolean; name?: string; folder_id?: string | null; used?: boolean },
-): Promise<LibraryImage> {
-  return sidecar<LibraryImage>("PATCH", `/media/library/images/${encodeURIComponent(id)}`, patch);
+): Promise<LibraryItem> {
+  return sidecar<LibraryItem>("PATCH", `/media/library/media/${encodeURIComponent(id)}`, patch);
 }
 
 export async function deleteLibraryImage(id: string): Promise<void> {
-  await sidecar<unknown>("DELETE", `/media/library/images/${encodeURIComponent(id)}`);
+  await sidecar<unknown>("DELETE", `/media/library/media/${encodeURIComponent(id)}`);
 }
 
 export function setLibraryOrder(ids: string[]): Promise<unknown> {
-  return sidecar<unknown>("PUT", "/media/library/images/order", { ids });
+  return sidecar<unknown>("PUT", "/media/library/media/order", { ids });
 }
 
 /** A URL a video provider can fetch, so image-to-video does not re-upload the bytes. */
 export function libraryImageLink(id: string): Promise<{ url: string; expires_at: number }> {
-  return sidecar<{ url: string; expires_at: number }>("GET", `/media/library/images/${encodeURIComponent(id)}/link`);
+  return sidecar<{ url: string; expires_at: number }>("GET", `/media/library/media/${encodeURIComponent(id)}/link`);
+}
+
+// ---- using media for a generation -------------------------------------------------
+
+/** Which library files play which part in a request. */
+export type ReferenceSelection = {
+  model: string;
+  first_frame?: string;
+  last_frame?: string;
+  reference_video?: string[];
+  reference_audio?: string[];
+  reference_image?: string[];
+};
+
+export type ReferenceCheck = {
+  ok: true;
+  model: string;
+  /** The facts that price the reference: input seconds, images, audio files. */
+  facts: { input_video_seconds: number; input_images: number; input_audios: number };
+  /** Files the backend could not measure; the provider judges these itself. */
+  unverified: string[];
+  urls: Partial<Record<"first_frame" | "last_frame" | "reference_video" | "reference_audio" | "reference_image", string | string[]>>;
+  expires_at?: number | null;
+};
+
+/**
+ * Checks a selection against the model's rules, and - unless this is a dry run -
+ * returns the URLs the provider will fetch.
+ *
+ * This is where a customer finds out that a clip is too long or in the wrong
+ * codec, which is why it is worth calling twice: with `dryRun` while they are
+ * still choosing, and for real just before submitting. A refusal arrives as an
+ * ApiError whose message lists every problem found.
+ */
+export async function checkReferences(selection: ReferenceSelection, dryRun = false): Promise<ReferenceCheck> {
+  return sidecar<ReferenceCheck>(
+    "POST",
+    `/media/library/references${dryRun ? "?dry_run=1" : ""}`,
+    selection as unknown as Record<string, unknown>,
+  );
+}
+
+/** What this account stores, and what that costs per month. */
+export type StorageUsage = {
+  bytes: number;
+  gb: number;
+  usd_per_gb_month: number;
+  monthly_usd: number;
+  charged_usd: number;
+  pending_usd: number;
+  owed_usd: number;
+  measured_at: string | null;
+  by_kind: Record<string, { count: number; bytes: number }>;
+};
+
+export function getStorageUsage(): Promise<StorageUsage> {
+  return sidecar<StorageUsage>("GET", "/media/storage");
 }
 
 export function createLibraryFolder(name: string): Promise<LibraryFolder> {
@@ -864,6 +974,39 @@ export async function deleteAccount(password: string): Promise<void> {
 
 // ---- model catalog (from the backend database) ------------------------------------
 
+/**
+ * The rules a file has to satisfy to be used as a reference, and what using it
+ * costs. These live in the catalogue row in the backend's database, not here:
+ * the same numbers drive the backend's checks, the messages a customer sees,
+ * and the estimate below the Generate button.
+ */
+export type ReferenceLimits = {
+  max_count?: number;
+  formats?: string[];
+  codecs?: string[];
+  max_bytes?: number;
+  min_seconds?: number;
+  max_seconds?: number;
+  max_total_seconds?: number;
+  min_px?: number;
+  max_px?: number;
+  min_aspect?: number;
+  max_aspect?: number;
+  /** Price, where the provider charges for the input: per second, or per file. */
+  usd_per_second?: number;
+  usd_each?: number;
+  /** Files of this kind that cost nothing (MiniMax gives the first five images). */
+  free_count?: number;
+};
+
+export type ReferenceRules = {
+  mutually_exclusive_with_frames?: boolean;
+  video?: ReferenceLimits;
+  audio?: ReferenceLimits;
+  image?: ReferenceLimits;
+  frame_image?: ReferenceLimits;
+};
+
 export type CatalogModel = {
   slug: string;
   /** The model name the hub routes, which may differ from the site's slug. */
@@ -876,7 +1019,16 @@ export type CatalogModel = {
   resolutions: string[];
   popularResolutions: string[];
   aspectRatios: string[];
-  supports: { image?: boolean; audio?: boolean; seed?: boolean };
+  supports: {
+    image?: boolean;
+    audio?: boolean;
+    seed?: boolean;
+    video_reference?: boolean;
+    audio_reference?: boolean;
+    image_reference?: boolean;
+    /** What reference material this model takes, and what each file must satisfy. */
+    reference?: ReferenceRules;
+  };
   poster: string | null;
   demoVideo: string | null;
   sortOrder: number;
@@ -888,6 +1040,19 @@ export type CatalogModel = {
     billing_usage_schema?: import("./pricing-expr").BillingUsageSchema;
   } | null;
 };
+
+/** Prices that are not per-model: what storage costs. Public, like the catalogue. */
+export type PlatformRates = {
+  currency: string;
+  storage: { usd_per_gb_month: number; metered_every_seconds: number; enabled: boolean };
+};
+
+export async function getPlatformRates(): Promise<PlatformRates> {
+  const res = await fetch("/catalog/rates", { credentials: "same-origin" });
+  const body = (await parseBody(res)) as PlatformRates | null;
+  if (!res.ok || !body) throw errorFrom(res, body);
+  return body;
+}
 
 export async function getCatalog(): Promise<CatalogModel[]> {
   const res = await fetch("/catalog", { credentials: "same-origin" });

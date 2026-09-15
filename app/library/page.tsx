@@ -35,6 +35,7 @@ import { useEscapeKey } from "@/lib/use-escape-key";
 import { toast } from "@/lib/toast";
 import { Heart, ImageIcon, FolderOpen, Search, Clapperboard } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ReferenceShelf } from "@/components/library/reference-shelf";
 import { SkeletonImg } from "@/components/ui/skeleton";
 
 // Video card: the poster is an <img> thumbnail that always loads; the actual
@@ -74,7 +75,9 @@ function LibraryInner() {
   const router = useRouter();
   const search = useSearchParams();
   const [ready, setReady] = useState(false);
-  const [tab, setTab] = useState<"videos" | "images">("images");
+  // "reference" is the video and audio a model can follow; it only exists with
+  // a backend, which is where that media is stored.
+  const [tab, setTab] = useState<"videos" | "images" | "reference">("images");
 
   // Image selection + "upload to a model" flow.
   const [selectMode, setSelectMode] = useState(false);
@@ -133,7 +136,7 @@ function LibraryInner() {
   // changes too, so navigating Videos → Images updates without a remount.
   useEffect(() => {
     const t = search.get("tab");
-    if (t === "images" || t === "videos") setTab(t);
+    if (t === "images" || t === "videos" || (t === "reference" && BACKEND_ENABLED)) setTab(t);
   }, [search]);
 
   // Backend mode: images, folders and videos come from the server. These hooks
@@ -454,7 +457,7 @@ function LibraryInner() {
         </div>
 
         <div className="mt-8 flex gap-6 border-b border-hairline font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
-          {(["images", "videos"] as const).map((t) => (
+          {(BACKEND_ENABLED ? (["images", "videos", "reference"] as const) : (["images", "videos"] as const)).map((t) => (
             <button
               key={t}
               onClick={() => { setTab(t); exitSelect(); }}
@@ -484,6 +487,13 @@ function LibraryInner() {
               ))}
             </div>
           )
+        )}
+
+        {/* REFERENCE MATERIAL: video and audio for reference-to-video */}
+        {tab === "reference" && (
+          <div className="mt-8">
+            <ReferenceShelf />
+          </div>
         )}
 
         {/* IMAGES */}

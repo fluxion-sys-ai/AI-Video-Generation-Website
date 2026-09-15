@@ -12,6 +12,8 @@ import {
   updateLibraryImage,
   uploadLibraryImage as hubUploadLibraryImage,
   type LibraryFolder,
+  type LibraryItem,
+  type LibraryLimits,
 } from "./hub";
 import { notify } from "./live";
 
@@ -248,25 +250,43 @@ export function watchSystemTheme(): () => void {
 // components call useLive("library", refreshLibrary) to fill and follow it.
 
 let liveImages: LibImage[] | null = null;
+let liveMedia: LibraryItem[] = [];
 let liveFolders: LibraryFolder[] = [];
 let folderOfImage: Record<string, string | null> = {};
+let liveLimits: LibraryLimits | null = null;
 
 export async function refreshLibrary(): Promise<void> {
   if (!BACKEND_ENABLED) return;
-  const { items, folders } = await listLibrary();
+  const { items, folders, limits } = await listLibrary();
   liveFolders = folders;
+  liveLimits = limits;
+  liveMedia = items;
   folderOfImage = Object.fromEntries(items.map((i) => [i.id, i.folder_id]));
-  liveImages = items.map((i) => ({
-    id: i.id,
-    src: i.url,
-    name: i.name,
-    model: i.model || undefined,
-    size: i.bytes,
-    uses: i.uses,
-    addedAt: Date.parse(i.created_at),
-    fav: i.favourite,
-  }));
+  // The image grid is for images; video and audio are reference material and
+  // are listed as themselves (getLibraryMedia).
+  liveImages = items
+    .filter((i) => i.kind === "image")
+    .map((i) => ({
+      id: i.id,
+      src: i.url,
+      name: i.name,
+      model: i.model || undefined,
+      size: i.bytes,
+      uses: i.uses,
+      addedAt: Date.parse(i.created_at),
+      fav: i.favourite,
+    }));
   notify("library");
+}
+
+/** Stored video or audio, as the backend describes it (duration, codec, size). */
+export function getLibraryMedia(kind?: "video" | "audio" | "image"): LibraryItem[] {
+  return kind ? liveMedia.filter((i) => i.kind === kind) : liveMedia;
+}
+
+/** Library limits and the storage price, as the backend reports them. */
+export function getLibraryLimits(): LibraryLimits | null {
+  return liveLimits;
 }
 
 /** Folders in the shape the library page uses, with their image ids filled in. */

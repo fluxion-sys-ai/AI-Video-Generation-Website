@@ -11,7 +11,9 @@ import { getModels, getModel, type Model, refreshCatalog } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
 import { NumberField, isPositive } from "@/components/ui/number-field";
 import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings, uploadLibraryImage } from "@/lib/prefs";
-import { BACKEND_ENABLED } from "@/lib/hub";
+import { BACKEND_ENABLED, checkReferences, type LibraryItem } from "@/lib/hub";
+import { ReferenceMedia } from "@/components/generate/reference-media";
+import { costBreakdown, money, ratesFor, useRateCard } from "@/lib/rate-card";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { useSkin } from "@/lib/use-skin";
 import { generateVideo, refineVideo } from "@/lib/api";
@@ -108,6 +110,56 @@ function GenerateInner() {
   imagesRef.current = images;
   useEffect(() => () => imagesRef.current.forEach((im) => URL.revokeObjectURL(im.url)), []);
 
+  // Reference material: clips and sound the model follows. What the model takes
+  // and what each file must satisfy comes from its catalogue row; the verdict on
+  // a particular selection comes from the backend, which is the same check it
+  // runs when the generation is submitted.
+  const [refVideos, setRefVideos] = useState<LibraryItem[]>([]);
+  const [refAudios, setRefAudios] = useState<LibraryItem[]>([]);
+  const [refVerdict, setRefVerdict] = useState<{ problems: string[]; facts: { input_video_seconds: number; input_images: number } | null }>({
+    problems: [],
+    facts: null,
+  });
+  const { card } = useRateCard();
+  const rules = model?.reference;
+  const hasReference = refVideos.length > 0 || refAudios.length > 0;
+  // H3 treats reference material and frame images as two different modes and
+  // refuses a request that mixes them, so the form does not offer the mix.
+  const exclusive = Boolean(rules?.mutually_exclusive_with_frames);
+  const framesBlocked = exclusive && hasReference;
+  const referenceBlocked = exclusive && images.length > 0;
+  // With nothing selected there is nothing to judge, so the verdict is derived
+  // rather than cleared: the effect below only writes when an answer arrives.
+  const refProblems = hasReference ? refVerdict.problems : [];
+  const refFacts = hasReference ? refVerdict.facts : null;
+
+  useEffect(() => {
+    if (!BACKEND_ENABLED || !model || !hasReference) return;
+    let alive = true;
+    checkReferences(
+      {
+        model: model.slug,
+        reference_video: refVideos.map((i) => i.id),
+        reference_audio: refAudios.map((i) => i.id),
+      },
+      true,
+    )
+      .then((result) => {
+        if (alive) setRefVerdict({ problems: [], facts: { input_video_seconds: result.facts.input_video_seconds, input_images: result.facts.input_images } });
+      })
+      .catch((err) => {
+        if (!alive) return;
+        setRefVerdict({
+          problems: err instanceof Error && err.message ? err.message.split("; ") : ["Those files cannot be used here."],
+          facts: null,
+        });
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [model?.slug, refVideos, refAudios]);
+
   function addImages(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
@@ -194,6 +246,37 @@ function GenerateInner() {
     refineDrag.current = { sx: e.clientX, sy: e.clientY, ox: refinePos.x, oy: refinePos.y };
   }
 
+  // What the configured generation will cost, split into the things being
+  // charged for: the output, the reference video by its own length, and input
+  // images past the free allowance. Every rate comes from the hub's rate card.
+  const estimate = (() => {
+    if (!model || !isPositive(duration)) return null;
+    const freeImages = rules?.frame_image?.free_count ?? rules?.image?.free_count ?? 0;
+    // Only the first image is sent, as the first frame (lib/api.ts), so that is
+    // all the provider counts as an input image.
+    const inputImages = framesBlocked || images.length === 0 ? 0 : 1;
+    const facts = {
+      seconds: duration,
+      resolution,
+      input_video_seconds: refFacts?.input_video_seconds ?? 0,
+      input_images: inputImages,
+      input_images_billable: Math.max(0, inputImages - freeImages),
+      input_audios: refAudios.length,
+    };
+    const broken = costBreakdown(ratesFor(card, model), facts);
+    if (!broken) return null;
+    const labels: Record<string, (units: number) => string> = {
+      seconds: (units) => `${units}s at ${resolution}`,
+      input_video_seconds: (units) => `${Number(units.toFixed(2))}s of reference video`,
+      input_images_billable: (units) => `${units} image${units === 1 ? "" : "s"} past the first ${freeImages}`,
+    };
+    return {
+      total: broken.total,
+      parts: broken.lines.map((line) => `${money(line.usd)} for ${(labels[line.field] || ((u: number) => `${u} ${line.field}`))(line.units)}`),
+      reserves: facts.input_video_seconds > 0,
+    };
+  })();
+
   // Reset model-dependent options when the selected model changes.
   // Track recently-used models for the dashboard.
   useEffect(() => {
@@ -212,6 +295,8 @@ function GenerateInner() {
     setResolution(preferredRes());
     setDuration(model.durations[0]);
     if (!model.supports.audio) setAudio(false);
+    setRefVideos([]);
+    setRefAudios([]);
     setStatus("idle");
     setResultUrl(null);
     setSession(false);
@@ -272,7 +357,17 @@ function GenerateInner() {
     const id = ++genId.current;
     setResultUrl(null);
     setStatus("generating");
-    generateVideo({ slug, prompt, aspect, resolution, duration, audio, images: images.map((i) => i.url) })
+    generateVideo({
+      slug,
+      prompt,
+      aspect,
+      resolution,
+      duration,
+      audio,
+      images: framesBlocked ? [] : images.map((i) => i.url),
+      referenceVideoIds: refVideos.map((i) => i.id),
+      referenceAudioIds: refAudios.map((i) => i.id),
+    })
       .then((r) => {
         if (id !== genId.current) return; // superseded, drop the result
         setResultUrl(r.videoUrl);
@@ -298,7 +393,20 @@ function GenerateInner() {
       toast("Enter a duration in seconds.");
       return;
     }
-    refineVideo({ slug, prompt, aspect, resolution, duration, audio, images: images.map((i) => i.url) }, chat)
+    refineVideo(
+      {
+        slug,
+        prompt,
+        aspect,
+        resolution,
+        duration,
+        audio,
+        images: framesBlocked ? [] : images.map((i) => i.url),
+        referenceVideoIds: refVideos.map((i) => i.id),
+        referenceAudioIds: refAudios.map((i) => i.id),
+      },
+      chat,
+    )
       .then((r) => {
         if (id !== genId.current) return;
         setResultUrl(r.videoUrl);
@@ -569,8 +677,17 @@ function GenerateInner() {
           </Field>
 
           {/* Always available: attach/browse reference images (and show any
-              handed over from the library), regardless of the model. */}
-          {(
+              handed over from the library), regardless of the model - unless
+              reference material is in play, which the provider treats as a
+              different mode. */}
+          {framesBlocked ? (
+            <Field label="Images" hint="not with reference material">
+              <p className="text-sm text-muted">
+                {model.name} animates either a still you provide or the reference material below, not both.
+                Remove the reference files to start from an image.
+              </p>
+            </Field>
+          ) : (
             <Field label="Images" hint="Optional">
               {images.length === 0 ? (
                 <label className="flex w-fit cursor-pointer items-center gap-3 rounded-none border border-dashed border-line-strong px-3 py-2 text-sm text-fg-soft hover:border-blue">
@@ -614,6 +731,37 @@ function GenerateInner() {
                 </div>
               )}
             </Field>
+          )}
+
+          {/* Reference material, for models whose catalogue row offers it. */}
+          {rules?.video && (
+            <ReferenceMedia
+              kind="video"
+              limits={rules.video}
+              modelSlug={slug}
+              items={refVideos}
+              onChange={setRefVideos}
+              disabled={referenceBlocked}
+              disabledReason="not with a first frame image"
+            />
+          )}
+          {rules?.audio && (
+            <ReferenceMedia
+              kind="audio"
+              limits={rules.audio}
+              modelSlug={slug}
+              items={refAudios}
+              onChange={setRefAudios}
+              disabled={referenceBlocked}
+              disabledReason="not with a first frame image"
+            />
+          )}
+          {refProblems.length > 0 && (
+            <ul className="border border-danger/60 bg-danger/10 p-3 text-sm text-danger">
+              {refProblems.map((problem) => (
+                <li key={problem}>{problem}</li>
+              ))}
+            </ul>
           )}
 
           {/* compact inline controls */}
@@ -671,9 +819,22 @@ function GenerateInner() {
             )}
           </div>
 
+          {/* What this will cost, at the rate the backend will charge. */}
+          {estimate !== null && (
+            <p className="text-sm text-muted">
+              <span className="font-[family-name:var(--font-jetbrains)] text-base text-accent-ink">{money(estimate.total)}</span>{" "}
+              <span>{estimate.parts.join(" + ")}</span>
+              {estimate.reserves && (
+                <span className="block text-xs text-dim">
+                  A reference clip is charged for its own length. Until the provider reports it, the hold assumes the longest it allows.
+                </span>
+              )}
+            </p>
+          )}
+
           <button
             onClick={onGenerate}
-            disabled={status === "generating"}
+            disabled={status === "generating" || refProblems.length > 0}
             className="w-full rounded-none bg-accent px-6 py-2.5 font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {status === "generating" ? "Generating…" : "Generate"}

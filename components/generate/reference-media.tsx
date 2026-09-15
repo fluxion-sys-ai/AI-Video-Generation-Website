@@ -1,0 +1,209 @@
+"use client";
+
+// Choosing reference material for a generation: clips and sound the model
+// should follow, rather than a still to start from.
+//
+// Every rule and price shown here comes from the model's catalogue row in the
+// backend (model.reference), so this component states the limits without
+// knowing them: how many files, which containers, how long, and what the
+// provider charges for the input. Uploading is permissive - the backend accepts
+// any video or audio - and the verdict on a particular file arrives from the
+// backend's own check, which the page runs whenever the selection changes.
+
+import { useEffect, useRef, useState } from "react";
+import { listLibrary, uploadLibraryMedia, type LibraryItem, type ReferenceLimits } from "@/lib/hub";
+import { refreshLibrary } from "@/lib/prefs";
+import { money } from "@/lib/rate-card";
+import { toast } from "@/lib/toast";
+
+type Kind = "video" | "audio";
+
+const box =
+  "rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue";
+
+/** "MP4 or MOV, 2-15s each, up to 3, $0.08 per second of input" */
+export function limitSummary(limits: ReferenceLimits | undefined, kind: Kind): string {
+  if (!limits) return "";
+  const parts: string[] = [];
+  const formats = (limits.formats || []).map((f) => f.toUpperCase());
+  if (formats.length) parts.push(formats.length > 1 ? `${formats.slice(0, -1).join(", ")} or ${formats.at(-1)}` : formats[0]);
+  if (limits.min_seconds != null && limits.max_seconds != null) parts.push(`${limits.min_seconds}-${limits.max_seconds}s each`);
+  else if (limits.max_seconds != null) parts.push(`up to ${limits.max_seconds}s`);
+  if (limits.max_total_seconds != null) parts.push(`${limits.max_total_seconds}s in total`);
+  if (limits.max_count) parts.push(`up to ${limits.max_count} file${limits.max_count === 1 ? "" : "s"}`);
+  if (limits.max_bytes) parts.push(`${Math.round(limits.max_bytes / 1048576)} MB each`);
+  if (limits.usd_per_second) parts.push(`${money(limits.usd_per_second)} per second of input`);
+  else if (limits.usd_each) parts.push(`${money(limits.usd_each)} each${limits.free_count ? `, first ${limits.free_count} free` : ""}`);
+  else parts.push(kind === "audio" ? "free" : "no input charge");
+  return parts.join(" · ");
+}
+
+function describe(item: LibraryItem): string {
+  const bits: string[] = [];
+  if (item.duration_seconds != null) bits.push(`${Number(item.duration_seconds.toFixed(2))}s`);
+  if (item.width && item.height) bits.push(`${item.width}x${item.height}`);
+  if (item.codec) bits.push(item.codec.toUpperCase());
+  bits.push(`${(item.bytes / 1048576).toFixed(1)} MB`);
+  if (item.duration_seconds == null) bits.push("length unknown");
+  return bits.join(" · ");
+}
+
+export function ReferenceMedia({
+  kind,
+  limits,
+  modelSlug,
+  items,
+  onChange,
+  disabled,
+  disabledReason,
+}: {
+  kind: Kind;
+  limits: ReferenceLimits | undefined;
+  modelSlug: string;
+  items: LibraryItem[];
+  onChange: (items: LibraryItem[]) => void;
+  disabled?: boolean;
+  disabledReason?: string;
+}) {
+  const [browsing, setBrowsing] = useState(false);
+  const [stored, setStored] = useState<LibraryItem[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const full = Boolean(limits?.max_count && items.length >= limits.max_count);
+
+  useEffect(() => {
+    if (!browsing || stored) return;
+    let alive = true;
+    listLibrary(kind)
+      .then((listing) => {
+        if (alive) setStored(listing.items);
+      })
+      .catch((err) => {
+        if (alive) setStored([]);
+        toast(err instanceof Error ? err.message : `Could not load your ${kind} files.`);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [browsing, stored, kind]);
+
+  async function add(files: File[]) {
+    if (!files.length) return;
+    setBusy(true);
+    const added: LibraryItem[] = [];
+    for (const file of files) {
+      try {
+        added.push(await uploadLibraryMedia(file, { name: file.name, model: modelSlug }));
+      } catch (err) {
+        toast(err instanceof Error ? err.message : `Could not upload ${file.name}.`);
+      }
+    }
+    setBusy(false);
+    if (!added.length) return;
+    // A new upload belongs in the browser list and the library page too.
+    setStored((prev) => (prev ? [...added, ...prev] : prev));
+    void refreshLibrary().catch(() => {});
+    const room = limits?.max_count ? Math.max(0, limits.max_count - items.length) : added.length;
+    onChange([...items, ...added.slice(0, room)]);
+  }
+
+  const chosenIds = new Set(items.map((i) => i.id));
+  const label = kind === "video" ? "Reference video" : "Reference audio";
+
+  return (
+    <div>
+      <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">
+        <label className="font-[family-name:var(--font-jetbrains)] text-[11px] font-medium uppercase tracking-[0.06em] text-fg-soft">
+          {label}
+        </label>
+        <span className="text-xs text-dim">{disabled ? disabledReason : limitSummary(limits, kind)}</span>
+      </div>
+
+      {items.length > 0 && (
+        <ul className="mb-2 space-y-2">
+          {items.map((item) => (
+            <li key={item.id} className="flex items-center gap-3 border border-line bg-surface/60 p-2">
+              {kind === "video" ? (
+                <video src={item.url} muted playsInline controls className="h-20 w-32 bg-black object-contain" />
+              ) : (
+                <audio src={item.url} controls className="h-10 w-56" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-fg">{item.name}</p>
+                <p className="text-xs text-muted">{describe(item)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onChange(items.filter((i) => i.id !== item.id))}
+                className="shrink-0 border border-line-strong px-2 py-1 text-xs text-fg-soft hover:border-danger hover:text-danger"
+                aria-label={`Remove ${item.name}`}
+              >
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={disabled || full || busy}
+          onClick={() => fileInput.current?.click()}
+          className={`${box} disabled:cursor-not-allowed disabled:opacity-50`}
+        >
+          {busy ? "Uploading…" : `Upload ${kind}`}
+        </button>
+        <input
+          ref={fileInput}
+          type="file"
+          accept={kind === "video" ? "video/*" : "audio/*"}
+          multiple={(limits?.max_count || 1) > 1}
+          className="hidden"
+          onChange={(e) => {
+            void add(Array.from(e.target.files ?? []));
+            e.target.value = "";
+          }}
+        />
+        <button
+          type="button"
+          disabled={disabled || full}
+          onClick={() => setBrowsing((open) => !open)}
+          className={`${box} disabled:cursor-not-allowed disabled:opacity-50`}
+        >
+          {browsing ? "Close library" : "From library"}
+        </button>
+        {full && <span className="text-xs text-dim">that is the most this model takes</span>}
+      </div>
+
+      {browsing && !disabled && (
+        <div className="mt-2 max-h-56 overflow-y-auto border border-line bg-surface/60">
+          {stored === null ? (
+            <p className="p-3 text-sm text-muted">Loading…</p>
+          ) : stored.length === 0 ? (
+            <p className="p-3 text-sm text-muted">Nothing here yet. Upload a {kind} file and it stays in your library.</p>
+          ) : (
+            <ul className="divide-y divide-hairline">
+              {stored.map((item) => (
+                <li key={item.id} className="flex items-center gap-3 p-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm text-fg">{item.name}</p>
+                    <p className="text-xs text-muted">{describe(item)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={chosenIds.has(item.id) || full}
+                    onClick={() => onChange([...items, item])}
+                    className="shrink-0 border border-line-strong px-2 py-1 text-xs text-fg-soft hover:border-blue hover:text-blue disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {chosenIds.has(item.id) ? "Chosen" : "Use"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -5,18 +5,24 @@
 // what a second of each costs. There is nothing here to keep in sync by hand,
 // and nothing claimed that the database cannot produce.
 //
+// Three things are charged, and all three are shown: the video you generate,
+// the reference material a generation reads (the provider bills an input clip
+// by its own length, and input images past its free allowance), and the storage
+// of what you keep, at the bucket's own monthly price.
+//
 // The earlier version carried a plan card ("all models, up to 1080p", "volume
 // discounts"), comparison charts and a credit unit priced at a cent. None of
 // that was real, so none of it is here.
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { PlansDots } from "@/components/decor/plans-dots";
 import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { CostEstimator } from "@/components/landing/cost-estimator";
 import { getModels, refreshCatalog, type Model } from "@/lib/models";
-import { BACKEND_ENABLED } from "@/lib/hub";
+import { BACKEND_ENABLED, getPlatformRates, type PlatformRates, type ReferenceLimits } from "@/lib/hub";
 import { useLive } from "@/lib/live";
 import { estimateCost, money, ratesFor, useRateCard, perSecondPrice } from "@/lib/rate-card";
 
@@ -24,6 +30,39 @@ export default function PricingPage() {
   useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const { card } = useRateCard();
   const models = getModels().filter((m) => m.available !== false);
+  const [platform, setPlatform] = useState<PlatformRates | null>(null);
+  useEffect(() => {
+    if (!BACKEND_ENABLED) return;
+    let alive = true;
+    getPlatformRates()
+      .then((rates) => alive && setPlatform(rates))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // What the provider charges for material a generation reads. The rates live
+  // in the model's catalogue row; the unit price the hub actually bills comes
+  // from its rate card, so where both exist they are the same number.
+  const inputRate = (m: Model, kind: "video" | "audio" | "image"): string | null => {
+    const limits: ReferenceLimits | undefined = m.reference?.[kind];
+    if (!limits) return null;
+    const tiers = ratesFor(card, m);
+    const tier = tiers?.[0];
+    if (kind === "video") {
+      const perSecond = tier?.unitPrices.input_video_seconds ?? limits.usd_per_second ?? null;
+      return perSecond === null ? null : `${money(perSecond)} per second of the clip you supply`;
+    }
+    if (kind === "image") {
+      const each = tier?.unitPrices.input_images_billable ?? limits.usd_each ?? null;
+      if (each === null) return null;
+      return limits.free_count
+        ? `first ${limits.free_count} free, then ${money(each)} each`
+        : `${money(each)} each`;
+    }
+    return "free";
+  };
 
   const rate = (m: Model, resolution: string): number | null => {
     const tiers = ratesFor(card, m);
@@ -53,7 +92,9 @@ export default function PricingPage() {
         <h1 className="text-[clamp(30px,4.5vw,52px)] font-extrabold text-fg-strong">Pricing made simple</h1>
         <p className="mt-3 max-w-2xl text-fg-soft">
           You pay per second of video you generate, at the rate for the model and resolution you pick.
-          No subscription, no minimum, and nothing is charged for a generation that fails.
+          Reference material a generation reads is charged at the provider&apos;s own rate, and what you keep
+          in your library is charged by the gigabyte-month at what the storage costs us. No subscription,
+          no minimum, and nothing is charged for a generation that fails.
         </p>
         {cheapest !== undefined && (
           <p className="mt-6 font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-accent-ink">
@@ -111,6 +152,23 @@ export default function PricingPage() {
                       })}
                     </div>
 
+                    {/* What this model charges for material it reads. */}
+                    {m.reference && (
+                      <dl className="mt-4 space-y-2 border-t border-hairline pt-2 text-sm">
+                        {(["video", "audio", "image"] as const).map((kind) => {
+                          const rate = inputRate(m, kind);
+                          if (!rate) return null;
+                          const label = kind === "video" ? "Reference video" : kind === "audio" ? "Reference audio" : "Reference images";
+                          return (
+                            <div key={kind} className="flex flex-wrap items-baseline justify-between gap-3">
+                              <dt className="text-fg-soft">{label}</dt>
+                              <dd className="text-muted">{rate}</dd>
+                            </div>
+                          );
+                        })}
+                      </dl>
+                    )}
+
                     <p className="mt-3 text-xs text-dim">
                       {m.durations[0]}–{m.durations[m.durations.length - 1]}s · {m.capabilities.join(" · ")}
                     </p>
@@ -120,12 +178,30 @@ export default function PricingPage() {
             )}
           </div>
 
-          <div className="rounded-[18px] border border-line bg-surface/70 p-5 backdrop-blur-sm">
-            <CostEstimator bare />
-            <p className="mt-4 border-t border-hairline pt-3 text-xs text-dim">
-              Prices are set in the platform&apos;s own database and can change; the rate shown when
-              you submit is the rate you pay.
-            </p>
+          <div className="space-y-6">
+            <div className="rounded-[18px] border border-line bg-surface/70 p-5 backdrop-blur-sm">
+              <CostEstimator bare />
+              <p className="mt-4 border-t border-hairline pt-3 text-xs text-dim">
+                Prices are set in the platform&apos;s own database and can change; the rate shown when
+                you submit is the rate you pay.
+              </p>
+            </div>
+
+            {platform && (
+              <div className="rounded-[18px] border border-line bg-surface/70 p-5 backdrop-blur-sm">
+                <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">Storage</h2>
+                <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold text-accent-ink">
+                  {money(platform.storage.usd_per_gb_month)}
+                  <span className="ml-2 text-sm font-normal text-muted">per GB per month</span>
+                </p>
+                <p className="mt-2 text-sm text-muted">
+                  Your finished videos and the material you upload stay in cloud storage, charged at what that
+                  storage costs us. It is measured through the month and billed for the time it is actually kept,
+                  so deleting a file stops its charge. A 50 MB clip kept for a month costs{" "}
+                  {money((50 / 1024) * platform.storage.usd_per_gb_month)}.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </main>
