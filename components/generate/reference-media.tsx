@@ -1,7 +1,7 @@
 "use client";
 
-// Choosing reference material for a generation: clips and sound the model
-// should follow, rather than a still to start from.
+// Choosing reference material for a generation: the clips, sound and stills a
+// model should follow, as opposed to a single image it starts from.
 //
 // Every rule and price shown here comes from the model's catalogue row in the
 // backend (model.reference), so this component states the limits without
@@ -16,7 +16,7 @@ import { refreshLibrary } from "@/lib/prefs";
 import { money } from "@/lib/rate-card";
 import { toast } from "@/lib/toast";
 
-type Kind = "video" | "audio";
+type Kind = "video" | "audio" | "image";
 
 // What a provider takes for an image input. HEIC is here because that is what
 // phones produce; the backend accepts it and so does MiniMax.
@@ -40,6 +40,7 @@ export function limitSummary(limits: ReferenceLimits | undefined, kind: Kind): s
   else if (limits.usd_per_second) parts.push(`${money(limits.usd_per_second)} per second of input`);
   else if (limits.usd_each) parts.push(`${money(limits.usd_each)} each${limits.free_count ? `, first ${limits.free_count} free` : ""}`);
   else parts.push(kind === "audio" ? "free" : "no input charge");
+  if (kind === "image" && limits.min_px && limits.max_px) parts.push(`${limits.min_px}-${limits.max_px}px`);
   return parts.join(" · ");
 }
 
@@ -179,7 +180,7 @@ export function ReferenceMedia({
   }
 
   const chosenIds = new Set(items.map((i) => i.id));
-  const label = kind === "video" ? "Reference video" : "Reference audio";
+  const label = kind === "video" ? "Reference video" : kind === "audio" ? "Reference audio" : "Reference images";
 
   return (
     <div>
@@ -196,8 +197,11 @@ export function ReferenceMedia({
             <li key={item.id} className="flex items-center gap-3 border border-line bg-surface/60 p-2">
               {kind === "video" ? (
                 <video src={item.url} muted playsInline controls className="h-20 w-32 bg-black object-contain" />
-              ) : (
+              ) : kind === "audio" ? (
                 <audio src={item.url} controls className="h-10 w-56" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={item.url} alt={item.name} className="h-20 w-32 bg-black object-contain" />
               )}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm text-fg">{item.name}</p>
@@ -223,12 +227,12 @@ export function ReferenceMedia({
           onClick={() => fileInput.current?.click()}
           className={`${box} disabled:cursor-not-allowed disabled:opacity-50`}
         >
-          {busy ? "Uploading…" : `Upload ${kind}`}
+          {busy ? "Uploading…" : kind === "image" ? "Upload images" : `Upload ${kind}`}
         </button>
         <input
           ref={fileInput}
           type="file"
-          accept={kind === "video" ? "video/*" : "audio/*"}
+          accept={kind === "video" ? "video/*" : kind === "audio" ? "audio/*" : IMAGE_ACCEPT}
           multiple={(limits?.max_count || 1) > 1}
           className="hidden"
           onChange={(e) => {

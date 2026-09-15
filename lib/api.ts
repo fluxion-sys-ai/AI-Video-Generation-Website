@@ -27,6 +27,8 @@ export type GenerateParams = {
   /** Library media to use as reference material, by id (see lib/hub.checkReferences). */
   referenceVideoIds?: string[];
   referenceAudioIds?: string[];
+  /** Stills the model follows throughout, which is not the same as a first frame. */
+  referenceImageIds?: string[];
 };
 
 export type GenerateResult = {
@@ -64,15 +66,18 @@ const LIBRARY_CONTENT = /\/media\/library\/(?:media|images)\/([0-9a-f]{8,})\/con
 async function referenceMetadata(params: GenerateParams, model: ReturnType<typeof getModel>): Promise<Record<string, unknown>> {
   const videos = params.referenceVideoIds || [];
   const audios = params.referenceAudioIds || [];
-  if (!model || (!videos.length && !audios.length)) return {};
+  const stills = params.referenceImageIds || [];
+  if (!model || (!videos.length && !audios.length && !stills.length)) return {};
   const checked = await checkReferences({
     model: model.slug,
     ...(videos.length ? { reference_video: videos } : {}),
     ...(audios.length ? { reference_audio: audios } : {}),
+    ...(stills.length ? { reference_image: stills } : {}),
   });
   const metadata: Record<string, unknown> = {};
   if (checked.urls.reference_video) metadata.reference_video = checked.urls.reference_video;
   if (checked.urls.reference_audio) metadata.reference_audio = checked.urls.reference_audio;
+  if (checked.urls.reference_image) metadata.reference_image = checked.urls.reference_image;
   return metadata;
 }
 

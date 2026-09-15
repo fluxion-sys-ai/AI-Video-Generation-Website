@@ -118,13 +118,18 @@ function GenerateInner() {
   const [pickingImage, setPickingImage] = useState(false);
   const [refVideos, setRefVideos] = useState<LibraryItem[]>([]);
   const [refAudios, setRefAudios] = useState<LibraryItem[]>([]);
+  // Stills the model should follow throughout - a subject, a style, a place -
+  // as opposed to the single image below, which is the clip's first frame. The
+  // provider treats the two as different modes, which is why they are separate
+  // here and why choosing one closes the other off.
+  const [refImages, setRefImages] = useState<LibraryItem[]>([]);
   const [refVerdict, setRefVerdict] = useState<{ problems: string[]; facts: { input_video_seconds: number; input_images: number } | null }>({
     problems: [],
     facts: null,
   });
   const { card } = useRateCard();
   const rules = model?.reference;
-  const hasReference = refVideos.length > 0 || refAudios.length > 0;
+  const hasReference = refVideos.length > 0 || refAudios.length > 0 || refImages.length > 0;
   // H3 treats reference material and frame images as two different modes and
   // refuses a request that mixes them, so the form does not offer the mix.
   const exclusive = Boolean(rules?.mutually_exclusive_with_frames);
@@ -143,6 +148,7 @@ function GenerateInner() {
         model: model.slug,
         reference_video: refVideos.map((i) => i.id),
         reference_audio: refAudios.map((i) => i.id),
+        reference_image: refImages.map((i) => i.id),
       },
       true,
     )
@@ -160,7 +166,7 @@ function GenerateInner() {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model?.slug, refVideos, refAudios]);
+  }, [model?.slug, refVideos, refAudios, refImages]);
 
   function addImages(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -253,9 +259,9 @@ function GenerateInner() {
   const estimate = (() => {
     if (!model || !isPositive(duration)) return null;
     const freeImages = rules?.frame_image?.free_count ?? rules?.image?.free_count ?? 0;
-    // Only the first image is sent, as the first frame (lib/api.ts), so that is
-    // all the provider counts as an input image.
-    const inputImages = framesBlocked || images.length === 0 ? 0 : 1;
+    // Every reference still is an input image, and so is the first frame - of
+    // which only the first is sent (lib/api.ts). The two never appear together.
+    const inputImages = refImages.length || (framesBlocked || images.length === 0 ? 0 : 1);
     const facts = {
       seconds: duration,
       resolution,
@@ -298,6 +304,7 @@ function GenerateInner() {
     if (!model.supports.audio) setAudio(false);
     setRefVideos([]);
     setRefAudios([]);
+    setRefImages([]);
     setStatus("idle");
     setResultUrl(null);
     setSession(false);
@@ -350,6 +357,7 @@ function GenerateInner() {
       const byId = new Map((listing?.items || []).map((i) => [i.id, i]));
       const videos: LibraryItem[] = [];
       const audios: LibraryItem[] = [];
+      const stills: LibraryItem[] = [];
       const frames: { url: string; name: string }[] = [];
       const gone: string[] = [];
       for (const input of wanted) {
@@ -358,12 +366,17 @@ function GenerateInner() {
           gone.push(input.name || input.role);
           continue;
         }
+        // The role decides where it goes, not the file: the same still is a
+        // first frame in one request and a reference in another, and the two
+        // are different modes the provider refuses to mix.
         if (item.kind === "video") videos.push(item);
         else if (item.kind === "audio") audios.push(item);
+        else if (input.role === "reference image") stills.push(item);
         else frames.push({ url: item.url, name: item.name });
       }
       setRefVideos(videos);
       setRefAudios(audios);
+      setRefImages(stills);
       if (frames.length) setImages(frames);
       if (gone.length) {
         toast(
@@ -407,6 +420,7 @@ function GenerateInner() {
     setImages([]);
     setRefVideos([]);
     setRefAudios([]);
+    setRefImages([]);
     setResultUrl(null);
     setStatus("idle");
     setSession(false);
@@ -457,6 +471,7 @@ function GenerateInner() {
       images: framesBlocked ? [] : images.map((i) => i.url),
       referenceVideoIds: refVideos.map((i) => i.id),
       referenceAudioIds: refAudios.map((i) => i.id),
+      referenceImageIds: refImages.map((i) => i.id),
     })
       .then((r) => {
         if (id !== genId.current) return; // superseded, drop the result
@@ -500,6 +515,7 @@ function GenerateInner() {
         images: framesBlocked ? [] : images.map((i) => i.url),
         referenceVideoIds: refVideos.map((i) => i.id),
         referenceAudioIds: refAudios.map((i) => i.id),
+        referenceImageIds: refImages.map((i) => i.id),
       },
       [],
     )
@@ -856,6 +872,17 @@ function GenerateInner() {
               modelSlug={slug}
               items={refVideos}
               onChange={setRefVideos}
+              disabled={referenceBlocked}
+              disabledReason="not with a first frame image"
+            />
+          )}
+          {rules?.image && (
+            <ReferenceMedia
+              kind="image"
+              limits={rules.image}
+              modelSlug={slug}
+              items={refImages}
+              onChange={setRefImages}
               disabled={referenceBlocked}
               disabledReason="not with a first frame image"
             />

@@ -13,7 +13,7 @@
  */
 
 import { getModel, getModels } from "./models";
-import { BACKEND_ENABLED, listGenerations, videoUrl } from "./hub";
+import { BACKEND_ENABLED, listGenerationPrompts, listGenerations, videoUrl } from "./hub";
 import { notify } from "./live";
 
 export type Generation = {
@@ -71,13 +71,23 @@ export async function refreshGenerations(limit = 24): Promise<void> {
   const { items } = await listGenerations(1, limit);
   const finished = items.filter((g) => g.status === "completed");
   const urls = await Promise.allSettled(finished.map((g) => videoUrl(g.id)));
+  // The hub drops a task's request when the job finishes, so the prompt comes
+  // from the platform's own record of what was submitted. Without this, history
+  // showed a prompt only in the browser that happened to make it - and never
+  // for a generation submitted through the API.
+  const recorded = new Map<string, string>();
+  if (finished.some((g) => !g.prompt)) {
+    await listGenerationPrompts(Math.max(limit, 100))
+      .then(({ generations }) => generations.forEach((r) => r.prompt && recorded.set(r.task_id, r.prompt)))
+      .catch(() => {});
+  }
   live = finished.map((g, index) => {
     const model = getModels().find((m) => (m.hubModel || m.slug) === g.model) || getModel(g.model);
     const url = urls[index];
     return {
       id: g.id,
       slug: model?.slug || g.model,
-      prompt: g.prompt || "(no prompt)",
+      prompt: g.prompt || recorded.get(g.id) || "(no prompt)",
       videoUrl: url.status === "fulfilled" ? url.value : "",
       poster: model?.poster || "",
       createdAt: (g.finishedAt || g.createdAt) * 1000,

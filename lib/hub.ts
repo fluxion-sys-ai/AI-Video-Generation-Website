@@ -1091,6 +1091,20 @@ export function getGeneration(taskId: string): Promise<GenerationRecord> {
   return sidecar<GenerationRecord>("GET", `/media/generations/${encodeURIComponent(taskId)}`);
 }
 
+/**
+ * What each recent generation was asked for, from the platform's own record.
+ *
+ * The hub keeps a task's request only until the job finishes - the provider's
+ * view of the task replaces it, and no provider is obliged to echo the prompt -
+ * so this is the only place a finished generation's prompt survives for every
+ * device, and the only place at all for one submitted through the API.
+ */
+export function listGenerationPrompts(limit = 100): Promise<{
+  generations: { task_id: string; prompt: string; model: string; requested_at: string }[];
+}> {
+  return sidecar("GET", `/media/generations?limit=${limit}`);
+}
+
 /** Removes a generated video and stops paying to store it. */
 export function deleteVideo(taskId: string): Promise<{ deleted: boolean; already?: boolean }> {
   return sidecar<{ deleted: boolean; already?: boolean }>("DELETE", `/media/videos/${encodeURIComponent(taskId)}`);
