@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { isSignedIn, getUser } from "@/lib/auth";
+import { isSignedIn, getUser, reconcileUser } from "@/lib/auth";
 import { refreshCatalog } from "@/lib/models";
 import { BACKEND_ENABLED, getBillingSummary, getOnboarding, getTopupInfo, quotaToUsd, getSelf } from "@/lib/hub";
 import { useLive } from "@/lib/live";
@@ -49,7 +49,12 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!BACKEND_ENABLED || !isSignedIn()) return;
     getSelf()
-      .then((me) => setBalanceUsd(quotaToUsd(me.quota)))
+      .then((me) => {
+        setBalanceUsd(quotaToUsd(me.quota));
+        // This call already has the account, so the greeting can be the name
+        // the account carries rather than whatever this browser remembers.
+        setName(reconcileUser(me).name);
+      })
       .catch(() => {});
     getBillingSummary(30)
       .then((s) => setSpendUsd(s.period.spend_usd))

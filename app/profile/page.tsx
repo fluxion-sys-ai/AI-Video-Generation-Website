@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { UsageChart } from "@/components/ui/usage-chart";
 import { AvatarEditor } from "@/components/ui/avatar-editor";
-import { isSignedIn, getUser, setUser, signOut, fetchAccount, saveDisplayName, deleteAccount } from "@/lib/auth";
+import { isSignedIn, getUser, setUser, signOut, fetchAccount, reconcileUser, saveDisplayName, deleteAccount } from "@/lib/auth";
 import {
   BACKEND_ENABLED,
   QUOTA_PER_USD,
@@ -200,6 +200,8 @@ function ProfileInner() {
       fetchAccount()
         .then((a) => {
           setAccount(a);
+          // The account is the truth about who this is; the cache follows it.
+          if (a) setName(reconcileUser(a).name);
           try {
             const setting = JSON.parse(a?.setting || "{}") as { quota_warning_threshold?: number };
             const threshold = Number(setting.quota_warning_threshold || 0);

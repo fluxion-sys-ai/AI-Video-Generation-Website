@@ -23,7 +23,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { completeEmailSignup, getUser, setUser, startEmailSignup } from "@/lib/auth";
+import { completeEmailSignup, getUser, saveDisplayName, setUser, startEmailSignup } from "@/lib/auth";
 import { acceptLegal, BACKEND_ENABLED, getSelf, getTopupInfo, quotaToUsd } from "@/lib/hub";
 import { toast } from "@/lib/toast";
 import { NumberField, isPositive } from "@/components/ui/number-field";
@@ -185,8 +185,18 @@ export function Onboarding() {
     const finalName = name.trim() || nameFromEmail(finalEmail) || "Creator";
     try {
       if (BACKEND_ENABLED) {
-        const current = getUser();
-        if (current) setUser({ ...current, name: finalName });
+        // The account was created on the first slide; this is where its name is
+        // chosen, so the name has to reach the account. Writing it to this
+        // browser only is why a customer who signed in elsewhere later found
+        // themselves renamed to something derived from their email address.
+        try {
+          await saveDisplayName(finalName);
+        } catch {
+          // The account exists and they are signed in. A name that did not save
+          // is not a reason to fail the signup: Profile -> Account can set it.
+          const current = getUser();
+          if (current) setUser({ ...current, name: finalName });
+        }
       } else {
         await completeEmailSignup({ email: finalEmail, password, code, name: finalName });
       }

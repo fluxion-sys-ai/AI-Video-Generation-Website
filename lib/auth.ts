@@ -103,10 +103,16 @@ function storeHubUser(hub: HubUser, overrides: Partial<User> = {}): User {
   const existing = getUser();
   const same = existing?.username === hub.username ? existing : null;
   const user: User = {
+    // The account's own name comes first, ahead of whatever this browser
+    // remembers: a name changed on one device should follow the customer to
+    // the next one, not be overruled by a stale local copy. The hub sets
+    // display_name to the username at registration, so that value means
+    // "never set" and the email is a kinder guess.
     name:
       overrides.name ||
+      (hub.display_name && hub.display_name !== hub.username ? hub.display_name : "") ||
       same?.name ||
-      (hub.display_name && hub.display_name !== hub.username ? hub.display_name : nameFromEmail(hub.email || hub.username)),
+      nameFromEmail(hub.email || hub.username),
     username: hub.username,
     email: hub.email || overrides.email || same?.email || "",
     avatar: overrides.avatar ?? same?.avatar,
@@ -114,6 +120,19 @@ function storeHubUser(hub: HubUser, overrides: Partial<User> = {}): User {
   localStorage.setItem(AUTH_KEY, "1");
   setUser(user);
   return user;
+}
+
+/**
+ * Brings this browser's copy of the customer in line with the account.
+ *
+ * The name, email and username live on the account; a browser only caches
+ * them. Anything that already fetches the account can pass it through here and
+ * the cache heals itself - which is what makes a name set on one device show
+ * up on the next, and what stops a cleared browser from inventing a name from
+ * the email address.
+ */
+export function reconcileUser(hub: HubUser): User {
+  return storeHubUser(hub);
 }
 
 /** Password sign-in with an email address (or the mock when the backend is off). */
@@ -150,7 +169,20 @@ export async function completeEmailSignup(input: { email: string; password: stri
   if (!input.code.trim()) throw new ApiError("Enter the code we emailed you.", 400);
   const username = `${usernameFromEmail(email).slice(0, 12)}${Math.floor(10_000_000 + Math.random() * 89_999_999)}`;
   await registerWithEmail({ username, password: input.password, email, code: input.code });
-  return storeHubUser(await login(email, input.password), { name, email });
+  const hub = await login(email, input.password);
+  // The hub sets display_name to the generated username at registration and
+  // ignores anything else the register call carries, so the name a customer
+  // typed has to be saved right afterwards. Without this it lived in one
+  // browser only, and the next device showed a name derived from their email
+  // instead - the account appearing to rename itself.
+  try {
+    await updateDisplayName(name);
+    hub.display_name = name;
+  } catch {
+    // The account exists and they are signed in; a name that did not save is
+    // not a reason to fail the signup. Profile -> Account can set it later.
+  }
+  return storeHubUser(hub, { name, email });
 }
 
 /** Completes a reset link: sets the chosen password and signs in. */
