@@ -386,7 +386,16 @@ function GenerateInner() {
 
   // Re-generate from the current prompt + all refinements (the latest edits
   // applied on top of the last result).
-  function regen() {
+  /**
+   * Re-generate with the refinements applied.
+   *
+   * The list is passed in rather than read from state: React has not re-rendered
+   * yet when the button handler runs, so reading `chat` here sent the *previous*
+   * set of instructions - the first refinement went upstream as a plain re-roll
+   * of the original prompt, and every one after it was one behind. Each of those
+   * was a full-price generation, so the mistake cost money as well as accuracy.
+   */
+  function regen(refinements: string[] = chat) {
     const id = ++genId.current;
     setResultUrl(null);
     setStatus("generating");
@@ -406,7 +415,7 @@ function GenerateInner() {
         referenceVideoIds: refVideos.map((i) => i.id),
         referenceAudioIds: refAudios.map((i) => i.id),
       },
-      chat,
+      refinements,
     )
       .then((r) => {
         if (id !== genId.current) return;
@@ -423,17 +432,19 @@ function GenerateInner() {
   function sendRefine() {
     const text = refineInput.trim();
     if (!text) return;
-    setChat((c) => [...c, text]);
+    const next = [...chat, text];
+    setChat(next);
     setRefineInput("");
-    regen();
+    regen(next);
   }
   function undoRefine() {
-    setChat((c) => c.slice(0, -1));
-    regen();
+    const next = chat.slice(0, -1);
+    setChat(next);
+    regen(next);
   }
   function restartRefine() {
     setChat([]);
-    regen();
+    regen([]);
   }
 
   // Real download: fetch the result and save it as a file (works for the mock
@@ -910,7 +921,9 @@ function GenerateInner() {
               <button disabled title="Coming soon" className="cursor-not-allowed rounded-none border border-hairline-strong px-4 py-2 text-sm opacity-40">
                 GIF
               </button>
-              <button onClick={regen} className="rounded-none border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
+              {/* Regenerate keeps the edits made so far; passing the handler
+                  directly would hand it the click event as the refinements. */}
+              <button onClick={() => regen()} className="rounded-none border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
                 Regenerate
               </button>
             </div>
@@ -972,6 +985,13 @@ function GenerateInner() {
               Send
             </button>
           </div>
+          {/* No provider edits an existing clip: every refinement renders a new
+              one, at the same price. Saying so here is the difference between a
+              tool and a surprise on the bill. */}
+          <p className="mt-2 px-1 text-xs text-dim">
+            Each edit renders a new clip{estimate !== null ? ` at ${money(estimate.total)}` : ""}, with your prompt and
+            every edit so far.
+          </p>
         </div>
       )}
 
