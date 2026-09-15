@@ -111,6 +111,38 @@ export function setPendingImages(list: PendingImage[]) {
   localStorage.setItem(PENDING_IMAGES_KEY, JSON.stringify(list));
 }
 
+// A whole past generation, handed to the playground to be edited and run again.
+// One-shot, like the images above: the playground takes it on arrival, so a
+// later reload is an empty form rather than a surprise.
+const PENDING_REQUEST_KEY = "fluxion.pendingRequest";
+
+export type PendingRequest = {
+  /** The request as the backend recorded it. */
+  request: Record<string, unknown>;
+  /** Library ids by role, so the playground can re-select the real files. */
+  inputs: { role: string; item_id: string | null; name: string | null; available: boolean }[];
+  /** Which generation it came from, for anything that wants to say so. */
+  taskId: string;
+};
+
+export function setPendingRequest(pending: PendingRequest) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(PENDING_REQUEST_KEY, JSON.stringify(pending));
+}
+
+export function takePendingRequest(): PendingRequest | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(PENDING_REQUEST_KEY);
+  if (!raw) return null;
+  localStorage.removeItem(PENDING_REQUEST_KEY);
+  try {
+    const value = JSON.parse(raw);
+    return value && typeof value === "object" ? (value as PendingRequest) : null;
+  } catch {
+    return null;
+  }
+}
+
 // Read the queued images and remove them (one-shot).
 export function takePendingImages(): PendingImage[] {
   if (typeof window === "undefined") return [];

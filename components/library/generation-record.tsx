@@ -13,8 +13,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { deleteVideo, getGeneration, type GenerationRecord } from "@/lib/hub";
-import { regenerateFrom } from "@/lib/api";
-import { formatWhen, refreshGenerations, type Generation } from "@/lib/generations";
+import { useRouter } from "next/navigation";
+import { setPendingRequest } from "@/lib/prefs";
+import { formatWhen, type Generation } from "@/lib/generations";
 import { CopyButton } from "@/components/docs/copy-button";
 import { toast } from "@/lib/toast";
 
@@ -34,6 +35,7 @@ export function GenerationRecordPanel({
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState<"regenerate" | "delete" | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const router = useRouter();
 
   // No resetting of state here: the panel is keyed by the video's id where it
   // is rendered, so opening a different one mounts a fresh panel and the effect
@@ -51,18 +53,17 @@ export function GenerationRecordPanel({
   const missing = (record?.inputs || []).filter((i) => !i.available);
   const pretty = record ? JSON.stringify(record.copyable ?? record.request, null, 2) : "";
 
-  async function again() {
+  /**
+   * Hand the whole request to the playground: same prompt, same settings, the
+   * same files re-selected. Nothing is spent by arriving there, so an edit is
+   * possible first - and a file that has since been deleted is named rather
+   * than silently dropped.
+   */
+  function reopen() {
+    if (!record) return;
     setBusy("regenerate");
-    try {
-      await regenerateFrom(generation.id);
-      toast("Generated again. It is in your library.");
-      await refreshGenerations().catch(() => {});
-      onClose();
-    } catch (err) {
-      toast(err instanceof Error ? err.message : "Could not run that again.");
-    } finally {
-      setBusy(null);
-    }
+    setPendingRequest({ request: record.request, inputs: record.inputs, taskId: generation.id });
+    router.push(`/generate?model=${generation.slug}`);
   }
 
   async function remove() {
@@ -103,11 +104,19 @@ export function GenerationRecordPanel({
         )}
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className={button} disabled={busy !== null || missing.length > 0} onClick={again} title={missing.length ? "A file it used is gone" : undefined}>
-            {busy === "regenerate" ? "Generating…" : "Generate again"}
+          {/* One action, not two: making it again and opening it in the
+              playground were the same wish, and going through the playground
+              means an edit is possible before spending anything. */}
+          <button
+            type="button"
+            className={button}
+            disabled={busy !== null || !record}
+            onClick={reopen}
+            title={failed ? "There is no recorded request for this one to reopen." : undefined}
+          >
+            {busy === "regenerate" ? "Opening…" : "Edit and generate again"}
           </button>
           <a className={button} href={generation.videoUrl} download={`${generation.id}.mp4`}>Download</a>
-          <Link className={button} href={`/generate?model=${generation.slug}`}>Open in playground</Link>
           <button
             type="button"
             onClick={() => setConfirmDelete(true)}
@@ -140,7 +149,8 @@ export function GenerationRecordPanel({
             </ul>
             {missing.length > 0 && (
               <p className="mt-2 text-xs text-dim">
-                This video still plays; it is its own copy. Generating it again needs the missing file back.
+                This video still plays; it is its own copy. Reopening it brings back everything that is left — to
+                make the same thing again, upload the missing file first.
               </p>
             )}
           </div>

@@ -70,6 +70,15 @@ Library "Videos" tab and the Profile "Usage history" list.
 Record shape (`Generation`): `{ id, slug, prompt, videoUrl, poster, createdAt }`.
 Seeded with sample history on first read so the demo isn't empty.
 
+What a finished video was *asked for* is the backend's record, not this one:
+`lib/hub.ts` → `getGeneration(taskId)` (`GET /media/generations/{id}`) returns the
+request as the platform received it plus the library files behind it, and
+`components/library/generation-record.tsx` shows both. Running one again goes
+through the playground and nowhere else: the record stores the request with
+`setPendingRequest()` (`lib/prefs.ts`) and navigates to `/generate?model=…`,
+where `takePendingRequest()` refills the form - prompt, settings, and the same
+files looked up by id - so an edit before spending anything is always possible.
+
 ### 4. Auth & accounts, `lib/auth.ts`
 | Function | Replace mock with |
 | --- | --- |

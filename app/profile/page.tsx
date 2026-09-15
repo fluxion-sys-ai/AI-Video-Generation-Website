@@ -818,7 +818,20 @@ function ProfileInner() {
                             i > 0 ? "border-t border-line" : ""
                           }`}
                         >
-                          <img src={h.poster} alt="" className="h-11 w-[74px] shrink-0 bg-black object-cover" />
+                          {/* The video's own first frame, same as the library
+                              grid: the model's stock image looked identical on
+                              every row. */}
+                          {h.videoUrl ? (
+                            <video
+                              src={h.videoUrl}
+                              muted
+                              playsInline
+                              preload="metadata"
+                              className="h-11 w-[74px] shrink-0 bg-black object-cover"
+                            />
+                          ) : (
+                            <img src={h.poster} alt="" className="h-11 w-[74px] shrink-0 bg-black object-cover" />
+                          )}
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm text-fg">{h.prompt}</p>
                             <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">

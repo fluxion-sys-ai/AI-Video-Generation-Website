@@ -11,8 +11,8 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { getModels, getModel, type Model, refreshCatalog } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
 import { NumberField, isPositive } from "@/components/ui/number-field";
-import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings, uploadLibraryImage } from "@/lib/prefs";
-import { BACKEND_ENABLED, checkReferences, type LibraryItem } from "@/lib/hub";
+import { addRecent, takePendingImages, takePendingRequest, addLibraryImages, isFavorite, toggleFavorite, getSettings, uploadLibraryImage } from "@/lib/prefs";
+import { BACKEND_ENABLED, checkReferences, listLibrary, type LibraryItem } from "@/lib/hub";
 import { ReferenceMedia, LibraryImagePicker, IMAGE_ACCEPT } from "@/components/generate/reference-media";
 import { costBreakdown, money, ratesFor, useRateCard } from "@/lib/rate-card";
 import { useEscapeKey } from "@/lib/use-escape-key";
@@ -310,6 +310,74 @@ function GenerateInner() {
     const pending = takePendingImages();
     if (pending.length) setImages(pending);
   }, [slug]);
+
+  /**
+   * Reopen a past generation, handed over by its record in the library.
+   *
+   * There is one way to run something again, and it goes through this form:
+   * the prompt, the settings and the same files come back, and nothing is
+   * spent until Generate is pressed, so an edit first is free. The links the
+   * request carried have long expired, so the files are looked up by id and
+   * re-selected exactly as the pickers would - and one that has since been
+   * deleted is named rather than quietly dropped.
+   *
+   * Keyed on the model, not the slug: the reset effect above fires when the
+   * catalogue lands, and this has to run after it or its values get wiped.
+   */
+  useEffect(() => {
+    if (!model) return;
+    const pending = takePendingRequest();
+    if (!pending) return;
+    /* eslint-disable react-hooks/set-state-in-effect */
+    const request = pending.request as Record<string, unknown>;
+    if (typeof request.prompt === "string") setPrompt(request.prompt);
+    const seconds = Number(request.seconds ?? request.duration);
+    if (Number.isFinite(seconds) && seconds > 0) setDuration(seconds);
+    const res = request.resolution;
+    if (typeof res === "string" && model.resolutions.includes(res)) setResolution(res);
+    const ratio = request.aspect_ratio ?? request.ratio;
+    if (typeof ratio === "string" && model.aspectRatios.includes(ratio)) setAspect(ratio);
+    if (typeof request.audio === "boolean" && model.supports.audio) setAudio(request.audio);
+    toast("Copied from your library. Change anything, then Generate.");
+
+    /* eslint-enable react-hooks/set-state-in-effect */
+    const wanted = pending.inputs.filter((i) => i.item_id);
+    if (!wanted.length) return;
+    let alive = true;
+    void (async () => {
+      const listing = await listLibrary().catch(() => null);
+      if (!alive) return;
+      const byId = new Map((listing?.items || []).map((i) => [i.id, i]));
+      const videos: LibraryItem[] = [];
+      const audios: LibraryItem[] = [];
+      const frames: { url: string; name: string }[] = [];
+      const gone: string[] = [];
+      for (const input of wanted) {
+        const item = byId.get(input.item_id as string);
+        if (!item) {
+          gone.push(input.name || input.role);
+          continue;
+        }
+        if (item.kind === "video") videos.push(item);
+        else if (item.kind === "audio") audios.push(item);
+        else frames.push({ url: item.url, name: item.name });
+      }
+      setRefVideos(videos);
+      setRefAudios(audios);
+      if (frames.length) setImages(frames);
+      if (gone.length) {
+        toast(
+          gone.length === 1
+            ? `${gone[0]} is no longer in your library, so it was left out.`
+            : `${gone.join(", ")} are no longer in your library, so they were left out.`,
+        );
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [model?.slug]);
 
   // Restore a saved draft after a sign-in detour, then clear it.
   useEffect(() => {

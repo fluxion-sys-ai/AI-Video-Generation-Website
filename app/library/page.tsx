@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site/site-header";
@@ -44,11 +43,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { GenerationRecordPanel } from "@/components/library/generation-record";
 import { SkeletonImg } from "@/components/ui/skeleton";
 
-// Video card: the poster is an <img> thumbnail that always loads; the actual
-// clip is only mounted (and plays) while hovering, so it never covers the
-// thumbnail with a black first frame.
+// Video card. The clip itself is the thumbnail: mounted with preload="metadata"
+// so the browser paints *this* video's first frame rather than the model's stock
+// image, which told you nothing about what you made. Hovering plays it.
 function VideoThumb({ g, onOpen }: { g: Generation; onOpen: (g: Generation) => void }) {
-  const [hover, setHover] = useState(false);
+  const player = useRef<HTMLVideoElement | null>(null);
   const modelName = getModel(g.slug)?.name ?? g.slug;
   return (
     // A history entry opens the record of *this* video - the clip, what it was
@@ -56,22 +55,30 @@ function VideoThumb({ g, onOpen }: { g: Generation; onOpen: (g: Generation) => v
     <button
       type="button"
       onClick={() => onOpen(g)}
-      onMouseEnter={() => { if (isAutoplay()) setHover(true); }}
-      onMouseLeave={() => setHover(false)}
+      onMouseEnter={() => { if (isAutoplay()) void player.current?.play().catch(() => {}); }}
+      onMouseLeave={() => {
+        const el = player.current;
+        if (!el) return;
+        el.pause();
+        el.currentTime = 0;
+      }}
       className="group border border-line p-3 text-left transition-colors hover:border-blue-line"
     >
       <div className="relative aspect-video w-full overflow-hidden bg-black">
-        <SkeletonImg src={g.poster} imgClassName="h-full w-full object-cover" />
-        {hover && (
+        {g.videoUrl ? (
           <video
+            ref={player}
             src={g.videoUrl}
-            poster={g.poster}
-            autoPlay
             muted
             loop
             playsInline
-            className="absolute inset-0 h-full w-full object-cover"
+            preload="metadata"
+            className="h-full w-full object-cover"
           />
+        ) : (
+          // Nothing to show a frame from (a demo entry, or a stored copy that
+          // has gone); the model's image is better than a black square.
+          <SkeletonImg src={g.poster} imgClassName="h-full w-full object-cover" />
         )}
       </div>
       <p className="mt-3 truncate text-sm text-fg">{g.prompt}</p>
@@ -214,9 +221,37 @@ function LibraryInner() {
     setDeleteFolderId(null);
     setAddFolderOpen(false);
     setUploadOpen(false);
-    setImgLightbox(null);
     setRenaming(null);
+    // Both of these are in the URL, so closing them has to leave it too, or a
+    // later refresh would find the parameter still there and reopen them.
+    closeItem();
+    closeRecord();
   });
+
+  /**
+   * What is open lives in the URL, and that is what makes Back work.
+   *
+   * A generated video's record is ?video=<task id>; a file opened from it - the
+   * "made from" links - is ?tab=uploaded&item=<id>. So going back from a file
+   * lands on the record it was reached from, with that record open again,
+   * instead of dumping you on the library's front page.
+   */
+  function openRecord(g: Generation) {
+    setRecord(g);
+    router.push(`/library?tab=generated&video=${g.id}`);
+  }
+  function closeRecord() {
+    setRecord(null);
+    if (search.get("video")) router.replace("/library?tab=generated");
+  }
+  function openItem(item: Upload) {
+    setImgLightbox(item);
+    router.push(`/library?tab=uploaded&item=${item.id}`);
+  }
+  function closeItem() {
+    setImgLightbox(null);
+    if (search.get("item")) router.replace("/library?tab=uploaded");
+  }
 
   // Open the tab named in ?tab= (from the header Library menu). Reacts to query
   // changes too, so navigating Videos → Images updates without a remount.
@@ -228,7 +263,28 @@ function LibraryInner() {
     else if (t === "uploaded" || t === "images" || t === "reference") setTab("uploaded");
     const video = search.get("video");
     if (video) setTab("generated");
+    if (search.get("item")) setTab("uploaded");
   }, [search]);
+
+  // Follow the URL: ?video= opens that record, ?item= opens that file, and the
+  // absence of either closes what was open - which is how the Back button gets
+  // to close a panel it did not open.
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
+    const video = search.get("video");
+    if (!video) setRecord(null);
+    else {
+      const found = gens.find((g) => g.id === video);
+      if (found) setRecord(found);
+    }
+    const item = search.get("item");
+    if (!item) setImgLightbox(null);
+    else {
+      const found = uploads.find((u) => u.id === item);
+      if (found) setImgLightbox(found);
+    }
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [search, gens, uploads]);
 
   // Backend mode: images, folders and videos come from the server. These hooks
   // refresh them on mount and re-render whenever they change.
@@ -243,10 +299,7 @@ function LibraryInner() {
     /* eslint-disable react-hooks/set-state-in-effect */
     setUploads(getUploads());
     setFolders(getLibraryFolders());
-    const loaded = getGenerations();
-    setGens(loaded);
-    const wanted = search.get("video");
-    if (wanted) setRecord(loaded.find((g) => g.id === wanted) ?? null);
+    setGens(getGenerations());
     setReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [libraryVersion, generationsVersion]);
@@ -605,7 +658,7 @@ function LibraryInner() {
           ) : (
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {gens.map((g) => (
-                <VideoThumb key={g.id} g={g} onOpen={setRecord} />
+                <VideoThumb key={g.id} g={g} onOpen={openRecord} />
               ))}
             </div>
           )
@@ -837,7 +890,7 @@ function LibraryInner() {
                       onDragOver={(e) => { if (!selectMode) { e.preventDefault(); setDragOverImg(img.id); } }}
                       onDragLeave={() => setDragOverImg((d) => (d === img.id ? null : d))}
                       onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) reorderImage(id, img.id); setDragOverImg(null); }}
-                      onClick={() => { if (selectMode) toggleOne(img.id); else setImgLightbox(img); }}
+                      onClick={() => { if (selectMode) toggleOne(img.id); else openItem(img); }}
                       onContextMenu={(e) => { e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY, id: img.id }); }}
                       title={`${img.name} · click to open, right-click to rename or file it`}
                       className={`group block border p-2 text-left transition-colors ${
@@ -969,10 +1022,10 @@ function LibraryInner() {
 
       {/* Expanded image viewer */}
       {imgLightbox && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-8" onClick={() => setImgLightbox(null)}>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-8" onClick={closeItem}>
           <button
             type="button"
-            onClick={() => setImgLightbox(null)}
+            onClick={closeItem}
             aria-label="Close"
             className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-hairline-strong bg-black/50 text-white transition-colors hover:bg-danger"
           >
@@ -1004,7 +1057,7 @@ function LibraryInner() {
                 type="button"
                 onClick={() => {
                   const item = imgLightbox;
-                  setImgLightbox(null);
+                  closeItem();
                   setRenaming({ id: item.id, name: item.name, target: "upload" });
                 }}
                 className="rounded-none border border-white/40 px-2 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-white transition-colors hover:border-white hover:bg-white/10"
@@ -1044,7 +1097,7 @@ function LibraryInner() {
         <GenerationRecordPanel
           key={record.id}
           generation={record}
-          onClose={() => setRecord(null)}
+          onClose={closeRecord}
           onDeleted={(id) => setGens((prev) => prev.filter((g) => g.id !== id))}
         />
       )}
