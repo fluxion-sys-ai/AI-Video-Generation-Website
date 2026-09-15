@@ -18,24 +18,29 @@ import {
   getLibraryImages,
   saveLibraryImages,
   addLibraryImages,
+  getUploads,
+  getLibraryLimits,
   refreshLibrary,
   getLibraryFolders,
-  uploadLibraryImage,
+  uploadFiles,
   removeLibraryImages,
+  renameUpload,
   setImageFavourite,
   setImageFolder,
   markImageUsed,
   saveLibraryOrder,
   addLibraryFolder,
   removeLibraryFolder,
+  renameLibraryFolderByName,
   isAutoplay,
   type LibImage,
+  type Upload,
 } from "@/lib/prefs";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { toast } from "@/lib/toast";
-import { Heart, ImageIcon, FolderOpen, Search, Clapperboard } from "lucide-react";
+import { money } from "@/lib/rate-card";
+import { Heart, ImageIcon, FolderOpen, Search, Clapperboard, Music, Film } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ReferenceShelf } from "@/components/library/reference-shelf";
 import { SkeletonImg } from "@/components/ui/skeleton";
 
 // Video card: the poster is an <img> thumbnail that always loads; the actual
@@ -71,13 +76,80 @@ function VideoThumb({ g }: { g: Generation }) {
   );
 }
 
+// "6s · 1280x720 · H264" or "4s · MP3": what the backend measured, where it
+// could. An unmeasured file says nothing rather than guessing.
+function describeUpload(item: Upload): string {
+  const bits: string[] = [];
+  if (item.kind !== "image" && item.duration != null) bits.push(`${Number(item.duration.toFixed(2))}s`);
+  if (item.width && item.height) bits.push(`${item.width}x${item.height}`);
+  if (item.kind !== "image" && item.codec) bits.push(item.codec.toUpperCase());
+  if (item.size) bits.push(item.size > 1048576 ? `${(item.size / 1048576).toFixed(1)} MB` : `${Math.round(item.size / 1024)} KB`);
+  return bits.join(" · ");
+}
+
+// A tile's preview. A video shows its own first frame (preload=metadata) and
+// plays on hover like the generated clips do; audio has nothing to show, so it
+// says what it is.
+function UploadPreview({ item, dimmed }: { item: Upload; dimmed: boolean }) {
+  const player = useRef<HTMLVideoElement | null>(null);
+  const dim = dimmed ? "opacity-80" : "";
+  if (item.kind === "image") {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={item.url} alt="" className={`h-full w-full object-cover transition-opacity ${dim}`} draggable={false} />
+    );
+  }
+  if (item.kind === "video") {
+    return (
+      <div
+        className="h-full w-full"
+        // The clip stays mounted so its first frame is the thumbnail; hovering
+        // plays it. Toggling `autoPlay` on a mounted video does nothing, so
+        // this asks the element directly.
+        onMouseEnter={() => {
+          if (isAutoplay()) void player.current?.play().catch(() => {});
+        }}
+        onMouseLeave={() => {
+          const el = player.current;
+          if (!el) return;
+          el.pause();
+          el.currentTime = 0;
+        }}
+      >
+        <video
+          ref={player}
+          src={item.url}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          className={`h-full w-full object-cover transition-opacity ${dim}`}
+        />
+        <span className="pointer-events-none absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-[6px] bg-black/70 px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.04em] text-white">
+          <Film size={9} />
+          {item.duration != null ? `${Math.round(item.duration)}s` : "video"}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className={`flex h-full w-full flex-col items-center justify-center gap-2 bg-panel ${dim}`}>
+      <Music size={26} className="text-gold" />
+      <span className="font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-muted">
+        {item.duration != null ? `${Math.round(item.duration)}s audio` : "audio"}
+      </span>
+    </div>
+  );
+}
+
 function LibraryInner() {
   const router = useRouter();
   const search = useSearchParams();
   const [ready, setReady] = useState(false);
-  // "reference" is the video and audio a model can follow; it only exists with
-  // a backend, which is where that media is stored.
-  const [tab, setTab] = useState<"videos" | "images" | "reference">("images");
+  // Two things live here: what the platform generated for you (videos), and
+  // what you uploaded (images, video and audio - anything a model can be given).
+  // Generated first: the library is mostly visited to see what you made.
+  const [tab, setTab] = useState<"generated" | "uploaded">("generated");
 
   // Image selection + "upload to a model" flow.
   const [selectMode, setSelectMode] = useState(false);
@@ -86,9 +158,12 @@ function LibraryInner() {
   const [modelFilter, setModelFilter] = useState<"all" | "recents" | "favorites">("all");
   const [modelQuery, setModelQuery] = useState("");
 
-  // Persisted library images (samples + everything the user has uploaded,
-  // including uploads made inside a model's playground).
-  const [libImages, setLibImages] = useState<LibImage[]>([]);
+  // Everything the customer uploaded: images, and - with a backend - video and
+  // audio too, in one list so one grid can show them all.
+  const [uploads, setUploads] = useState<Upload[]>([]);
+  // Renaming a file or a folder (the same dialog; the only thing a customer can
+  // edit about either).
+  const [renaming, setRenaming] = useState<{ id: string; name: string; target: "upload" | "folder" } | null>(null);
   // Past generations (the Videos tab). Source of truth: lib/generations.
   const [gens, setGens] = useState<Generation[]>([]);
   const uploadRef = useRef<HTMLInputElement>(null);
@@ -111,7 +186,7 @@ function LibraryInner() {
   const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
   const [addFolderOpen, setAddFolderOpen] = useState(false);
   // Expanded image viewer (click an image to open; × / Esc / backdrop to close).
-  const [imgLightbox, setImgLightbox] = useState<LibImage | null>(null);
+  const [imgLightbox, setImgLightbox] = useState<Upload | null>(null);
 
   // Image search + sort.
   type SortKey = "custom" | "name" | "recent" | "size" | "uses";
@@ -130,13 +205,17 @@ function LibraryInner() {
     setAddFolderOpen(false);
     setUploadOpen(false);
     setImgLightbox(null);
+    setRenaming(null);
   });
 
   // Open the tab named in ?tab= (from the header Library menu). Reacts to query
   // changes too, so navigating Videos → Images updates without a remount.
   useEffect(() => {
+    // The tabs were called "images" and "videos", and reference material had a
+    // tab of its own; old links still work.
     const t = search.get("tab");
-    if (t === "images" || t === "videos" || (t === "reference" && BACKEND_ENABLED)) setTab(t);
+    if (t === "generated" || t === "videos") setTab("generated");
+    else if (t === "uploaded" || t === "images" || t === "reference") setTab("uploaded");
   }, [search]);
 
   // Backend mode: images, folders and videos come from the server. These hooks
@@ -150,7 +229,7 @@ function LibraryInner() {
     // re-renders the page, and local edits below stay optimistic until the next
     // refresh lands. Same shape as the hydration effects further down.
     /* eslint-disable react-hooks/set-state-in-effect */
-    setLibImages(getLibraryImages());
+    setUploads(getUploads());
     setFolders(getLibraryFolders());
     setGens(getGenerations());
     setReady(true);
@@ -200,7 +279,7 @@ function LibraryInner() {
     const idSet = new Set(imgs.map((i) => i.id));
     const cleaned = loaded.map((f) => ({ ...f, imageIds: [...new Set((f.imageIds || []).filter((id) => idSet.has(id)))] }));
     setFolders(cleaned);
-    setLibImages(imgs);
+    setUploads(getUploads());
     setGens(getGenerations());
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -279,7 +358,7 @@ function LibraryInner() {
   // ---- image helpers --------------------------------------------------------
   // A folder's real count = its ids that still exist in the library, deduped.
   // (Guards against stale/duplicate ids left over in storage.)
-  const libIdSet = new Set(libImages.map((i) => i.id));
+  const libIdSet = new Set(uploads.map((i) => i.id));
   const folderCount = (f: Folder) => new Set(f.imageIds.filter((id) => libIdSet.has(id))).size;
 
   const activeFolderObj = folders.find((f) => f.id === activeFolder) || null;
@@ -289,7 +368,7 @@ function LibraryInner() {
   // apply the chosen sort.
   const iq = imgQuery.trim().toLowerCase();
   const searching = iq.length > 0;
-  function sortImages(list: LibImage[]): LibImage[] {
+  function sortImages(list: Upload[]): Upload[] {
     const arr = [...list];
     switch (sortKey) {
       case "name": return arr.sort((a, b) => a.name.localeCompare(b.name));
@@ -300,12 +379,12 @@ function LibraryInner() {
     }
   }
   const baseImages = searching
-    ? libImages.filter((im) => im.name.toLowerCase().includes(iq))
+    ? uploads.filter((im) => im.name.toLowerCase().includes(iq))
     : activeFolder === "favorites"
-      ? libImages.filter((im) => im.fav)
+      ? uploads.filter((im) => im.fav)
       : activeFolderObj
-        ? libImages.filter((im) => activeFolderObj.imageIds.includes(im.id))
-        : libImages;
+        ? uploads.filter((im) => activeFolderObj.imageIds.includes(im.id))
+        : uploads;
   const shownImages = sortImages(baseImages);
 
   const allSelected = selected.size > 0 && shownImages.every((i) => selected.has(i.id));
@@ -324,18 +403,14 @@ function LibraryInner() {
     setSelectMode(false);
     setSelected(new Set());
   }
-  // Add uploaded files (data URLs). If viewing a folder, file them into it.
+  // Add uploaded files. If viewing a folder, file them into it.
   function onUploadFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
     if (BACKEND_ENABLED) {
-      void Promise.all(
-        files.map((f) =>
-          uploadLibraryImage(f, { name: f.name, folderId: activeFolder && activeFolder !== "favorites" ? activeFolder : undefined }).catch((err) =>
-            toast(err instanceof Error ? err.message : "Could not upload that image."),
-          ),
-        ),
-      );
+      void uploadFiles(files, {
+        folderId: activeFolder && activeFolder !== "favorites" ? activeFolder : undefined,
+      }).catch((err) => toast(err instanceof Error ? err.message : "Could not upload that file."));
       e.target.value = "";
       return;
     }
@@ -344,7 +419,7 @@ function LibraryInner() {
       reader.onload = () => {
         const item: LibImage = { id: `u${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, src: String(reader.result), name: f.name, size: f.size, uses: 0, addedAt: Date.now() };
         addLibraryImages([item]);
-        setLibImages((prev) => [item, ...prev]);
+        setUploads(getUploads());
         if (activeFolder) addToFolder(activeFolder, item.id);
       };
       reader.readAsDataURL(f);
@@ -359,18 +434,19 @@ function LibraryInner() {
       return;
     }
     const set = new Set(ids);
-    setLibImages((prev) => {
-      const next = prev.filter((i) => !set.has(i.id));
-      saveLibraryImages(next);
-      return next;
-    });
+    saveLibraryImages(getLibraryImages().filter((i) => !set.has(i.id)));
+    setUploads(getUploads());
     setFolders((prev) => prev.map((f) => ({ ...f, imageIds: f.imageIds.filter((x) => !set.has(x)) })));
     setSelected(new Set());
     setDeleteIds(null);
   }
   // Queue selected images for the chosen model, then open its playground.
   function uploadTo(model: Model) {
-    const chosen = libImages.filter((img) => selected.has(img.id)).map((img) => ({ url: img.src, name: img.name }));
+    // Only images can start a generation as a first frame; reference video and
+    // audio are chosen on the Generate page itself, against a model's rules.
+    const chosen = uploads
+      .filter((img) => selected.has(img.id) && img.kind === "image")
+      .map((img) => ({ url: img.url, name: img.name }));
     setPendingImages(chosen);
     if (BACKEND_ENABLED) {
       void Promise.all([...selected].map((id) => markImageUsed(id))).catch(() => {});
@@ -378,7 +454,8 @@ function LibraryInner() {
       return;
     }
     // Bump "use frequency" for the images sent.
-    saveLibraryImages(libImages.map((im) => (selected.has(im.id) ? { ...im, uses: (im.uses || 0) + 1 } : im)));
+    saveLibraryImages(getLibraryImages().map((im) => (selected.has(im.id) ? { ...im, uses: (im.uses || 0) + 1 } : im)));
+    setUploads(getUploads());
     router.push(`/generate?model=${model.slug}`);
   }
 
@@ -386,30 +463,20 @@ function LibraryInner() {
   // the sort to "custom" so the new order is what's shown.
   function reorderImage(draggedId: string, targetId: string) {
     if (draggedId === targetId) return;
+    const from = uploads.findIndex((i) => i.id === draggedId);
+    const to = uploads.findIndex((i) => i.id === targetId);
+    if (from < 0 || to < 0) return;
+    const next = [...uploads];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setUploads(next);
+    setSortKey("custom");
     if (BACKEND_ENABLED) {
-      const from = libImages.findIndex((i) => i.id === draggedId);
-      const to = libImages.findIndex((i) => i.id === targetId);
-      if (from >= 0 && to >= 0) {
-        const next = [...libImages];
-        const [moved] = next.splice(from, 1);
-        next.splice(to, 0, moved);
-        setLibImages(next);
-        setSortKey("custom");
-        void saveLibraryOrder(next.map((i) => i.id)).catch(() => {});
-      }
+      void saveLibraryOrder(next.map((i) => i.id)).catch(() => {});
       return;
     }
-    setLibImages((prev) => {
-      const from = prev.findIndex((i) => i.id === draggedId);
-      const to = prev.findIndex((i) => i.id === targetId);
-      if (from < 0 || to < 0) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      saveLibraryImages(next);
-      return next;
-    });
-    setSortKey("custom");
+    const order = new Map(next.map((item, index) => [item.id, index]));
+    saveLibraryImages([...getLibraryImages()].sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)));
   }
 
   // The folder an image lives in (first match), shown as a badge in search results.
@@ -418,18 +485,46 @@ function LibraryInner() {
   // Heart / un-heart an image. When the last favorite is removed while on the
   // Favorites tab, fall back to All.
   function toggleImgFav(id: string) {
+    const current = uploads.find((im) => im.id === id);
     if (BACKEND_ENABLED) {
-      const current = libImages.find((im) => im.id === id);
-      void setImageFavourite(id, !current?.fav).catch(() => toast("Could not update that image."));
-      if (activeFolder === "favorites" && current?.fav && libImages.filter((im) => im.fav).length <= 1) setActiveFolder(null);
+      void setImageFavourite(id, !current?.fav).catch(() => toast("Could not update that file."));
+      if (activeFolder === "favorites" && current?.fav && uploads.filter((im) => im.fav).length <= 1) setActiveFolder(null);
       return;
     }
-    const next = libImages.map((im) => (im.id === id ? { ...im, fav: !im.fav } : im));
-    setLibImages(next);
-    saveLibraryImages(next);
+    saveLibraryImages(getLibraryImages().map((im) => (im.id === id ? { ...im, fav: !im.fav } : im)));
+    const next = getUploads();
+    setUploads(next);
     if (activeFolder === "favorites" && !next.some((im) => im.fav)) setActiveFolder(null);
   }
-  const favCount = libImages.filter((im) => im.fav).length;
+
+  // Rename: the backend stores the name, so both modes go through the seam.
+  function commitRename() {
+    if (!renaming) return;
+    const name = renaming.name.trim();
+    const { id, target } = renaming;
+    setRenaming(null);
+    if (!name) return;
+    if (target === "folder") {
+      if (BACKEND_ENABLED) {
+        void renameLibraryFolderByName(id, name).catch((err) => toast(err instanceof Error ? err.message : "Could not rename that folder."));
+      } else {
+        setFolders((prev) => prev.map((f) => (f.id === id ? { ...f, name } : f)));
+      }
+      return;
+    }
+    void renameUpload(id, name)
+      .then(() => setUploads(getUploads()))
+      .catch((err) => toast(err instanceof Error ? err.message : "Could not rename that file."));
+  }
+  const favCount = uploads.filter((im) => im.fav).length;
+  const counts = {
+    image: uploads.filter((u) => u.kind === "image").length,
+    video: uploads.filter((u) => u.kind === "video").length,
+    audio: uploads.filter((u) => u.kind === "audio").length,
+  };
+  const storedBytes = uploads.reduce((sum, u) => sum + (u.size || 0), 0);
+  const storageRate = getLibraryLimits()?.storage_usd_per_gb_month ?? null;
+  const selectedImages = uploads.filter((u) => selected.has(u.id) && u.kind === "image").length;
 
   function modelsForFilter(): Model[] {
     const bySlug = (slug: string) => models.find((m) => m.slug === slug);
@@ -457,7 +552,7 @@ function LibraryInner() {
         </div>
 
         <div className="mt-8 flex gap-6 border-b border-hairline font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em]">
-          {(BACKEND_ENABLED ? (["images", "videos", "reference"] as const) : (["images", "videos"] as const)).map((t) => (
+          {(["generated", "uploaded"] as const).map((t) => (
             <button
               key={t}
               onClick={() => { setTab(t); exitSelect(); }}
@@ -470,8 +565,9 @@ function LibraryInner() {
           ))}
         </div>
 
-        {/* VIDEOS, poster thumbnail always shown; hover plays the clip */}
-        {tab === "videos" && (
+        {/* GENERATED: videos the platform made. Poster thumbnail always shown;
+            hover plays the clip. */}
+        {tab === "generated" && (
           gens.length === 0 ? (
             <EmptyState
               className="mt-8"
@@ -489,18 +585,30 @@ function LibraryInner() {
           )
         )}
 
-        {/* REFERENCE MATERIAL: video and audio for reference-to-video */}
-        {tab === "reference" && (
-          <div className="mt-8">
-            <ReferenceShelf />
-          </div>
-        )}
-
-        {/* IMAGES */}
-        {tab === "images" && (
+        {/* UPLOADED: images, video and audio the customer put here. One grid,
+            because they are organised the same way - folders, names, favourites -
+            and a model picks from them by kind when it is time to generate. */}
+        {tab === "uploaded" && (
           <>
-            {/* hidden file input for uploads */}
-            <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={onUploadFiles} />
+            {/* hidden file input for uploads. Demo mode has nowhere to put a
+                video, so it keeps to images. */}
+            <input
+              ref={uploadRef}
+              type="file"
+              accept={BACKEND_ENABLED ? "image/*,video/*,audio/*" : "image/*"}
+              multiple
+              className="hidden"
+              onChange={onUploadFiles}
+            />
+
+            {/* What is here, and what keeping it costs at the backend's rate. */}
+            {BACKEND_ENABLED && uploads.length > 0 && (
+              <p className="mt-4 text-sm text-muted">
+                {counts.image} image{counts.image === 1 ? "" : "s"} · {counts.video} video · {counts.audio} audio ·{" "}
+                {(storedBytes / 1048576).toFixed(1)} MB
+                {storageRate !== null && <> · {money((storedBytes / 1024 ** 3) * storageRate)} a month to keep</>}
+              </p>
+            )}
 
             {/* search, matches by name across all images (results show their folder) */}
             <div className="lib-search relative mt-6 max-w-md">
@@ -512,7 +620,7 @@ function LibraryInner() {
                 type="search"
                 value={imgQuery}
                 onChange={(e) => setImgQuery(e.target.value)}
-                placeholder="Search images by name"
+                placeholder="Search uploads by name"
                 className="w-full rounded-none border border-line-strong bg-raised py-2.5 pl-9 pr-3 text-sm text-fg outline-none placeholder:text-dim focus:border-blue"
               />
             </div>
@@ -527,7 +635,7 @@ function LibraryInner() {
                     activeFolder === null ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                   }`}
                 >
-                  All ({libImages.length})
+                  All ({uploads.length})
                 </button>
                 {/* Favorites pseudo-folder, appears once any image is hearted */}
                 {favCount > 0 && (
@@ -579,7 +687,12 @@ function LibraryInner() {
                     </button>
                     <button
                       onClick={() => setUploadOpen(true)}
-                      disabled={selected.size === 0}
+                      disabled={selectedImages === 0}
+                      title={
+                        selectedImages === 0
+                          ? "Only an image can start a generation; choose clips and sound on the Generate page"
+                          : undefined
+                      }
                       className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       Upload to model
@@ -598,7 +711,7 @@ function LibraryInner() {
                 ) : (
                   <>
                     <button onClick={() => uploadRef.current?.click()} className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">
-                      Upload {activeFolderObj ? "to folder" : "images"}
+                      Upload {activeFolderObj ? "to folder" : BACKEND_ENABLED ? "files" : "images"}
                     </button>
                     <button onClick={() => setSelectMode(true)} className={toolbarBtn}>Select</button>
                     {creatingFolder ? (
@@ -650,7 +763,7 @@ function LibraryInner() {
             </div>
 
             {folders.length === 0 && !creatingFolder && (
-              <p className="mt-2 text-xs text-dim">Tip: create a folder, then drag images onto it (or right-click an image) to organize them. Drag an image onto another to reorder (custom).</p>
+              <p className="mt-2 text-xs text-dim">Tip: create a folder, then drag files onto it (or right-click one) to organize them. Right-click to rename. Drag one file onto another to reorder (custom).</p>
             )}
             {searching && (
               <p className="mt-2 text-xs text-dim">{shownImages.length} result{shownImages.length === 1 ? "" : "s"} for “{imgQuery}”.</p>
@@ -664,22 +777,26 @@ function LibraryInner() {
                   {searching ? (
                     <EmptyState
                       icon={<Search size={22} />}
-                      title={`No images match “${imgQuery}”`}
+                      title={`Nothing matches “${imgQuery}”`}
                       hint="Try a different search."
                     />
                   ) : activeFolderObj ? (
                     <EmptyState
                       icon={<FolderOpen size={22} />}
                       title="This folder is empty"
-                      hint="Drag images here, or upload into it."
-                      action={{ label: "Upload images", onClick: () => uploadRef.current?.click() }}
+                      hint="Drag files here, or upload into it."
+                      action={{ label: "Upload files", onClick: () => uploadRef.current?.click() }}
                     />
                   ) : (
                     <EmptyState
                       icon={<ImageIcon size={22} />}
                       title="Nothing here yet"
-                      hint="Upload images to use them across your models."
-                      action={{ label: "Upload images", onClick: () => uploadRef.current?.click() }}
+                      hint={
+                        BACKEND_ENABLED
+                          ? "Upload images to start a video from, or clips and sound for a model to follow."
+                          : "Upload images to use them across your models."
+                      }
+                      action={{ label: BACKEND_ENABLED ? "Upload files" : "Upload images", onClick: () => uploadRef.current?.click() }}
                     />
                   )}
                 </div>
@@ -696,13 +813,13 @@ function LibraryInner() {
                       onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) reorderImage(id, img.id); setDragOverImg(null); }}
                       onClick={() => { if (selectMode) toggleOne(img.id); else setImgLightbox(img); }}
                       onContextMenu={(e) => { e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY, id: img.id }); }}
+                      title={`${img.name} · click to open, right-click to rename or file it`}
                       className={`group block border p-2 text-left transition-colors ${
                         dragOverImg === img.id ? "border-accent ring-2 ring-accent" : on ? "border-accent" : "border-line"
                       } ${selectMode ? "cursor-pointer" : "cursor-zoom-in"}`}
                     >
                       <div className="relative aspect-square w-full overflow-hidden bg-black">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img.src} alt="" className={`h-full w-full object-cover transition-opacity ${on ? "opacity-80" : ""}`} draggable={false} />
+                        <UploadPreview item={img} dimmed={on} />
                         {/* search results: show which folder the image lives in */}
                         {searching && folderNameFor(img.id) && (
                           <span className="absolute left-1.5 top-1.5 flex max-w-[90%] items-center gap-1 truncate rounded-[6px] bg-black/70 px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.04em] text-white">
@@ -735,7 +852,10 @@ function LibraryInner() {
                           </button>
                         )}
                       </div>
-                      <p className="mt-2 truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-dim">{img.name}</p>
+                      <p className="mt-2 truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-dim" title={img.name}>{img.name}</p>
+                      {describeUpload(img) && (
+                        <p className="truncate font-[family-name:var(--font-jetbrains)] text-[10px] text-dim/70">{describeUpload(img)}</p>
+                      )}
                     </div>
                   );
                 })
@@ -769,12 +889,24 @@ function LibraryInner() {
             >
               {selectMode ? (selected.has(ctx.id) ? "Deselect" : "Select") : "Select"}
             </button>
+            {!selectMode && (
+              <button
+                onClick={() => {
+                  const item = uploads.find((u) => u.id === ctx.id);
+                  setCtx(null);
+                  if (item) setRenaming({ id: item.id, name: item.name, target: "upload" });
+                }}
+                className="block w-full rounded-[7px] px-3 py-2 text-left text-fg transition-colors hover:bg-hover"
+              >
+                Rename
+              </button>
+            )}
             {!selectMode && activeFolderObj && (
               <button onClick={() => { removeFromFolder(activeFolderObj.id, ctx.id); setCtx(null); }} className="block w-full rounded-[7px] px-3 py-2 text-left text-fg transition-colors hover:bg-hover">Remove from “{activeFolderObj.name}”</button>
             )}
             {!selectMode && folders.length > 0 && (
               <>
-                <p className="px-3 pb-1 pt-2 text-[10px] uppercase tracking-[0.08em] text-dim">Add to folder</p>
+                <p className="px-3 pb-1 pt-2 text-[10px] uppercase tracking-[0.08em] text-dim">{BACKEND_ENABLED ? "Move to folder" : "Add to folder"}</p>
                 {folders.map((f) => (
                   <button key={f.id} onClick={() => { addToFolder(f.id, ctx.id); setCtx(null); }} className="block w-full truncate rounded-[7px] px-3 py-1.5 text-left text-fg transition-colors hover:bg-hover">{f.name}</button>
                 ))}
@@ -794,6 +926,16 @@ function LibraryInner() {
             style={{ left: Math.min(folderCtx.x, (typeof window !== "undefined" ? window.innerWidth : 9999) - 176), top: folderCtx.y }}
           >
             <button onClick={() => { setActiveFolder(folderCtx.id); setFolderCtx(null); }} className="block w-full rounded-[7px] px-3 py-2 text-left text-fg transition-colors hover:bg-hover">Open</button>
+            <button
+              onClick={() => {
+                const folder = folders.find((f) => f.id === folderCtx.id);
+                setFolderCtx(null);
+                if (folder) setRenaming({ id: folder.id, name: folder.name, target: "folder" });
+              }}
+              className="block w-full rounded-[7px] px-3 py-2 text-left text-fg transition-colors hover:bg-hover"
+            >
+              Rename folder
+            </button>
             <button onClick={() => { const id = folderCtx.id; setFolderCtx(null); setDeleteFolderId(id); }} className="mt-1 block w-full rounded-[7px] border-t border-line px-3 py-2 text-left text-danger transition-colors hover:bg-[rgba(255,107,107,0.1)]">Delete folder</button>
           </div>
         </>
@@ -810,8 +952,66 @@ function LibraryInner() {
           >
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3 L13 13 M13 3 L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
           </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imgLightbox.src} alt={imgLightbox.name} onClick={(e) => e.stopPropagation()} className="max-h-full max-w-full object-contain" />
+          <div onClick={(e) => e.stopPropagation()} className="flex max-h-full w-full max-w-4xl flex-col items-center gap-3">
+            {imgLightbox.kind === "image" ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imgLightbox.url} alt={imgLightbox.name} className="max-h-[80vh] max-w-full object-contain" />
+            ) : imgLightbox.kind === "video" ? (
+              <video src={imgLightbox.url} controls autoPlay playsInline className="max-h-[80vh] max-w-full bg-black object-contain" />
+            ) : (
+              <div className="w-full max-w-lg border border-line bg-surface p-6">
+                <div className="flex items-center gap-3">
+                  <Music size={22} className="text-gold" />
+                  <p className="truncate text-sm text-fg">{imgLightbox.name}</p>
+                </div>
+                <audio src={imgLightbox.url} controls autoPlay className="mt-4 w-full" />
+              </div>
+            )}
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-white/70">
+              <span>
+                {imgLightbox.name}
+                {describeUpload(imgLightbox) ? ` · ${describeUpload(imgLightbox)}` : ""}
+              </span>
+              {/* Right-click is not available on a touch screen, so renaming is
+                  reachable from here too. */}
+              <button
+                type="button"
+                onClick={() => {
+                  const item = imgLightbox;
+                  setImgLightbox(null);
+                  setRenaming({ id: item.id, name: item.name, target: "upload" });
+                }}
+                className="rounded-none border border-white/40 px-2 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-white transition-colors hover:border-white hover:bg-white/10"
+              >
+                Rename
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename an upload */}
+      {renaming && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6" onClick={() => setRenaming(null)}>
+          <div className="w-full max-w-sm rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">
+              Rename {renaming.target === "folder" ? "folder" : "file"}
+            </h3>
+            <input
+              autoFocus
+              value={renaming.name}
+              onChange={(e) => setRenaming({ ...renaming, name: e.target.value })}
+              onKeyDown={(e) => { if (e.key === "Enter") commitRename(); }}
+              className="mt-4 w-full rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none focus:border-blue"
+            />
+            <p className="mt-2 text-xs text-dim">
+              {renaming.target === "folder" ? "Nothing inside the folder moves." : "The name is yours; the file itself is untouched."}
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setRenaming(null)} className="rounded-none border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Cancel</button>
+              <button onClick={commitRename} className="rounded-none bg-accent px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-accent-hover">Save</button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -819,8 +1019,8 @@ function LibraryInner() {
       {deleteIds && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6" onClick={() => setDeleteIds(null)}>
           <div className="w-full max-w-sm rounded-[14px] border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Delete {deleteIds.length} image{deleteIds.length === 1 ? "" : "s"}?</h3>
-            <p className="mt-2 text-sm text-muted">This can&apos;t be undone. The image{deleteIds.length === 1 ? "" : "s"} will be removed from your library and any folders.</p>
+            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">Delete {deleteIds.length} file{deleteIds.length === 1 ? "" : "s"}?</h3>
+            <p className="mt-2 text-sm text-muted">This can&apos;t be undone. The file{deleteIds.length === 1 ? "" : "s"} will be removed from your library and any folders, and stop costing storage.</p>
             <div className="mt-6 flex justify-end gap-3">
               <button onClick={() => setDeleteIds(null)} className="rounded-none border border-hairline-strong px-5 py-2.5 text-sm text-fg transition-colors hover:bg-hover">Cancel</button>
               <button onClick={() => deleteImages(deleteIds)} className="rounded-none bg-danger px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-danger-hover">Delete</button>

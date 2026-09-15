@@ -11,6 +11,7 @@ import {
   setLibraryOrder,
   updateLibraryImage,
   uploadLibraryImage as hubUploadLibraryImage,
+  uploadLibraryMedia as hubUploadLibraryMedia,
   type LibraryFolder,
   type LibraryItem,
   type LibraryLimits,
@@ -282,6 +283,94 @@ export async function refreshLibrary(): Promise<void> {
 /** Stored video or audio, as the backend describes it (duration, codec, size). */
 export function getLibraryMedia(kind?: "video" | "audio" | "image"): LibraryItem[] {
   return kind ? liveMedia.filter((i) => i.kind === kind) : liveMedia;
+}
+
+// ---- uploads: one shape for everything the customer put here ---------------------
+// The library shows two things: what the platform generated (videos, from
+// lib/generations) and what the customer uploaded (images, video and audio).
+// This is the second of those, in one shape regardless of where it is stored -
+// the backend's bucket, or this browser in demo mode, which only ever holds
+// images.
+
+export type Upload = {
+  id: string;
+  kind: "image" | "video" | "audio";
+  name: string;
+  /** Short-lived URL for display and playback. */
+  url: string;
+  model?: string;
+  size?: number;
+  uses?: number;
+  addedAt?: number;
+  fav?: boolean;
+  folderId?: string | null;
+  /** What the backend measured, where it could. Null means unknown. */
+  duration?: number | null;
+  width?: number | null;
+  height?: number | null;
+  container?: string;
+  codec?: string;
+};
+
+export function getUploads(kind?: Upload["kind"]): Upload[] {
+  const all: Upload[] = BACKEND_ENABLED
+    ? liveMedia.map((i) => ({
+        id: i.id,
+        kind: i.kind,
+        name: i.name,
+        url: i.url,
+        model: i.model || undefined,
+        size: i.bytes,
+        uses: i.uses,
+        addedAt: Date.parse(i.created_at),
+        fav: i.favourite,
+        folderId: i.folder_id,
+        duration: i.duration_seconds,
+        width: i.width,
+        height: i.height,
+        container: i.container,
+        codec: i.codec || i.audio_codec,
+      }))
+    : getLibraryImages().map((i) => ({
+        id: i.id,
+        kind: "image",
+        name: i.name,
+        url: i.src,
+        model: i.model,
+        size: i.size,
+        uses: i.uses,
+        addedAt: i.addedAt,
+        fav: i.fav,
+      }));
+  return kind ? all.filter((u) => u.kind === kind) : all;
+}
+
+/** Renames an upload. The name is the only thing a customer can edit about one. */
+export async function renameUpload(id: string, name: string): Promise<void> {
+  if (BACKEND_ENABLED) {
+    await updateLibraryImage(id, { name });
+    await refreshLibrary();
+    return;
+  }
+  saveLibraryImages(getLibraryImages().map((i) => (i.id === id ? { ...i, name } : i)));
+  notify("library");
+}
+
+/**
+ * Uploads files of any kind the backend accepts; demo mode keeps images only.
+ *
+ * One file failing must not hide the ones that worked - picking five clips and
+ * having the big one refused should still leave four in the library - so every
+ * upload is settled, the library is refreshed either way, and the first failure
+ * is what the caller reports.
+ */
+export async function uploadFiles(files: File[], opts: { folderId?: string } = {}): Promise<void> {
+  const results = await Promise.allSettled(
+    files.map((file) => hubUploadLibraryMedia(file, { name: file.name, folderId: opts.folderId })),
+  );
+  await refreshLibrary().catch(() => {});
+  const failed = results.find((r): r is PromiseRejectedResult => r.status === "rejected");
+  if (failed) throw failed.reason;
 }
 
 /** Library limits and the storage price, as the backend reports them. */

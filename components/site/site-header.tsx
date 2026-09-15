@@ -349,8 +349,18 @@ export function SiteHeader() {
                   })()}
                 </NavMenu>
                 <NavMenu label="Library" href="/library">
-                  <MenuItem href="/library?tab=images" title="Images" icon={<TabChip><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="3" width="12" height="10" rx="1.5" /><circle cx="6" cy="6.5" r="1.2" /><path d="M3 12 L6.5 8.5 L9 11 L11 9 L13.5 12" strokeLinecap="round" strokeLinejoin="round" /></svg></TabChip>} />
-                  <MenuItem href="/library?tab=videos" title="Videos" icon={<TabChip><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="3.5" width="9" height="9" rx="1.5" /><path d="M11 7 L14 5.2 V10.8 L11 9" strokeLinecap="round" strokeLinejoin="round" /></svg></TabChip>} />
+                  <MenuItem
+                    href="/library?tab=generated"
+                    title="Generated"
+                    sub="Videos you have made"
+                    icon={<TabChip><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="3.5" width="9" height="9" rx="1.5" /><path d="M11 7 L14 5.2 V10.8 L11 9" strokeLinecap="round" strokeLinejoin="round" /></svg></TabChip>}
+                  />
+                  <MenuItem
+                    href="/library?tab=uploaded"
+                    title="Uploaded"
+                    sub="Images, video and audio you keep"
+                    icon={<TabChip><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="3" width="12" height="10" rx="1.5" /><circle cx="6" cy="6.5" r="1.2" /><path d="M3 12 L6.5 8.5 L9 11 L11 9 L13.5 12" strokeLinecap="round" strokeLinejoin="round" /></svg></TabChip>}
+                  />
                 </NavMenu>
                 <NavLink href="/docs" label="Docs" active={pathname.startsWith("/docs")} />
               </>
@@ -475,8 +485,8 @@ export function SiteHeader() {
                   ))}
                 </MobileGroup>
                 <MobileGroup label="Library">
-                  <SubLink href="/library?tab=images" onNavigate={closeMobile}>Images</SubLink>
-                  <SubLink href="/library?tab=videos" onNavigate={closeMobile}>Videos</SubLink>
+                  <SubLink href="/library?tab=generated" onNavigate={closeMobile}>Generated</SubLink>
+                  <SubLink href="/library?tab=uploaded" onNavigate={closeMobile}>Uploaded</SubLink>
                 </MobileGroup>
                 <MobileLink href="/docs" onNavigate={closeMobile}>Docs</MobileLink>
                 <MobileGroup label="Settings">

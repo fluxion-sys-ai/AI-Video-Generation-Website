@@ -571,7 +571,7 @@ function ProfileInner() {
                       {storage.charged_usd > 0 ? `, ${usd(storage.charged_usd)} charged so far` : ""}
                       {storage.owed_usd > 0 ? `, ${usd(storage.owed_usd)} owed while the balance is empty` : ""}.
                     </p>
-                    <Link href="/library?tab=reference" className="mt-2 inline-block text-xs text-blue hover:text-gold-soft">
+                    <Link href="/library?tab=uploaded" className="mt-2 inline-block text-xs text-blue hover:text-gold-soft">
                       Manage what you keep
                     </Link>
                   </div>
