@@ -1004,6 +1004,12 @@ export type ReferenceLimits = {
   /** Price, where the provider charges for the input: per second, or per file. */
   usd_per_second?: number;
   usd_each?: number;
+  /**
+   * True when an input second costs whatever an output second costs, which is
+   * how MiniMax bills a reference clip. There is no single figure to show: the
+   * rate depends on the resolution being generated, so the rate card decides.
+   */
+  billed_at_output_rate?: boolean;
   /** Files of this kind that cost nothing (MiniMax gives the first five images). */
   free_count?: number;
 };

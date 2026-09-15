@@ -39,6 +39,7 @@ export function ApiDocs({ model }: { model: Model }) {
   const price = (kind: "video" | "audio" | "image") => {
     const limits = ref?.[kind];
     if (!limits) return "";
+    if (limits.billed_at_output_rate) return " Charged by its own duration, at the rate for the resolution you generate.";
     if (limits.usd_per_second) return ` Charged at $${limits.usd_per_second} per second of the input.`;
     if (limits.usd_each) return ` The first ${limits.free_count ?? 0} are free, then $${limits.usd_each} each.`;
     return " Free.";

@@ -36,7 +36,8 @@ export function limitSummary(limits: ReferenceLimits | undefined, kind: Kind): s
   if (limits.max_total_seconds != null) parts.push(`${limits.max_total_seconds}s in total`);
   if (limits.max_count) parts.push(`up to ${limits.max_count} file${limits.max_count === 1 ? "" : "s"}`);
   if (limits.max_bytes) parts.push(`${Math.round(limits.max_bytes / 1048576)} MB each`);
-  if (limits.usd_per_second) parts.push(`${money(limits.usd_per_second)} per second of input`);
+  if (limits.billed_at_output_rate) parts.push("charged per second at the output's own rate");
+  else if (limits.usd_per_second) parts.push(`${money(limits.usd_per_second)} per second of input`);
   else if (limits.usd_each) parts.push(`${money(limits.usd_each)} each${limits.free_count ? `, first ${limits.free_count} free` : ""}`);
   else parts.push(kind === "audio" ? "free" : "no input charge");
   return parts.join(" · ");

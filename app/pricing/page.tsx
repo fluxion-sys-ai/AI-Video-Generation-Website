@@ -49,13 +49,20 @@ export default function PricingPage() {
     const limits: ReferenceLimits | undefined = m.reference?.[kind];
     if (!limits) return null;
     const tiers = ratesFor(card, m);
-    const tier = tiers?.[0];
     if (kind === "video") {
-      const perSecond = tier?.unitPrices.input_video_seconds ?? limits.usd_per_second ?? null;
+      // An input second costs what an output second costs, so with more than
+      // one resolution there is no single figure - the per-resolution rates are
+      // listed right above this.
+      if (limits.billed_at_output_rate) {
+        return m.resolutions.length > 1
+          ? "per second of the clip you supply, at the rate for the resolution you pick"
+          : `${money(rate(m, m.resolutions[0]) ?? 0)} per second of the clip you supply`;
+      }
+      const perSecond = tiers?.[0]?.unitPrices.input_video_seconds ?? limits.usd_per_second ?? null;
       return perSecond === null ? null : `${money(perSecond)} per second of the clip you supply`;
     }
     if (kind === "image") {
-      const each = tier?.unitPrices.input_images_billable ?? limits.usd_each ?? null;
+      const each = tiers?.[0]?.unitPrices.input_images_billable ?? limits.usd_each ?? null;
       if (each === null) return null;
       return limits.free_count
         ? `first ${limits.free_count} free, then ${money(each)} each`
