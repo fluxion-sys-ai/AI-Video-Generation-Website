@@ -9,13 +9,18 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
-import { getModel, type Model } from "@/lib/models";
+import { getModel } from "@/lib/models";
 
 export type DashData = {
   name: string;
   favs: string[];
   recents: string[];
-  models: Model[];
+  /** Real figures from the backend; null while they are still loading. */
+  snapshot: {
+    balanceUsd: number | null;
+    generations: number | null;
+    spendUsd: number | null;
+  };
 };
 
 const STEPS = [
@@ -32,11 +37,16 @@ const LINKS = [
   { title: "Documentation", desc: "Guides and API reference.", href: "/docs" },
 ];
 
-const SNAPSHOT = (models: Model[]): [string, string][] => [
-  ["Credit balance", "$0.00"],
-  ["Generations", "0"],
-  ["This month", "$0.00"],
-  ["Saved models", String(models.length)],
+// These were hardcoded zeros, which is worse than an empty state: a customer
+// with a dollar on their balance was shown $0.00. Every figure now comes from
+// the backend, and says nothing until it has.
+const money = (v: number | null) => (v === null ? "—" : `$${v.toFixed(2)}`);
+const count = (v: number | null) => (v === null ? "—" : String(v));
+const SNAPSHOT = (data: DashData): [string, string][] => [
+  ["Balance", money(data.snapshot.balanceUsd)],
+  ["Generations", count(data.snapshot.generations)],
+  ["Spend, 30 days", money(data.snapshot.spendUsd)],
+  ["Favourites", count(data.favs.length)],
 ];
 
 /* ------------------------------------------------------------------- OG ---- */
@@ -54,7 +64,8 @@ function OGChip({ slug }: { slug: string }) {
   );
 }
 
-export function DashboardOG({ name, favs, recents, models }: DashData) {
+export function DashboardOG(data: DashData) {
+  const { name, favs, recents } = data;
   return (
     <div className="relative flex min-h-screen flex-col bg-base">
       <SiteHeader />
@@ -91,7 +102,7 @@ export function DashboardOG({ name, favs, recents, models }: DashData) {
           <div>
             <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Snapshot</h2>
             <div className="mt-3 grid grid-cols-2 border-b border-r border-line">
-              {SNAPSHOT(models).map(([t, v]) => (
+              {SNAPSHOT(data).map(([t, v]) => (
                 <div key={t} className="border-l border-t border-line p-5">
                   <p className="text-xs uppercase tracking-[0.06em] text-muted">{t}</p>
                   <p className="mt-2 font-[family-name:var(--font-jetbrains)] text-2xl font-semibold">{v}</p>
@@ -132,7 +143,8 @@ function EdChip({ slug }: { slug: string }) {
   );
 }
 
-export function DashboardEditorial({ name, favs, recents, models }: DashData) {
+export function DashboardEditorial(data: DashData) {
+  const { name, favs, recents } = data;
   return (
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
@@ -160,7 +172,7 @@ export function DashboardEditorial({ name, favs, recents, models }: DashData) {
 
         {/* Snapshot as soft stat tiles */}
         <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {SNAPSHOT(models).map(([t, v]) => (
+          {SNAPSHOT(data).map(([t, v]) => (
             <div key={t} className="rounded-2xl bg-surface p-6 text-center shadow-lg">
               <p className="text-3xl font-semibold text-fg-strong">{v}</p>
               <p className="mt-1 text-xs uppercase tracking-[0.08em] text-muted">{t}</p>
@@ -214,7 +226,8 @@ function XpRow({ slug, index }: { slug: string; index: number }) {
   );
 }
 
-export function DashboardLuxury({ name, favs, recents, models }: DashData) {
+export function DashboardLuxury(data: DashData) {
+  const { name, favs, recents } = data;
   return (
     <div className="relative flex min-h-screen flex-col bg-base">
       <SiteHeader />
@@ -247,7 +260,7 @@ export function DashboardLuxury({ name, favs, recents, models }: DashData) {
           <div className="rounded-[16px] border border-hairline bg-surface/70 p-6 backdrop-blur">
             <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Overview</h2>
             <div className="mt-3 divide-y divide-line">
-              {SNAPSHOT(models).map(([t, v]) => (
+              {SNAPSHOT(data).map(([t, v]) => (
                 <div key={t} className="flex items-baseline justify-between py-3">
                   <span className="text-sm text-muted">{t}</span>
                   <span className="font-[family-name:var(--font-playfair)] text-2xl text-fg-strong">{v}</span>
@@ -305,7 +318,8 @@ function PlayChip({ slug, i }: { slug: string; i: number }) {
   );
 }
 
-export function DashboardPlayful({ name, favs, recents, models }: DashData) {
+export function DashboardPlayful(data: DashData) {
+  const { name, favs, recents } = data;
   return (
     <div className="relative flex min-h-screen flex-col bg-base">
       <SiteHeader />
@@ -327,7 +341,7 @@ export function DashboardPlayful({ name, favs, recents, models }: DashData) {
 
         {/* Snapshot, pastel stat tiles */}
         <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {SNAPSHOT(models).map(([t, v], i) => (
+          {SNAPSHOT(data).map(([t, v], i) => (
             <div key={t} className="rounded-[22px] p-6 text-center" style={{ background: PLAY_PASTELS[(i + 2) % PLAY_PASTELS.length], color: "#1a1440" }}>
               <p className="text-3xl font-bold">{v}</p>
               <p className="mt-1 text-xs font-semibold uppercase tracking-[0.06em]" style={{ color: "#4a4570" }}>{t}</p>
@@ -380,7 +394,8 @@ function CosmosChip({ slug }: { slug: string }) {
   );
 }
 
-export function DashboardCosmos({ name, favs, recents, models }: DashData) {
+export function DashboardCosmos(data: DashData) {
+  const { name, favs, recents } = data;
   return (
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
@@ -390,7 +405,7 @@ export function DashboardCosmos({ name, favs, recents, models }: DashData) {
 
         {/* Readouts */}
         <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {SNAPSHOT(models).map(([t, v]) => (
+          {SNAPSHOT(data).map(([t, v]) => (
             <div key={t} className="rounded-[10px] border border-hairline bg-surface p-5">
               <p className="font-[family-name:var(--font-space)] text-2xl text-accent-ink">{v}</p>
               <p className="mt-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.14em] text-muted">{t}</p>
