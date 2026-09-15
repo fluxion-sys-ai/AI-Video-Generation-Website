@@ -9,7 +9,6 @@ import { BACKEND_ENABLED } from "@/lib/hub";
 import { useLive } from "@/lib/live";
 import { getUser, isSignedIn, type User } from "@/lib/auth";
 import { getFavorites } from "@/lib/prefs";
-import { Settings } from "lucide-react";
 
 
 /* Hover/click dropdown - no extra deps, keyboard + outside-click aware.
@@ -417,25 +416,9 @@ export function SiteHeader() {
                   Create
                 </Link>
               )}
-              {/* Settings gear, sits just left of the profile avatar (dashboard). */}
-              {dashMode && (
-                <div className="hidden md:block">
-                  <NavMenu
-                    align="right"
-                    href="/profile"
-                    hideCaret
-                    label={
-                      <span aria-label="Settings" title="Settings" className="flex h-6 w-6 items-center justify-center">
-                        <Settings size={17} strokeWidth={1.6} />
-                      </span>
-                    }
-                  >
-                    {profileTabs().map((t) => (
-                      <MenuItem key={t.key} href={`/profile?tab=${t.key}`} title={t.title} icon={t.icon} />
-                    ))}
-                  </NavMenu>
-                </div>
-              )}
+              {/* The avatar menu already lists every profile tab, so there is no
+                  settings gear beside it: two controls opening the same menu is
+                  one more thing to read and nothing more to do. */}
               <ProfileMenu user={user} />
             </>
           ) : (
