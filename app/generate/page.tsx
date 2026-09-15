@@ -12,7 +12,7 @@ import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
 import { NumberField, isPositive } from "@/components/ui/number-field";
 import { addRecent, takePendingImages, addLibraryImages, isFavorite, toggleFavorite, getSettings, uploadLibraryImage } from "@/lib/prefs";
 import { BACKEND_ENABLED, checkReferences, type LibraryItem } from "@/lib/hub";
-import { ReferenceMedia } from "@/components/generate/reference-media";
+import { ReferenceMedia, LibraryImagePicker, IMAGE_ACCEPT } from "@/components/generate/reference-media";
 import { costBreakdown, money, ratesFor, useRateCard } from "@/lib/rate-card";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { useSkin } from "@/lib/use-skin";
@@ -114,6 +114,7 @@ function GenerateInner() {
   // and what each file must satisfy comes from its catalogue row; the verdict on
   // a particular selection comes from the backend, which is the same check it
   // runs when the generation is submitted.
+  const [pickingImage, setPickingImage] = useState(false);
   const [refVideos, setRefVideos] = useState<LibraryItem[]>([]);
   const [refAudios, setRefAudios] = useState<LibraryItem[]>([]);
   const [refVerdict, setRefVerdict] = useState<{ problems: string[]; facts: { input_video_seconds: number; input_images: number } | null }>({
@@ -689,12 +690,32 @@ function GenerateInner() {
             </Field>
           ) : (
             <Field label="Images" hint="Optional">
-              {images.length === 0 ? (
+              {/* From the disk, or from what is already in the library - a
+                  reference image is usually one a customer has used before. */}
+              <div className="mb-2 flex flex-wrap items-center gap-2">
                 <label className="flex w-fit cursor-pointer items-center gap-3 rounded-none border border-dashed border-line-strong px-3 py-2 text-sm text-fg-soft hover:border-blue">
-                  <span>Choose images</span>
+                  <span>{images.length === 0 ? "Choose images" : "Add images"}</span>
                   <span className="text-blue">Browse</span>
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={addImages} />
+                  <input type="file" accept={IMAGE_ACCEPT} multiple className="hidden" onChange={addImages} />
                 </label>
+                {BACKEND_ENABLED && (
+                  <button
+                    type="button"
+                    onClick={() => setPickingImage((open) => !open)}
+                    className="rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg outline-none transition-colors hover:border-blue hover:text-blue"
+                  >
+                    {pickingImage ? "Close library" : "From library"}
+                  </button>
+                )}
+              </div>
+              {pickingImage && (
+                <LibraryImagePicker
+                  chosen={images.map((i) => i.url)}
+                  onPick={(item) => setImages((prev) => (prev.some((i) => i.url === item.url) ? prev : [...prev, { url: item.url, name: item.name }]))}
+                />
+              )}
+              {images.length === 0 ? (
+                <p className="text-sm text-muted">Nothing chosen. A still is optional; {model.name} can work from the prompt alone.</p>
               ) : (
                 <div className="flex flex-wrap items-end gap-2">
                   {images.map((img, i) => (

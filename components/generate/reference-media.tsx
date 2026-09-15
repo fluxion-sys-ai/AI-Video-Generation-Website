@@ -18,6 +18,10 @@ import { toast } from "@/lib/toast";
 
 type Kind = "video" | "audio";
 
+// What a provider takes for an image input. HEIC is here because that is what
+// phones produce; the backend accepts it and so does MiniMax.
+export const IMAGE_ACCEPT = "image/png,image/jpeg,image/webp,image/heic,image/heif,image/*";
+
 const box =
   "rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue";
 
@@ -46,6 +50,72 @@ function describe(item: LibraryItem): string {
   bits.push(`${(item.bytes / 1048576).toFixed(1)} MB`);
   if (item.duration_seconds == null) bits.push("length unknown");
   return bits.join(" · ");
+}
+
+/**
+ * The images already in the customer's library, to choose one from.
+ *
+ * A reference still is usually one they have used before, so the playground
+ * should not make them find the file again. Picking one hands over the URL the
+ * library already serves it from; the generation then sends that link rather
+ * than re-uploading the bytes.
+ */
+export function LibraryImagePicker({ chosen, onPick }: { chosen: string[]; onPick: (item: LibraryItem) => void }) {
+  const [items, setItems] = useState<LibraryItem[] | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    listLibrary("image")
+      .then((listing) => {
+        if (alive) setItems(listing.items);
+      })
+      .catch((err) => {
+        if (alive) setItems([]);
+        toast(err instanceof Error ? err.message : "Could not load your images.");
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (items === null) return <p className="mb-2 text-sm text-muted">Loading your images…</p>;
+  if (items.length === 0) {
+    return (
+      <p className="mb-2 text-sm text-muted">
+        No images in your library yet. Anything you upload here is kept, so it is one click next time.
+      </p>
+    );
+  }
+  const taken = new Set(chosen);
+  return (
+    <div className="mb-2 max-h-48 overflow-y-auto border border-line bg-surface/60 p-2">
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+        {items.map((item) => {
+          const on = taken.has(item.url);
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onPick(item)}
+              disabled={on}
+              title={`${item.name}${item.width && item.height ? ` · ${item.width}x${item.height}` : ""}`}
+              className={`relative aspect-square overflow-hidden border bg-black transition-colors ${
+                on ? "border-accent opacity-60" : "border-line hover:border-blue"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={item.url} alt={item.name} className="h-full w-full object-cover" />
+              {on && (
+                <span className="absolute inset-x-0 bottom-0 bg-accent/90 py-0.5 text-center font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.04em] text-ink">
+                  chosen
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function ReferenceMedia({

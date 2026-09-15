@@ -17,14 +17,76 @@ export function ApiDocs({ model }: { model: Model }) {
   const id = model.hubModel || model.slug;
   const host = BACKEND_ENABLED && typeof window !== "undefined" ? window.location.origin : "https://api.fluxion-sys.ai";
 
+  // Reference limits come from the model's catalogue row, so what is documented
+  // is what the platform enforces - there is no second copy to keep in step.
+  const ref = model.reference;
+  const list = (values: string[] | undefined) => (values || []).map((v) => v.toUpperCase()).join(", ");
+  const mb = (bytes: number | undefined) => (bytes ? `${Math.round(bytes / 1048576)} MB` : "");
+  const refDesc = (kind: "video" | "audio" | "image") => {
+    const limits = ref?.[kind];
+    if (!limits) return "";
+    const bits: string[] = [];
+    if (limits.max_count) bits.push(`up to ${limits.max_count}`);
+    if (limits.formats?.length) bits.push(list(limits.formats));
+    if (limits.codecs?.length) bits.push(list(limits.codecs));
+    if (limits.min_seconds != null && limits.max_seconds != null) bits.push(`${limits.min_seconds}-${limits.max_seconds}s each`);
+    if (limits.max_total_seconds != null) bits.push(`${limits.max_total_seconds}s in total`);
+    if (limits.max_bytes) bits.push(`${mb(limits.max_bytes)} each`);
+    if (limits.min_px && limits.max_px) bits.push(`${limits.min_px}-${limits.max_px}px per side`);
+    if (limits.min_aspect && limits.max_aspect) bits.push(`aspect ${limits.min_aspect}-${limits.max_aspect}`);
+    return bits.join(", ");
+  };
+  const price = (kind: "video" | "audio" | "image") => {
+    const limits = ref?.[kind];
+    if (!limits) return "";
+    if (limits.usd_per_second) return ` Charged at $${limits.usd_per_second} per second of the input.`;
+    if (limits.usd_each) return ` The first ${limits.free_count ?? 0} are free, then $${limits.usd_each} each.`;
+    return " Free.";
+  };
+
   const params: { name: string; type: string; req?: boolean; desc: string }[] = [
     { name: "prompt", type: "string", req: true, desc: "Text description of the shot." },
-    ...(model.supports.image ? [{ name: "image_url", type: "string", desc: "Public URL or data: URI of an image to animate. To upload the file instead, post multipart/form-data with an `image` part." }] : []),
-    { name: "seconds", type: "integer", desc: `Clip length (${model.durations[0]}-${model.durations[model.durations.length - 1]}). Defaults to ${model.durations[0]}.` },
-    { name: "aspect_ratio", type: "enum", desc: `${model.aspectRatios.join(", ")}. Defaults to ${model.aspectRatios[0]}.` },
+    ...(model.supports.image ? [{ name: "image_url", type: "string", desc: "Public https URL or data: URI of an image to animate (the first frame). To upload the file instead, post multipart/form-data with an `image` part." }] : []),
+    { name: "seconds", type: "integer", desc: `Clip length (${model.durations[0]}-${model.durations[model.durations.length - 1]}). Defaults to ${model.durations[0]}. Also accepted as \`duration\`.` },
+    { name: "aspect_ratio", type: "enum", desc: `${model.aspectRatios.join(", ")}. Defaults to ${model.aspectRatios[0]}. Also accepted as \`ratio\`, and \`adaptive\` when there is a visual input.` },
     { name: "resolution", type: "enum", desc: `${model.resolutions.join(", ")}. Defaults to ${model.resolutions[0]}.` },
     ...(model.supports.audio ? [{ name: "audio", type: "boolean", desc: "Generate a soundtrack." }] : []),
     ...(model.supports.seed ? [{ name: "seed", type: "integer", desc: "Seed for reproducible output." }] : []),
+    ...(ref?.video
+      ? [{
+          name: "metadata.reference_video",
+          type: "string | string[]",
+          desc: `https URLs of clips the model should follow: ${refDesc("video")}.${price("video")}`,
+        }]
+      : []),
+    ...(ref?.audio
+      ? [{
+          name: "metadata.reference_audio",
+          type: "string | string[]",
+          desc: `https URLs of audio the model should follow: ${refDesc("audio")}.${price("audio")}`,
+        }]
+      : []),
+    ...(ref?.image
+      ? [{
+          name: "metadata.reference_image",
+          type: "string | string[]",
+          desc: `https URLs of images the model should draw on: ${refDesc("image")}.${price("image")}`,
+        }]
+      : []),
+    ...(model.supports.image
+      ? [{
+          name: "metadata.last_frame_image",
+          type: "string",
+          desc: "Image to end on. Needs a first frame too, and cannot be combined with reference material.",
+        }]
+      : []),
+    ...(ref
+      ? [{
+          name: "metadata.content",
+          type: "array",
+          desc: "The provider's own multimodal array, passed through: items of type text, image_url, video_url or audio_url, each with a role of first_frame, last_frame, reference_image, reference_video or reference_audio. Send this instead of the fields above, not as well.",
+        }]
+      : []),
   ];
 
   const snippets: Record<Lang, string> = {
@@ -121,6 +183,51 @@ curl -L -o out.mp4 ${host}/v1/videos/$VIDEO_ID/content \\
   }
 }`;
 
+  // Both shapes in one example: our field names, and the provider's own array
+  // for anyone porting code that already speaks it.
+  // The library route, which takes the same API key: upload once, reference it
+  // as often as you like, and let the platform check it against the limits.
+  const librarySnippet = `# 1. Put the clip in your library (once). Any video or audio is accepted.
+curl -sS ${host}/media/library/media \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" \\
+  -F file=@clip.mp4
+# -> {"id":"9f2c…","kind":"video","duration_seconds":6.0,"codec":"h264", …}
+
+# 2. Ask for it as a reference. This is where ${model.name}'s rules are applied -
+#    format, codec, size, duration, counts, totals - and where the links come from.
+curl -sS ${host}/media/library/references \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" -H "Content-Type: application/json" \\
+  -d '{"model": "${model.slug}", "reference_video": ["9f2c…"]}'
+# -> {"ok":true,"facts":{"input_video_seconds":6,"input_images":0,"input_audios":0},
+#     "urls":{"reference_video":["https://…"]},"expires_at":1789460000}
+# A file that breaks a rule comes back as 422 with the reason:
+#   {"detail":{"message":"clip.mp4 is 20s; the maximum is 15s","problems":[…]}}
+
+# 3. Generate with those URLs.
+curl -sS ${host}/v1/videos \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" -H "Content-Type: application/json" \\
+  -d '{"model": "${id}", "prompt": "Match this motion", "seconds": ${dur},
+       "resolution": "${res}", "metadata": {"reference_video": ["https://…"]}}'`;
+
+  const referenceSnippet = `curl -sS ${host}/v1/videos \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" -H "Content-Type: application/json" \\
+  -d '{
+    "model": "${id}",
+    "prompt": "Match the motion of the reference clip",
+    "seconds": ${dur},
+    "resolution": "${res}",
+    "metadata": {
+      "reference_video": ["https://example.com/clip.mp4"],
+      "reference_audio": ["https://example.com/voice.wav"]
+    }
+  }'
+
+# The same request in the provider's own vocabulary, which is accepted as-is:
+#   "metadata": { "content": [
+#     { "type": "video_url", "video_url": { "url": "https://example.com/clip.mp4" },
+#       "role": "reference_video" }
+#   ]}`;
+
   const langLabel: Record<Lang, string> = { js: "JavaScript", python: "Python", curl: "cURL" };
 
   return (
@@ -203,6 +310,52 @@ curl -L -o out.mp4 ${host}/v1/videos/$VIDEO_ID/content \\
         </div>
         <p className="mt-2 text-xs text-dim"><span className="text-danger">*</span> required</p>
       </section>
+
+      {/* reference material */}
+      {ref && (
+        <section className="mt-8">
+          <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">
+            Reference video, audio and images
+          </h2>
+          <p className="mt-2 text-sm text-muted">
+            Hand {model.name} material to follow rather than a still to start from. The URLs must be https and
+            reachable by the provider; anything in your library has a link for exactly this
+            (<code className="text-gold-2">POST /media/library/references</code> checks a selection against the
+            limits above and returns them). A first or last frame image and reference material are different modes
+            and cannot be combined in one request.
+          </p>
+          <div className="relative mt-3">
+            <CopyButton text={referenceSnippet} />
+            <pre className="overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+              <code>{referenceSnippet}</code>
+            </pre>
+          </div>
+          <p className="mt-3 text-xs text-dim">
+            A reference clip is charged for its own length, so the amount held when you submit assumes the longest
+            input allowed and settles to the real duration when the provider reports it.
+          </p>
+
+          <h3 className="mt-6 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg-soft">
+            Using your library, from the API
+          </h3>
+          <p className="mt-2 text-sm text-muted">
+            You do not need to host the files. The same API key works on the library routes, so a clip can be
+            uploaded once and referenced as often as you like, and the platform hands you links the provider can
+            fetch. Uploading is permissive - any video or audio - and a file is only judged when you ask to use it.
+          </p>
+          <div className="relative mt-3">
+            <CopyButton text={librarySnippet} />
+            <pre className="overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+              <code>{librarySnippet}</code>
+            </pre>
+          </div>
+          <p className="mt-3 text-xs text-dim">
+            Stored files are charged by the gigabyte-month (see Pricing); deleting one stops its charge.
+            <code className="ml-1 text-gold-2">GET /media/library/media</code> lists what you have,
+            <code className="ml-1 text-gold-2">DELETE /media/library/media/&#123;id&#125;</code> removes one.
+          </p>
+        </section>
+      )}
 
       {/* response */}
       <section className="mt-8">
