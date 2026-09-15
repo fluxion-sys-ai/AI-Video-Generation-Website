@@ -21,14 +21,64 @@ export type DashData = {
     generations: number | null;
     spendUsd: number | null;
   };
+  /** Whether a customer can pay yet. Null while the backend is still answering. */
+  paymentsOpen?: boolean | null;
 };
 
-const STEPS = [
-  { title: "Create account", desc: "You're signed in and ready.", href: "/profile?tab=account", done: true },
-  { title: "Set up billing", desc: "Add a payment method.", href: "/profile?tab=payment", done: false },
-  { title: "Your balance", desc: "See what you can spend.", href: "/profile?tab=billing", done: false },
-  { title: "Get API key", desc: "Generate video over HTTP.", href: "/docs#keys", done: false },
-];
+type Step = { title: string; desc: string; href: string | null; done: boolean; soon?: boolean };
+
+// Getting started. Billing is only a step when paying is actually possible:
+// while it is closed, inviting someone into a checkout that cannot complete is
+// worse than saying so, and the card stops being a link. The API key step goes
+// to the page that issues keys, not to the documentation about them.
+function steps(paymentsOpen: boolean | null | undefined): Step[] {
+  const canPay = paymentsOpen !== false;
+  return [
+    { title: "Create account", desc: "You're signed in and ready.", href: "/profile?tab=account", done: true },
+    canPay
+      ? { title: "Set up billing", desc: "Add a payment method.", href: "/profile?tab=payment", done: false }
+      : { title: "Set up billing", desc: "Paying for credit yourself is coming soon.", href: null, done: false, soon: true },
+    { title: "Your balance", desc: "See what you can spend.", href: "/profile?tab=billing", done: false },
+    { title: "Get API key", desc: "Generate video over HTTP.", href: "/profile?tab=keys", done: false },
+  ];
+}
+
+/**
+ * One getting-started card. A step with nowhere to go is not a link: it keeps
+ * the same shape so the row still reads as four steps, but it does not respond
+ * to a click, is skipped by the keyboard, and says "coming soon" itself.
+ */
+function StepCard({
+  step,
+  className,
+  style,
+  children,
+}: {
+  step: Step;
+  className: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  const tag = step.soon ? (
+    <span className="mt-2 block font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.08em] text-gold">
+      Coming soon
+    </span>
+  ) : null;
+  if (!step.href) {
+    return (
+      <div aria-disabled="true" className={`${className} cursor-default opacity-70`} style={style}>
+        {children}
+        {tag}
+      </div>
+    );
+  }
+  return (
+    <Link href={step.href} className={className} style={style}>
+      {children}
+      {tag}
+    </Link>
+  );
+}
 
 const LINKS = [
   { title: "New generation", desc: "Pick a model and prompt.", href: "/generate" },
@@ -78,12 +128,12 @@ export function DashboardOG(data: DashData) {
           <span className="font-[family-name:var(--font-jetbrains)] text-xs text-dim">1 of 4 done</span>
         </div>
         <div className="mt-3 grid grid-cols-2 border-b border-r border-line sm:grid-cols-4">
-          {STEPS.map((s, i) => (
-            <Link key={s.title} href={s.href} className="group border-l border-t border-line p-4 transition-colors hover:bg-hover">
+          {steps(data.paymentsOpen).map((s, i) => (
+              <StepCard key={s.title} step={s} className="group border-l border-t border-line p-4 transition-colors hover:bg-hover">
               <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold ${s.done ? "bg-accent text-ink" : "border border-line-strong font-[family-name:var(--font-jetbrains)] text-muted"}`}>{s.done ? "✓" : i + 1}</span>
               <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.04em] text-fg transition-colors group-hover:text-gold-soft">{s.title}</p>
               <p className="mt-1 text-xs text-dim">{s.desc}</p>
-            </Link>
+            </StepCard>
           ))}
         </div>
 
@@ -160,12 +210,12 @@ export function DashboardEditorial(data: DashData) {
             <span className="text-sm text-muted">1 of 4 done</span>
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((s, i) => (
-              <Link key={s.title} href={s.href} className="rounded-2xl bg-surface p-5 shadow-lg transition-transform hover:-translate-y-1">
+            {steps(data.paymentsOpen).map((s, i) => (
+              <StepCard key={s.title} step={s} className="rounded-2xl bg-surface p-5 shadow-lg transition-transform hover:-translate-y-1">
                 <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${s.done ? "bg-accent text-ink" : "border border-line-strong text-muted"}`}>{s.done ? "✓" : i + 1}</span>
                 <p className="mt-3 font-semibold text-fg-strong">{s.title}</p>
                 <p className="mt-1 text-sm font-light text-muted">{s.desc}</p>
-              </Link>
+              </StepCard>
             ))}
           </div>
         </div>
@@ -243,15 +293,15 @@ export function DashboardLuxury(data: DashData) {
               <span className="font-[family-name:var(--font-jetbrains)] text-xs text-dim">1 / 4</span>
             </div>
             <div className="mt-4">
-              {STEPS.map((s, i) => (
-                <Link key={s.title} href={s.href} className="group flex items-center gap-4 border-t border-line py-4 last:border-b hover:bg-hover">
+              {steps(data.paymentsOpen).map((s, i) => (
+              <StepCard key={s.title} step={s} className="group flex items-center gap-4 border-t border-line py-4 last:border-b hover:bg-hover">
                   <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${s.done ? "bg-accent text-ink" : "border border-line-strong text-muted"}`}>{s.done ? "✓" : i + 1}</span>
                   <div className="flex-1">
                     <span className="block text-lg text-fg-strong">{s.title}</span>
                     <span className="text-sm text-muted">{s.desc}</span>
                   </div>
                   <span className="text-accent-ink">→</span>
-                </Link>
+                </StepCard>
               ))}
             </div>
           </div>
@@ -330,12 +380,17 @@ export function DashboardPlayful(data: DashData) {
         {/* Getting started, pastel cards */}
         <h2 className="mt-10 text-lg font-bold text-fg-strong">Getting started</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((s, i) => (
-            <Link key={s.title} href={s.href} className="rounded-[22px] p-5 transition-transform hover:-translate-y-1" style={{ background: PLAY_PASTELS[i % PLAY_PASTELS.length], color: "#1a1440" }}>
+          {steps(data.paymentsOpen).map((s, i) => (
+            <StepCard
+              key={s.title}
+              step={s}
+              className={`rounded-[22px] p-5 ${s.href ? "transition-transform hover:-translate-y-1" : ""}`}
+              style={{ background: PLAY_PASTELS[i % PLAY_PASTELS.length], color: "#1a1440" }}
+            >
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 text-lg font-bold" style={{ color: "#7c3aed" }}>{s.done ? "✓" : i + 1}</span>
               <p className="mt-3 font-bold">{s.title}</p>
               <p className="mt-1 text-sm" style={{ color: "#4a4570" }}>{s.desc}</p>
-            </Link>
+            </StepCard>
           ))}
         </div>
 
@@ -418,15 +473,15 @@ export function DashboardCosmos(data: DashData) {
           <div>
             <h2 className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.24em] text-dim">Getting started</h2>
             <div className="mt-4 space-y-2">
-              {STEPS.map((s, i) => (
-                <Link key={s.title} href={s.href} className="group flex items-center gap-4 rounded-[10px] border border-hairline bg-surface px-4 py-3 hover:-translate-y-0.5 transition-transform">
+              {steps(data.paymentsOpen).map((s, i) => (
+              <StepCard key={s.title} step={s} className="group flex items-center gap-4 rounded-[10px] border border-hairline bg-surface px-4 py-3 hover:-translate-y-0.5 transition-transform">
                   <span className={`flex h-8 w-8 items-center justify-center rounded-full font-[family-name:var(--font-jetbrains)] text-xs ${s.done ? "bg-accent text-ink" : "border border-line-strong text-muted"}`}>{s.done ? "✓" : i + 1}</span>
                   <div className="flex-1">
                     <span className="block text-sm text-fg-strong">{s.title}</span>
                     <span className="text-xs text-muted">{s.desc}</span>
                   </div>
                   <span className="text-accent-ink">→</span>
-                </Link>
+                </StepCard>
               ))}
             </div>
           </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isSignedIn, getUser } from "@/lib/auth";
 import { refreshCatalog } from "@/lib/models";
-import { BACKEND_ENABLED, getBillingSummary, quotaToUsd, getSelf } from "@/lib/hub";
+import { BACKEND_ENABLED, getBillingSummary, getTopupInfo, quotaToUsd, getSelf } from "@/lib/hub";
 import { useLive } from "@/lib/live";
 import { getGenerations, refreshGenerations } from "@/lib/generations";
 import { getCredits, refreshBilling } from "@/lib/billing";
@@ -25,6 +25,10 @@ export default function DashboardPage() {
   const [name, setName] = useState("");
   const [favs, setFavs] = useState<string[]>([]);
   const [recents, setRecents] = useState<string[]>([]);
+  // Whether paying is possible at all. Null until the hub answers, so the
+  // getting-started card neither invites a customer into a checkout that
+  // cannot complete nor calls the feature "coming soon" once it has arrived.
+  const [paymentsOpen, setPaymentsOpen] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!isSignedIn()) {
@@ -47,6 +51,9 @@ export default function DashboardPage() {
     getBillingSummary(30)
       .then((s) => setSpendUsd(s.period.spend_usd))
       .catch(() => {});
+    getTopupInfo()
+      .then((info) => setPaymentsOpen(Boolean(info.enable_stripe_topup)))
+      .catch(() => {});
   }, [billingVersion, generationsVersion]);
 
   const snapshot = BACKEND_ENABLED
@@ -55,7 +62,8 @@ export default function DashboardPage() {
 
   if (!ready) return <div className="min-h-screen" />;
 
-  const data = { name, favs, recents, snapshot };
+  // Without a backend the Payment tab is a working mock, so billing is "open".
+  const data = { name, favs, recents, snapshot, paymentsOpen: BACKEND_ENABLED ? paymentsOpen : true };
   if (skin === "editorial") return <DashboardEditorial {...data} />;
   if (skin === "luxury") return <DashboardLuxury {...data} />;
   if (skin === "playful") return <DashboardPlayful {...data} />;
