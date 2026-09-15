@@ -399,10 +399,31 @@ export async function listApiKeys(): Promise<ApiKeyRow[]> {
     .sort((a, b) => b.createdAt - a.createdAt);
 }
 
-/** Creates a key that spends the account balance, with no expiry, and returns its secret. */
-export async function createApiKey(name: string): Promise<{ row: ApiKeyRow; secret: string }> {
-  const clean = name.trim() || "default";
+/** A label nobody has used yet: key-1, key-2, and so on. */
+function nextKeyName(existing: ApiKeyRow[]): string {
+  const taken = new Set(existing.map((r) => r.name));
+  for (let n = 1; n <= 999; n++) {
+    const candidate = `key-${n}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+  return `key-${Date.now()}`;
+}
+
+/**
+ * Creates a key that spends the account balance, with no expiry, and returns
+ * its secret. The hub generates the secret; the name is only a label, so one is
+ * chosen here when the customer does not care to.
+ *
+ * The hub's create call returns nothing, so the new row is found by its name:
+ * that only works if the name is unique, which is why a duplicate is renamed
+ * rather than accepted.
+ */
+export async function createApiKey(name = ""): Promise<{ row: ApiKeyRow; secret: string }> {
+  const existing = await listApiKeys();
+  let clean = name.trim();
   if (clean === WEB_KEY_NAME) throw new ApiError(`"${WEB_KEY_NAME}" is reserved for this website.`, 400);
+  if (!clean || existing.some((r) => r.name === clean)) clean = nextKeyName(existing);
+
   await account("POST", "/api/token/", { name: clean, remain_quota: 0, unlimited_quota: true, expired_time: -1 });
   const rows = await listApiKeys();
   const row = rows.find((r) => r.name === clean);
