@@ -633,6 +633,14 @@ function GenerateInner() {
   // Safe from here: the screen only renders with a model.
   const minDuration = Math.min(...model.durations);
   const maxDuration = Math.max(...model.durations);
+  // The nearest length this model actually renders. Clamping to the ends of the
+  // range is not enough on its own: a model that sells 5, 10 and 15 would let
+  // someone type 7 and then have the provider refuse it after they pressed
+  // Generate. MiniMax H3 Fast now sells every second from 5 to 15, so this
+  // changes nothing for it - it keeps the promise true for anything that does
+  // not.
+  const nearestDuration = (typed: number) =>
+    model.durations.reduce((best, value) => (Math.abs(value - typed) < Math.abs(best - typed) ? value : best), model.durations[0]);
 
   return (
     <div className="px-6 py-6">
@@ -993,7 +1001,7 @@ function GenerateInner() {
                   // a number back would hide that nothing was chosen. Generate
                   // asks for one instead.
                   if (!isPositive(duration)) return;
-                  setDuration(Math.min(maxDuration, Math.max(minDuration, Math.round(duration))));
+                  setDuration(nearestDuration(Math.min(maxDuration, Math.max(minDuration, Math.round(duration)))));
                 }}
                 className={`${compactInput} w-20`}
               />
