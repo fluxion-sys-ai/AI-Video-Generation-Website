@@ -1,6 +1,7 @@
 "use client";
 
 import { modelTint, modelFeatured } from "@/lib/model-tint";
+import { matchesAllTags, modelSearchText, modelTags } from "@/lib/model-facets";
 import { money } from "@/lib/rate-card";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -82,17 +83,18 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
   const [tags, setTags] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<Sort>("popular");
   const query = q.trim().toLowerCase();
-  const allTags = [...new Set(models.flatMap((m) => m.capabilities))];
+  const allTags = modelTags(models);
 
   function toggleTag(t: string) {
     setTags((prev) => { const next = new Set(prev); next.has(t) ? next.delete(t) : next.add(t); return next; });
   }
 
-  let list = models.filter((m) => {
-    const matchesQuery = !query || [m.name, m.tagline, m.description, ...m.capabilities].join(" ").toLowerCase().includes(query);
-    const matchesTags = tags.size === 0 || m.capabilities.some((c) => tags.has(c));
-    return matchesQuery && matchesTags;
-  });
+  // Each chip narrows the list (see lib/model-facets.ts): a model has to satisfy
+  // every selected tag, and a tag is anything true about it - a capability it
+  // lists or a resolution it sells - not only a label it happens to carry.
+  let list = models.filter(
+    (m) => (!query || modelSearchText(m).includes(query)) && matchesAllTags(m, tags),
+  );
   if (sort === "price-asc") list = [...list].sort((a, b) => a.usdPerSecond - b.usdPerSecond);
   else if (sort === "price-desc") list = [...list].sort((a, b) => b.usdPerSecond - a.usdPerSecond);
   else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
