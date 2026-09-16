@@ -584,11 +584,28 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
 }
 
 /** Polls until the video completes or fails. Tolerates a few transient errors. */
+/**
+ * How long to wait before asking again.
+ *
+ * A fixed three seconds was most of the wait on a model that finishes in
+ * sixteen: the video was ready and the page had not looked yet. But a long
+ * hosted job takes three minutes, and polling that every second for three
+ * minutes is a hundred and eighty requests to learn nothing. So the interval
+ * follows the wait: attentive while a fast model is plausibly finishing, then
+ * calmer.
+ */
+function pollInterval(elapsedMs: number): number {
+  if (elapsedMs < 30_000) return 1_000;
+  if (elapsedMs < 120_000) return 2_000;
+  return 4_000;
+}
+
 export async function waitForVideo(
   id: string,
   opts: { signal?: AbortSignal; onUpdate?: (video: Video) => void; intervalMs?: number } = {},
 ): Promise<Video> {
   let errors = 0;
+  const started = Date.now();
   for (;;) {
     if (opts.signal?.aborted) throw new DOMException("Aborted", "AbortError");
     try {
@@ -600,7 +617,7 @@ export async function waitForVideo(
       if (err instanceof ApiError && err.status < 500 && err.status !== 429) throw err;
       if (++errors >= 4) throw err;
     }
-    await sleep(opts.intervalMs ?? 3000, opts.signal);
+    await sleep(opts.intervalMs ?? pollInterval(Date.now() - started), opts.signal);
   }
 }
 
@@ -1022,6 +1039,9 @@ export type ReferenceLimits = {
 
 export type ReferenceRules = {
   mutually_exclusive_with_frames?: boolean;
+  /** How many images or clips the model needs before it can generate at all.
+   *  A reference-to-video deployment cannot work from a prompt alone. */
+  min_visual?: number;
   video?: ReferenceLimits;
   audio?: ReferenceLimits;
   image?: ReferenceLimits;

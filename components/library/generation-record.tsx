@@ -42,9 +42,23 @@ export function GenerationRecordPanel({
   // only writes when an answer arrives.
   useEffect(() => {
     let alive = true;
-    getGeneration(generation.id)
-      .then((r) => alive && setRecord(r))
-      .catch(() => alive && setFailed(true));
+    // The gateway batches its behaviour log, which is where the request is
+    // read from, so a video opened seconds after it finished can arrive before
+    // its own record does. A 404 here means "not yet" more often than it means
+    // "never", so this asks again for a few seconds before saying there is
+    // nothing - which is what it used to say, to anyone quick enough to look.
+    (async () => {
+      for (let attempt = 0; attempt < 6 && alive; attempt++) {
+        try {
+          const found = await getGeneration(generation.id);
+          if (alive) setRecord(found);
+          return;
+        } catch {
+          if (attempt < 5) await new Promise((done) => setTimeout(done, 2000));
+        }
+      }
+      if (alive) setFailed(true);
+    })();
     return () => {
       alive = false;
     };
@@ -164,7 +178,7 @@ export function GenerationRecordPanel({
               No recorded request for this one. Generations made before the platform started keeping them have none.
             </p>
           ) : !record ? (
-            <p className="mt-2 text-sm text-muted">Loading…</p>
+            <p className="mt-2 text-sm text-muted">Loading the request…</p>
           ) : (
             <>
               <div className="relative mt-2">

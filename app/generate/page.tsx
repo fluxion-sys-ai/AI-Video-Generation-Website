@@ -139,8 +139,18 @@ function GenerateInner() {
   // read as two boxes for one job. The API still accepts first_frame; the
   // playground does not ask for it.
   const takesReferenceImages = Boolean(rules?.image);
+  // Some deployments cannot generate from a prompt alone: one process serves
+  // one task, and a reference-to-video server has nothing to do without an
+  // image or a clip. The catalogue row says so (supports.reference.min_visual),
+  // and saying it here - before the button is pressed - is the difference
+  // between a form that guides and a request that gets refused.
+  const needsReference = Number(rules?.min_visual || 0) > 0;
   const framesBlocked = exclusive && hasReference;
   const referenceBlocked = exclusive && images.length > 0;
+  // A first frame counts as something to follow where the model takes one; on a
+  // reference-only deployment it is not offered at all.
+  const visualCount = refVideos.length + refImages.length + (framesBlocked ? 0 : images.length);
+  const missingReference = needsReference && visualCount < Number(rules?.min_visual || 0);
   // With nothing selected there is nothing to judge, so the verdict is derived
   // rather than cleared: the effect below only writes when an answer arrives.
   const refProblems = hasReference ? refVerdict.problems : [];
@@ -1017,9 +1027,21 @@ function GenerateInner() {
             </p>
           )}
 
+          {missingReference && (
+            <p className="border border-line-strong bg-raised p-3 text-sm text-fg-soft">
+              {model.name} follows the material you give it: add {Number(rules?.min_visual || 1) > 1 ? `${rules?.min_visual} references` : "a reference image or clip"} to
+              generate.{" "}
+              <Link href="/generate?model=minimax-h3" className="text-blue hover:text-gold-soft">
+                MiniMax H3
+              </Link>{" "}
+              generates from a prompt alone.
+            </p>
+          )}
+
           <button
             onClick={onGenerate}
-            disabled={status === "generating" || refProblems.length > 0}
+            disabled={status === "generating" || refProblems.length > 0 || missingReference}
+            title={missingReference ? `${model.name} needs a reference image or clip` : undefined}
             className="w-full rounded-none bg-accent px-6 py-2.5 font-[family-name:var(--font-jetbrains)] font-medium uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {status === "generating" ? "Generating…" : "Generate"}
