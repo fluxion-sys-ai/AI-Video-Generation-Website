@@ -9,6 +9,7 @@
    app/page.tsx picks one via useSkin(). Shared chrome (header/footer) is reused.
    ============================================================================ */
 
+import { modelTint } from "@/lib/model-tint";
 import { money } from "@/lib/rate-card";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -460,7 +461,6 @@ export function LandingLuxury() {
 }
 
 /* --------------------------------------------------------------- PLAYFUL ---- */
-const PASTELS = ["#d9f5e6", "#e9ddff", "#ffe3d1", "#d9ecff", "#fff2c2", "#ffd9ec"];
 // Minimal line-icon paths (24x24, stroke), no emoji.
 const SVC_ICONS: Record<string, React.ReactNode> = {
   text: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M10 9l5 3-5 3z" /></>,
@@ -580,10 +580,10 @@ export function LandingPlayful() {
                 key={m.slug}
                 href={`/generate?model=${m.slug}`}
                 className={`group relative overflow-hidden rounded-[24px] p-5 transition-transform hover:-translate-y-1 ${i === 0 ? "col-span-2 row-span-2" : i === 3 ? "col-span-2" : ""}`}
-                style={{ background: PASTELS[i % PASTELS.length], color: "#1a1440", boxShadow: POP }}
+                style={{ background: modelTint(m.slug), color: "#1a1440", boxShadow: POP }}
               >
                 <img src={m.poster} alt="" className="absolute inset-0 h-full w-full object-cover opacity-90 mix-blend-luminosity transition-opacity group-hover:opacity-100" />
-                <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 40%, ${PASTELS[i % PASTELS.length]}cc)` }} />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 40%, ${modelTint(m.slug)}cc)` }} />
                 <div className="relative flex h-full flex-col justify-end">
                   <h3 className="text-2xl font-extrabold">{m.name}</h3>
                   <p className="text-sm" style={{ color: "#4a4570" }}>{m.tagline}</p>

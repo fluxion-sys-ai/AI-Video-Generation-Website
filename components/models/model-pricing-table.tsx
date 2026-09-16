@@ -1,5 +1,6 @@
 "use client";
 
+import { modelTint } from "@/lib/model-tint";
 import { getModels, refreshCatalog, type Model } from "@/lib/models";
 import { useSkin } from "@/lib/use-skin";
 import { BACKEND_ENABLED } from "@/lib/hub";
@@ -10,7 +11,6 @@ import { estimateCost, money, rateRange, ratesFor, useRateCard } from "@/lib/rat
 // rate for that model and resolution; the demo catalogue's per-second figures
 // stand in otherwise. The *presentation* changes per skin (table / magazine
 // rows / pastel cards) while the data stays the same.
-const PLAY_PASTELS = ["#fff2c2", "#d9ecff", "#ffd9ec", "#d9f5e6"];
 
 export function ModelPricingTable() {
   useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
@@ -52,8 +52,8 @@ export function ModelPricingTable() {
   if (skin === "playful") {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {models.map((m, i) => (
-          <div key={m.slug} className="rounded-[20px] p-5" style={{ background: PLAY_PASTELS[i % PLAY_PASTELS.length], color: "#1a1440", boxShadow: "5px 5px 0 rgba(26,20,64,0.14)" }}>
+        {models.map((m) => (
+          <div key={m.slug} className="rounded-[20px] p-5" style={{ background: modelTint(m.slug), color: "#1a1440", boxShadow: "5px 5px 0 rgba(26,20,64,0.14)" }}>
             <p className="text-sm font-bold uppercase tracking-[0.06em]">{m.name}</p>
             <p className="mt-3 text-3xl font-extrabold">{clip(m)}</p>
             <p className="text-xs font-semibold" style={{ color: "#4a4570" }}>per {sample(m)}s clip</p>

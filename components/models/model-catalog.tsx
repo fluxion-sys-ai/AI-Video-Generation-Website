@@ -1,5 +1,6 @@
 "use client";
 
+import { modelTint, modelFeatured } from "@/lib/model-tint";
 import { money } from "@/lib/rate-card";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -172,7 +173,6 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
 
   // ===== PLAYFUL, chunky title, big centered pill search, pastel bento. =====
   if (skin === "playful") {
-    const PASTELS = ["#fff2c2", "#d9ecff", "#ffd9ec", "#d9f5e6", "#e9ddff", "#ffe3d1"];
     return (
       <div className="relative mx-auto max-w-6xl text-center">
         <h1 className="text-[clamp(34px,5vw,60px)] font-extrabold text-fg-strong">Browse the models</h1>
@@ -186,9 +186,9 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
         {list.length === 0 ? empty : (
           <div className="mt-8 grid auto-rows-[220px] grid-cols-2 gap-6 text-left lg:grid-cols-4">
             {list.map((m, i) => (
-              <Link key={m.slug} href={`/generate?model=${m.slug}`} className={`group relative overflow-hidden rounded-[24px] p-5 transition-transform hover:-translate-y-1 ${i % 5 === 0 ? "col-span-2 row-span-2" : ""}`} style={{ background: PASTELS[i % PASTELS.length], color: "#1a1440", boxShadow: "6px 6px 0 rgba(26,20,64,0.16)" }}>
+              <Link key={m.slug} href={`/generate?model=${m.slug}`} className={`group relative overflow-hidden rounded-[24px] p-5 transition-transform hover:-translate-y-1 ${modelFeatured(m.sortOrder ?? i) ? "col-span-2 row-span-2" : ""}`} style={{ background: modelTint(m.slug), color: "#1a1440", boxShadow: "6px 6px 0 rgba(26,20,64,0.16)" }}>
                 <img src={m.poster} alt="" className="absolute inset-0 h-full w-full object-cover opacity-90 mix-blend-luminosity transition-opacity group-hover:opacity-100" />
-                <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 40%, ${PASTELS[i % PASTELS.length]}dd)` }} />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 40%, ${modelTint(m.slug)}dd)` }} />
                 <div className="absolute right-4 top-4"><FavHeart slug={m.slug} light /></div>
                 <div className="relative flex h-full flex-col justify-end">
                   <h3 className="text-2xl font-extrabold">{m.name}</h3>

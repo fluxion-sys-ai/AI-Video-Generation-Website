@@ -6,6 +6,7 @@
    data loading, then hands the data to one of these based on useSkin().
    ============================================================================ */
 
+import { modelTint } from "@/lib/model-tint";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
@@ -401,11 +402,11 @@ export function DashboardLuxury(data: DashData) {
 /* --------------------------------------------------------------- PLAYFUL ---- */
 const PLAY_PASTELS = ["#fff2c2", "#d9ecff", "#ffd9ec", "#d9f5e6", "#e9ddff", "#ffe3d1"];
 
-function PlayChip({ slug, i }: { slug: string; i: number }) {
+function PlayChip({ slug }: { slug: string }) {
   const m = getModel(slug);
   if (!m) return null;
   return (
-    <Link href={`/generate?model=${m.slug}`} className="group overflow-hidden rounded-[22px] transition-transform hover:-translate-y-1" style={{ background: PLAY_PASTELS[i % PLAY_PASTELS.length], color: "#1a1440" }}>
+    <Link href={`/generate?model=${m.slug}`} className="group overflow-hidden rounded-[22px] transition-transform hover:-translate-y-1" style={{ background: modelTint(m.slug), color: "#1a1440" }}>
       <img src={m.poster} alt="" className="aspect-[16/9] w-full object-cover" />
       <div className="p-4">
         <p className="text-lg font-bold">{m.name}</p>
@@ -474,11 +475,11 @@ export function DashboardPlayful(data: DashData) {
         <div id="models" className="mt-12 scroll-mt-24 grid gap-10 lg:grid-cols-2">
           <div>
             <h2 className="text-lg font-bold text-fg-strong">Recently used</h2>
-            {recents.length === 0 ? <p className="mt-4 rounded-[22px] bg-surface p-6 text-sm text-muted shadow-lg">Models you generate with show up here.</p> : <div className="mt-4 grid gap-4 sm:grid-cols-2">{recents.map((s, i) => <PlayChip key={s} slug={s} i={i} />)}</div>}
+            {recents.length === 0 ? <p className="mt-4 rounded-[22px] bg-surface p-6 text-sm text-muted shadow-lg">Models you generate with show up here.</p> : <div className="mt-4 grid gap-4 sm:grid-cols-2">{recents.map((s) => <PlayChip key={s} slug={s} />)}</div>}
           </div>
           <div>
             <h2 className="text-lg font-bold text-fg-strong">Favorite models</h2>
-            {favs.length === 0 ? <p className="mt-4 rounded-[22px] bg-surface p-6 text-sm text-muted shadow-lg">Heart a model in the catalog to save it here.</p> : <div className="mt-4 grid gap-4 sm:grid-cols-2">{favs.map((s, i) => <PlayChip key={s} slug={s} i={i} />)}</div>}
+            {favs.length === 0 ? <p className="mt-4 rounded-[22px] bg-surface p-6 text-sm text-muted shadow-lg">Heart a model in the catalog to save it here.</p> : <div className="mt-4 grid gap-4 sm:grid-cols-2">{favs.map((s) => <PlayChip key={s} slug={s} />)}</div>}
           </div>
         </div>
       </main>
