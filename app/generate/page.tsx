@@ -708,7 +708,13 @@ function GenerateInner() {
       )}
       </div>
 
-      <div className={`lg:h-[calc(100vh-7rem)] ${skin === "og" ? "grid gap-6 lg:grid-cols-[150px_1fr]" : "pg-body"}`}>
+      {/* One screen tall when the form is short, taller when it is not. A fixed
+          height here used to clip: the form column was meant to scroll inside
+          it, but an intermediate div with no height of its own turned h-full
+          into auto, so enough reference images pushed Generate straight out of
+          the box and over the footer. Growing is the safer default - nothing is
+          ever unreachable, and the footer stays below the content. */}
+      <div className={`lg:min-h-[calc(100vh-7rem)] ${skin === "og" ? "grid gap-6 lg:grid-cols-[150px_1fr]" : "pg-body"}`}>
       {/* OG: original left-rail Playground / API tabs. */}
       {skin === "og" && (
         <nav className="flex gap-2 font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.06em] lg:flex-col lg:gap-1">
@@ -727,11 +733,11 @@ function GenerateInner() {
       )}
       <div className="min-w-0">
       {view === "api" ? (
-        <div className="min-h-0 lg:overflow-y-auto">
+        <div className="min-w-0">
           <ApiDocs model={model} />
         </div>
       ) : view === "examples" ? (
-        <div className="min-h-0 lg:overflow-y-auto">
+        <div className="min-w-0">
           <div className="mx-auto max-w-3xl">
             <h2 className="font-[family-name:var(--font-playfair)] text-2xl text-fg-strong">Sample outputs</h2>
             <p className="mt-1 text-sm text-muted">A sample generation from {model.name}.</p>
@@ -742,7 +748,7 @@ function GenerateInner() {
         </div>
       ) : (
       <div
-        className={`pg-grid grid gap-8 transition-[grid-template-columns] duration-300 lg:h-full ${
+        className={`pg-grid grid gap-8 transition-[grid-template-columns] duration-300 lg:items-start ${
           panelOpen ? "lg:grid-cols-[280px_minmax(0,1fr)_minmax(0,40%)]" : "lg:grid-cols-[40px_minmax(0,1fr)_minmax(0,40%)]"
         }`}
       >
@@ -798,7 +804,7 @@ function GenerateInner() {
       </aside>
 
       {/* Main form (borderless, compact) */}
-      <main className="pg-form min-h-0 lg:overflow-y-auto">
+      <main className="pg-form min-w-0">
         <div className="flex items-center gap-2.5">
           <h1 className="font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">{model.name}</h1>
           <button
@@ -1024,7 +1030,7 @@ function GenerateInner() {
       </main>
 
       {/* Preview stage (right): the chosen aspect shape; the video generates here */}
-      <section className="pg-preview flex min-h-0 flex-col gap-3">
+      <section className="pg-preview flex flex-col gap-3 lg:sticky lg:top-24 lg:self-start">
         <div className="flex flex-1 flex-col items-center justify-start gap-2">
         <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">
           Preview
