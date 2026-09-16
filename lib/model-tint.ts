@@ -33,11 +33,11 @@ export function modelTint(slug: string): string {
 /**
  * Whether this model takes the big tile in a mosaic.
  *
- * Also the model's own property rather than its position, for the same reason:
- * a card that is large in one ordering and small in the next reads as a
- * different thing. The catalogue's own order decides, so an operator who wants
- * a model featured can say so by moving it.
+ * The model the catalogue puts first, and only that one. It used to be every
+ * fifth card by position, which moved as soon as anyone filtered the list - and
+ * a card that is large in one view and small in the next reads as a different
+ * thing. Promoting a model is now what it sounds like: put it first.
  */
 export function modelFeatured(sortOrder: number): boolean {
-  return sortOrder % 5 === 0;
+  return sortOrder === 0;
 }
