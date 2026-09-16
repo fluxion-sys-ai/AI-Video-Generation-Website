@@ -377,7 +377,7 @@ export function acceptLegal(documents: string[] = ["terms", "privacy", "refunds"
 export type ApiKeyRow = {
   id: number;
   name: string;
-  /** The hub's own masked form, e.g. "gdSL**********kRXS". */
+  /** The hub's own masked form, as the credential is actually written: "sk-gdSL**********kRXS". */
   masked: string;
   /** 1 active, 2 disabled, 3 expired, 4 out of quota. */
   status: number;
@@ -398,7 +398,11 @@ function keyRow(row: FullTokenRow): ApiKeyRow {
   return {
     id: row.id,
     name: row.name,
-    masked: row.key ?? "",
+    // The hub stores a key without the prefix that every request carries, so
+    // its masked form is missing the first three characters of the thing a
+    // customer is looking at. Showing it without them invites someone to type
+    // out a credential that will never work.
+    masked: row.key ? (row.key.startsWith("sk-") ? row.key : `sk-${row.key}`) : "",
     status: row.status,
     createdAt: (row.created_time ?? 0) * 1000,
     lastUsedAt: (row.accessed_time ?? 0) * 1000,
