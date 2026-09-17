@@ -747,8 +747,13 @@ function ProfileInner() {
             {/* USAGE - extended asymmetric bento (graph + stats) | history right */}
             {tab === "usage" && (
               <div className="grid gap-8 lg:grid-cols-[2.1fr_0.9fr] lg:items-start">
-                {/* left: daily usage graph + asymmetric stat tiles (unshaded) */}
-                <div className="grid grid-cols-2 border-b border-r border-line sm:grid-cols-3">
+                {/* left: daily usage graph + asymmetric stat tiles (unshaded).
+                    min-w-0 because a grid item defaults to min-width:auto, so
+                    without it the column refuses to shrink below its widest
+                    content and the whole tab grows past the viewport - on a
+                    phone this pushed the page 336px sideways once the account
+                    had history to show. */}
+                <div className="grid min-w-0 grid-cols-2 border-b border-r border-line sm:grid-cols-3">
                   <div className="col-span-2 border-l border-t border-line p-5 sm:col-span-3">
                     <div className="flex items-baseline justify-between">
                       <p className="text-xs uppercase tracking-[0.06em] text-muted">Daily usage</p>
@@ -783,7 +788,7 @@ function ProfileInner() {
                 {/* right: generation history, aligned to the right edge.
                     Searchable (filters by prompt/model) and capped in height so
                     a long list scrolls instead of pushing the page down. */}
-                <div className="lg:justify-self-end lg:w-full">
+                <div className="min-w-0 lg:justify-self-end lg:w-full">
                   <h2 className="text-right font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">
                     Generation history
                   </h2>

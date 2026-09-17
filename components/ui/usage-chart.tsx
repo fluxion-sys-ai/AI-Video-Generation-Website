@@ -25,6 +25,19 @@ function niceTop(max: number): number {
   return Math.ceil(max / 5) * 5;
 }
 
+// Line height of a y-axis label, in px, and it has to match `leading-4` on them.
+//
+// The gridlines sit at exact fractions of the plot height, but `justify-between`
+// lays the labels out by their *edges*: the top label's top edge landed on the
+// plot's top and the bottom label's bottom edge on the baseline, so "$5" sat 8px
+// below its own line and "$0" 7px above the axis - every tick wrong except the
+// middle one, which is what made the chart look askew. Making the column one
+// line taller and pulling it up by half a line puts each label's centre on its
+// own gridline. This holds because the ticks are evenly spaced by construction
+// (top, 3/4, 1/2, 1/4, 0); non-uniform ticks would need absolute positioning
+// from the same fraction the lines use.
+const TICK_LINE = 16;
+
 export function UsageChart({
   className = "",
   data = DEFAULT,
@@ -49,8 +62,8 @@ export function UsageChart({
     <div className={`flex gap-2 ${className}`}>
       {/* Y axis */}
       <div
-        className="flex flex-col justify-between text-right font-[family-name:var(--font-jetbrains)] text-[10px] text-dim"
-        style={{ height: plotHeight }}
+        className="flex shrink-0 flex-col justify-between text-right font-[family-name:var(--font-jetbrains)] text-[10px] leading-4 text-dim"
+        style={{ height: plotHeight + TICK_LINE, marginTop: -TICK_LINE / 2 }}
       >
         {ticks.map((t) => (
           <span key={t}>${Number.isInteger(t) ? t : t.toFixed(1)}</span>
