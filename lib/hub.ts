@@ -1080,6 +1080,12 @@ export type CatalogModel = {
     billing_expr?: string;
     billing_usage_schema?: import("./pricing-expr").BillingUsageSchema;
   } | null;
+  /**
+   * True for a model that is not published yet and reaches this account only
+   * because someone was let in on it (scripts/preview_access.py). Absent on
+   * every model everyone can see.
+   */
+  preview?: boolean;
 };
 
 // ---- how a video was made --------------------------------------------------------
@@ -1168,7 +1174,22 @@ export async function getPlatformRates(): Promise<PlatformRates> {
 }
 
 export async function getCatalog(): Promise<CatalogModel[]> {
-  const res = await fetch("/catalog", { credentials: "same-origin" });
+  // Public, and it has to stay public - the pricing page and /models render
+  // signed out. But signed in it can return more: an unpublished model this
+  // account has been let in on comes back marked `preview`. So the session is
+  // sent when there is one, and a session that turns out to be dead falls back
+  // to the anonymous list rather than turning a browsable page into a login
+  // wall.
+  let res: Response;
+  if (hasSession()) {
+    try {
+      res = await authedFetch("GET", "/catalog");
+    } catch {
+      res = await fetch("/catalog", { credentials: "same-origin" });
+    }
+  } else {
+    res = await fetch("/catalog", { credentials: "same-origin" });
+  }
   const body = (await parseBody(res)) as { models?: CatalogModel[] } | null;
   if (!res.ok || !body) throw errorFrom(res, body);
   return body.models ?? [];

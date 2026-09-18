@@ -19,6 +19,10 @@ export type Model = {
   /** Cheapest price per output second, in dollars. Backend mode reads it from
    *  the hub's rate card; the demo list carries its own figures. */
   usdPerSecond: number;
+  /** True for a model that is not published: it reaches this account only
+   *  because someone was let in on it. The pages say so, because a customer
+   *  should know when they are looking at something nobody else can see. */
+  preview?: boolean;
   /** The catalogue's own order, which is an operator's decision. Used where a
    *  layout wants a stable "featured" model rather than one that changes with
    *  the current sort (see lib/model-tint.ts). */
@@ -153,6 +157,7 @@ function toModel(entry: Awaited<ReturnType<typeof getCatalog>>[number]): Model {
       imageReference: Boolean(entry.supports?.image_reference || entry.supports?.reference?.image),
     },
     reference: entry.supports?.reference,
+    preview: entry.preview,
     usdPerSecond: perSecond ?? 0,
     sortOrder: entry.sortOrder,
     demoVideo: entry.demoVideo || `${BASE}/models/${entry.slug}.mp4`,

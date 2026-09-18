@@ -50,10 +50,21 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
           playsInline
           preload="auto"
         />
-        {/* max-res chip */}
-        <span className="absolute left-2.5 top-2.5 rounded-full bg-black/50 px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-white/90 backdrop-blur">
-          {maxRes}
-        </span>
+        {/* max-res chip, and - for an unpublished model this account was let in
+            on - a note that nobody else can see this card at all. */}
+        <div className="absolute left-2.5 top-2.5 flex items-center gap-1.5">
+          <span className="rounded-full bg-black/50 px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-white/90 backdrop-blur">
+            {maxRes}
+          </span>
+          {model.preview && (
+            <span
+              title="Not released yet - your account has early access"
+              className="rounded-full border border-accent/60 bg-accent-soft px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-accent-ink backdrop-blur"
+            >
+              Preview
+            </span>
+          )}
+        </div>
         <button
           type="button"
           aria-label={fav ? "Remove from favorites" : "Add to favorites"}

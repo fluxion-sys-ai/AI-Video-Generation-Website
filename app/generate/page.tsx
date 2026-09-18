@@ -696,7 +696,16 @@ function GenerateInner() {
                         {m.name.charAt(0)}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-fg">{m.name}</span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-fg">{m.name}</span>
+                          {/* Unpublished, and visible here only because this
+                              account was let in on it. */}
+                          {m.preview && (
+                            <span className="shrink-0 rounded-full border border-accent/60 px-1.5 font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.06em] text-accent-ink">
+                              Preview
+                            </span>
+                          )}
+                        </span>
                         <span className="block truncate text-xs text-dim">{m.tagline}</span>
                       </span>
                       {m.slug === slug && <span className="shrink-0 text-xs text-accent-ink">✓</span>}
