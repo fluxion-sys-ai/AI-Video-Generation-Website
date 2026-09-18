@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Model } from "@/lib/models";
 import { isFavorite, toggleFavorite, isAutoplay } from "@/lib/prefs";
+import { PreviewBadge } from "@/components/models/preview-badge";
 import { Heart } from "lucide-react";
 
 export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<string> }) {
@@ -56,14 +57,7 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
           <span className="rounded-full bg-black/50 px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-white/90 backdrop-blur">
             {maxRes}
           </span>
-          {model.preview && (
-            <span
-              title="Not released yet - your account has early access"
-              className="rounded-full border border-accent/60 bg-accent-soft px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-accent-ink backdrop-blur"
-            >
-              Preview
-            </span>
-          )}
+          {model.preview && <PreviewBadge />}
         </div>
         <button
           type="button"

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { ModelCard } from "@/components/models/model-card";
+import { PreviewBadge } from "@/components/models/preview-badge";
 import { getModels, refreshCatalog, type Model } from "@/lib/models";
 import { BACKEND_ENABLED } from "@/lib/hub";
 import { useLive } from "@/lib/live";
@@ -117,7 +118,10 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                 <div className="flex items-center gap-3 px-4 py-3">
                   <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-ink" style={{ background: "linear-gradient(135deg, var(--c-accent-ink), var(--c-gold))" }}>{m.name[0]}</span>
                   <Link href={`/generate?model=${m.slug}`} className="min-w-0 flex-1 leading-tight">
-                    <span className="block truncate text-sm font-semibold text-fg-strong hover:underline">{m.name.toLowerCase()}</span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="truncate text-sm font-semibold text-fg-strong hover:underline">{m.name.toLowerCase()}</span>
+                      {m.preview && <PreviewBadge />}
+                    </span>
                     <span className="block truncate text-xs text-muted">{m.tagline}</span>
                   </Link>
                 </div>
@@ -159,7 +163,10 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                 <b className="min-w-[52px] font-[family-name:var(--font-playfair)] text-3xl text-accent-ink">{String(i + 1).padStart(2, "0")}</b>
                 <img src={m.poster} alt="" className="hidden h-16 w-28 shrink-0 rounded-[8px] bg-black object-cover sm:block" />
                 <div className="min-w-0 flex-1">
-                  <span className="block font-[family-name:var(--font-playfair)] text-xl text-fg-strong">{m.name}</span>
+                  <span className="flex items-center gap-2">
+                    <span className="font-[family-name:var(--font-playfair)] text-xl text-fg-strong">{m.name}</span>
+                    {m.preview && <PreviewBadge />}
+                  </span>
                   <span className="text-sm text-muted">{m.tagline} · up to {m.resolutions[m.resolutions.length - 1]}</span>
                 </div>
                 <span className="hidden font-[family-name:var(--font-jetbrains)] text-sm text-gold sm:block">{money(m.usdPerSecond)} / s</span>
@@ -192,6 +199,7 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                 <img src={m.poster} alt="" className="absolute inset-0 h-full w-full object-cover opacity-90 mix-blend-luminosity transition-opacity group-hover:opacity-100" />
                 <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 40%, ${modelTint(m.slug)}dd)` }} />
                 <div className="absolute right-4 top-4"><FavHeart slug={m.slug} light /></div>
+                {m.preview && <div className="absolute left-4 top-4"><PreviewBadge tone="light" /></div>}
                 <div className="relative flex h-full flex-col justify-end">
                   <h3 className="text-2xl font-extrabold">{m.name}</h3>
                   <p className="text-sm" style={{ color: "#4a4570" }}>{m.tagline}</p>
@@ -226,7 +234,10 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                   <div className="absolute right-2.5 top-2.5"><FavHeart slug={m.slug} light /></div>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-[family-name:var(--font-space)] text-lg font-semibold text-fg-strong">{m.name}</h3>
+                  <span className="flex items-center gap-2">
+                    <h3 className="font-[family-name:var(--font-space)] text-lg font-semibold text-fg-strong">{m.name}</h3>
+                    {m.preview && <PreviewBadge />}
+                  </span>
                   <p className="mt-1 text-sm text-muted">{m.tagline}</p>
                   <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-accent-ink">{money(m.usdPerSecond)} / s · {m.resolutions[m.resolutions.length - 1]} →</p>
                 </div>

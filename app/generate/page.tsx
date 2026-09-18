@@ -17,6 +17,7 @@ import { ReferenceMedia, LibraryImagePicker, IMAGE_ACCEPT } from "@/components/g
 import { costBreakdown, money, ratesFor, useRateCard } from "@/lib/rate-card";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { useSkin } from "@/lib/use-skin";
+import { PreviewBadge } from "@/components/models/preview-badge";
 import { generateVideo, refineVideo } from "@/lib/api";
 import { hasPaymentMethod } from "@/lib/billing";
 import { addGeneration } from "@/lib/generations";
@@ -700,11 +701,7 @@ function GenerateInner() {
                           <span className="truncate font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.02em] text-fg">{m.name}</span>
                           {/* Unpublished, and visible here only because this
                               account was let in on it. */}
-                          {m.preview && (
-                            <span className="shrink-0 rounded-full border border-accent/60 px-1.5 font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.06em] text-accent-ink">
-                              Preview
-                            </span>
-                          )}
+                          {m.preview && <PreviewBadge />}
                         </span>
                         <span className="block truncate text-xs text-dim">{m.tagline}</span>
                       </span>

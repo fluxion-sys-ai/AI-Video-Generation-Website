@@ -6,6 +6,7 @@ import { useSkin } from "@/lib/use-skin";
 import { BACKEND_ENABLED } from "@/lib/hub";
 import { useLive } from "@/lib/live";
 import { estimateCost, money, rateRange, ratesFor, useRateCard } from "@/lib/rate-card";
+import { PreviewBadge } from "@/components/models/preview-badge";
 
 // Per-model pricing, in dollars. With a backend every figure is the hub's own
 // rate for that model and resolution; the demo catalogue's per-second figures
@@ -35,7 +36,10 @@ export function ModelPricingTable() {
         {models.map((m) => (
           <div key={m.slug} className="flex items-baseline justify-between gap-4 border-b border-line py-4 last:border-0">
             <div>
-              <p className="text-lg font-semibold text-fg-strong">{m.name}</p>
+              <p className="flex items-center gap-2 text-lg font-semibold text-fg-strong">
+                {m.name}
+                {m.preview && <PreviewBadge />}
+              </p>
               <p className="text-sm font-light text-muted">{m.tagline} · up to {m.resolutions[m.resolutions.length - 1]}</p>
             </div>
             <div className="text-right">
@@ -96,7 +100,9 @@ export function ModelPricingTable() {
         <tbody>
           {models.map((m) => (
             <tr key={m.slug} className="border-b border-hairline last:border-0">
-              <td className="px-5 py-3.5 font-[family-name:var(--font-jetbrains)] uppercase tracking-[0.02em] text-fg-strong">{m.name}</td>
+              <td className="px-5 py-3.5 font-[family-name:var(--font-jetbrains)] uppercase tracking-[0.02em] text-fg-strong">
+                <span className="flex items-center gap-2">{m.name}{m.preview && <PreviewBadge />}</span>
+              </td>
               <td className="px-5 py-3.5 text-muted">{m.tagline}</td>
               <td className="px-5 py-3.5 text-muted">{m.resolutions[m.resolutions.length - 1]}</td>
               <td className="px-5 py-3.5 text-right font-[family-name:var(--font-jetbrains)] text-lg text-gold-bright">{perSecond(m)}</td>
