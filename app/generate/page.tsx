@@ -234,6 +234,8 @@ function GenerateInner() {
 
   const [status, setStatus] = useState<Status>("idle");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  // Why the last attempt failed, kept until the next one starts.
+  const [failure, setFailure] = useState("");
   const [tab, setTab] = useState<"examples" | "change">("examples");
   const [view, setView] = useState<"playground" | "examples" | "api">("playground");
   const skin = useSkin();
@@ -512,6 +514,7 @@ function GenerateInner() {
     }
     const id = ++genId.current;
     setResultUrl(null);
+    setFailure("");
     setStatus("generating");
     generateVideo({
       slug,
@@ -536,7 +539,12 @@ function GenerateInner() {
       .catch((err) => {
         if (id !== genId.current) return;
         setStatus("failed");
-        if (err instanceof Error && err.message) toast(err.message);
+        // The reason belongs where the failure is. A provider's refusal carries
+        // its own request id - "the input image may contain real person.
+        // Request id: 0217…" - and that is the line somebody needs to copy into
+        // a bug report, so it stays on screen until the next attempt instead of
+        // going past in a toast.
+        setFailure(err instanceof Error && err.message ? err.message : "Generation failed.");
       });
   }
 
@@ -551,6 +559,7 @@ function GenerateInner() {
   function regen(withPrompt: string = prompt) {
     const id = ++genId.current;
     setResultUrl(null);
+    setFailure("");
     setStatus("generating");
     if (!isPositive(duration)) {
       toast("Enter a duration in seconds.");
@@ -580,7 +589,12 @@ function GenerateInner() {
       .catch((err) => {
         if (id !== genId.current) return;
         setStatus("failed");
-        if (err instanceof Error && err.message) toast(err.message);
+        // The reason belongs where the failure is. A provider's refusal carries
+        // its own request id - "the input image may contain real person.
+        // Request id: 0217…" - and that is the line somebody needs to copy into
+        // a bug report, so it stays on screen until the next attempt instead of
+        // going past in a toast.
+        setFailure(err instanceof Error && err.message ? err.message : "Generation failed.");
       });
   }
   /**
@@ -1093,7 +1107,31 @@ function GenerateInner() {
                   </div>
                 </>
               ) : status === "failed" ? (
-                <p className="text-sm text-white">Generation failed. Try again.</p>
+                // What went wrong, in full, selectable, and still there in ten
+                // minutes: a provider's refusal carries the request id that a
+                // support ticket needs, and the pane used to say only
+                // "Generation failed. Try again."
+                <div className="max-w-[34rem] select-text px-4 text-left">
+                  <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-danger">
+                    Generation failed
+                  </p>
+                  <p className="mt-2 whitespace-pre-wrap break-words text-sm text-white/90">{failure || "Try again."}</p>
+                  {failure && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard?.writeText(failure).then(
+                          () => toast("Error copied."),
+                          () => toast("Could not copy that.", "error"),
+                        );
+                      }}
+                      className="hit mt-3 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-muted transition-colors hover:text-white"
+                    >
+                      Copy error
+                    </button>
+                  )}
+                </div>
               ) : (
                 <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-muted">
                   {aspect}

@@ -117,9 +117,20 @@ function errorFrom(res: Response, body: unknown): ApiError {
     const b = body as { message?: string; code?: string; error?: { message?: string; code?: string } };
     const message = b.error?.message || b.message;
     const code = b.error?.code || b.code;
-    if (message) return new ApiError(cleanMessage(message), res.status, code);
+    // A code we can say something useful about beats the upstream's own wording.
+    if (code !== "AUTH_SESSION_LIMIT" && message) return new ApiError(cleanMessage(message), res.status, code);
   }
   if (res.status === 429) return new ApiError("Too many requests. Try again in a minute.", 429);
+  // The hub answers a session-limit refusal with the bare word "Conflict",
+  // which tells nobody anything - and it is the one refusal a person meets
+  // while simply trying to log in.
+  if (res.status === 409) {
+    return new ApiError(
+      "This account has opened too many sessions recently. Sign out on another device, or try again later.",
+      409,
+      "AUTH_SESSION_LIMIT",
+    );
+  }
   return new ApiError(`Request failed (${res.status}).`, res.status);
 }
 
