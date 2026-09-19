@@ -6,12 +6,14 @@ import { useEffect, useRef, useState } from "react";
 import type { Model } from "@/lib/models";
 import { isFavorite, toggleFavorite, isAutoplay } from "@/lib/prefs";
 import { PreviewBadge } from "@/components/models/preview-badge";
+import { ModelPoster } from "@/components/models/model-poster";
 import { Heart } from "lucide-react";
 
 export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<string> }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [fav, setFav] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [missing, setMissing] = useState(false);
 
   useEffect(() => {
     setFav(isFavorite(model.slug));
@@ -37,20 +39,29 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
       onMouseLeave={stop}
       className="group flex flex-col overflow-hidden rounded-[12px] border border-line bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.6)]"
     >
-      {/* Media */}
-      <div className="relative aspect-video overflow-hidden bg-black">
-        {!loaded && <span aria-hidden="true" className="skeleton absolute inset-0" />}
-        <video
-          ref={videoRef}
-          onLoadedData={() => setLoaded(true)}
-          className="h-full w-full object-cover opacity-95 transition duration-500 group-hover:scale-[1.04] group-hover:opacity-100"
-          src={model.demoVideo}
-          poster={model.poster}
-          muted
-          loop
-          playsInline
-          preload="auto"
-        />
+      {/* Media. A model we have no sample for yet - an unreleased one, usually -
+          falls back to its own colour rather than to a black rectangle and a
+          skeleton that shimmers for ever waiting for a clip that 404s. */}
+      <div className="relative aspect-video overflow-hidden">
+        {missing ? (
+          <ModelPoster slug={model.slug} name={model.name} src={model.poster} className="absolute inset-0" />
+        ) : (
+          <>
+            {!loaded && <span aria-hidden="true" className="skeleton absolute inset-0" />}
+            <video
+              ref={videoRef}
+              onLoadedData={() => setLoaded(true)}
+              onError={() => setMissing(true)}
+              className="h-full w-full bg-black object-cover opacity-95 transition duration-500 group-hover:scale-[1.04] group-hover:opacity-100"
+              src={model.demoVideo}
+              poster={model.poster}
+              muted
+              loop
+              playsInline
+              preload="auto"
+            />
+          </>
+        )}
         {/* max-res chip, and - for an unpublished model this account was let in
             on - a note that nobody else can see this card at all. */}
         <div className="absolute left-2.5 top-2.5 flex items-center gap-1.5">

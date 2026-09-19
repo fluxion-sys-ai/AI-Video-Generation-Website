@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import { ModelCard } from "@/components/models/model-card";
 import { PreviewBadge } from "@/components/models/preview-badge";
+import { ModelPoster } from "@/components/models/model-poster";
 import { getModels, refreshCatalog, type Model } from "@/lib/models";
 import { BACKEND_ENABLED } from "@/lib/hub";
 import { useLive } from "@/lib/live";
@@ -125,9 +126,8 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                     <span className="block truncate text-xs text-muted">{m.tagline}</span>
                   </Link>
                 </div>
-                <Link href={`/generate?model=${m.slug}`} className="block aspect-square bg-black">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={m.poster} alt={m.name} className="h-full w-full object-cover" />
+                <Link href={`/generate?model=${m.slug}`} className="block">
+                  <ModelPoster slug={m.slug} name={m.name} src={m.poster} className="relative aspect-square" />
                 </Link>
                 <div className="flex items-center gap-4 px-4 py-3 text-fg-strong">
                   <FavHeart slug={m.slug} />
@@ -161,7 +161,7 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
             {list.map((m, i) => (
               <Link key={m.slug} href={`/generate?model=${m.slug}`} className="group flex items-center gap-6 border-t border-line py-6 last:border-b hover:bg-hover">
                 <b className="min-w-[52px] font-[family-name:var(--font-playfair)] text-3xl text-accent-ink">{String(i + 1).padStart(2, "0")}</b>
-                <img src={m.poster} alt="" className="hidden h-16 w-28 shrink-0 rounded-[8px] bg-black object-cover sm:block" />
+                <ModelPoster slug={m.slug} name={m.name} src={m.poster} className="relative hidden h-16 w-28 shrink-0 rounded-[8px] sm:block" />
                 <div className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="font-[family-name:var(--font-playfair)] text-xl text-fg-strong">{m.name}</span>
@@ -196,7 +196,13 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
           <div className="mt-8 grid auto-rows-[220px] grid-cols-2 gap-6 text-left lg:grid-cols-4">
             {list.map((m, i) => (
               <Link key={m.slug} href={`/generate?model=${m.slug}`} className={`group relative overflow-hidden rounded-[24px] p-5 transition-transform hover:-translate-y-1 ${modelFeatured(m.sortOrder ?? i) ? "col-span-2 row-span-2" : ""}`} style={{ background: modelTint(m.slug), color: "#1a1440", boxShadow: "6px 6px 0 rgba(26,20,64,0.16)" }}>
-                <img src={m.poster} alt="" className="absolute inset-0 h-full w-full object-cover opacity-90 mix-blend-luminosity transition-opacity group-hover:opacity-100" />
+                <ModelPoster
+                  slug={m.slug}
+                  name={m.name}
+                  src={m.poster}
+                  className="absolute inset-0"
+                  imageClassName="h-full w-full object-cover opacity-90 mix-blend-luminosity transition-opacity group-hover:opacity-100"
+                />
                 <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 40%, ${modelTint(m.slug)}dd)` }} />
                 <div className="absolute right-4 top-4"><FavHeart slug={m.slug} light /></div>
                 {m.preview && <div className="absolute left-4 top-4"><PreviewBadge tone="light" /></div>}
@@ -228,8 +234,14 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
           <div className="mt-6 grid auto-cols-[300px] grid-flow-col grid-rows-2 gap-5 overflow-x-auto pb-4" style={{ scrollSnapType: "x mandatory" }}>
             {list.map((m, i) => (
               <Link key={m.slug} href={`/generate?model=${m.slug}`} style={{ scrollSnapAlign: "start" }} className="group overflow-hidden rounded-[12px] border border-hairline bg-surface transition-transform hover:-translate-y-1">
-                <div className="relative aspect-video overflow-hidden bg-black">
-                  <img src={m.poster} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div className="relative aspect-video overflow-hidden">
+                  <ModelPoster
+                    slug={m.slug}
+                    name={m.name}
+                    src={m.poster}
+                    className="absolute inset-0"
+                    imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                   <span className="absolute left-2.5 top-2.5 rounded-full bg-black/40 px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-white backdrop-blur">{String(i + 1).padStart(2, "0")}</span>
                   <div className="absolute right-2.5 top-2.5"><FavHeart slug={m.slug} light /></div>
                 </div>
