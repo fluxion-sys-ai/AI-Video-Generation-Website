@@ -318,7 +318,11 @@ function GenerateInner() {
     setAspect(model.aspectRatios[0]);
     setResolution(preferredRes());
     setDuration(model.durations[0]);
-    if (!model.supports.audio) setAudio(false);
+    // Sound follows the model rather than the last one looked at: where it is a
+    // switch the provider leaves on (Seedance), the form should open the way a
+    // request with no `audio` field would be served, or the playground and the
+    // API quietly disagree about what "default" means.
+    setAudio(model.supports.audio);
     setRefVideos([]);
     setRefAudios([]);
     setRefImages([]);

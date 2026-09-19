@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
 import { CopyButton } from "@/components/docs/copy-button";
+import { ModelDocs } from "@/components/docs/model-docs";
 
 export const metadata = { title: "Documentation" };
 
@@ -22,6 +23,7 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
     group: "Models",
     items: [
       { id: "models", label: "Overview", body: "each model has its own strengths supported durations resolutions per-second pricing browse the model catalog" },
+      { id: "model-reference", label: "Per-model reference", body: "what each model takes seconds resolution aspect ratio sound reference images video audio price per second curl example seedance minimax h3 fast" },
       { id: "generating", label: "Generating video", body: "send a prompt and options response includes the output video url and timing longer clips and higher resolutions cost more dollars per second curl post" },
       { id: "parameters", label: "Parameters", body: "prompt image_url duration aspect_ratio resolution image-to-video required seconds of output" },
     ],
@@ -131,6 +133,15 @@ curl -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
               Each model has its own strengths, supported durations, resolutions, and per-second pricing. Browse them in the{" "}
               <Link href="/models" className="text-blue hover:text-gold-soft">model catalog</Link>.
             </p>
+          </section>
+
+          <section className="space-y-3">
+            <H id="model-reference">Per-model reference</H>
+            <p className="text-muted">
+              What each model takes, and what a second of it costs. This is read from the catalogue as your account
+              sees it, so it lists exactly the models you can generate with - including any you have early access to.
+            </p>
+            <ModelDocs />
           </section>
 
           <section className="space-y-3">

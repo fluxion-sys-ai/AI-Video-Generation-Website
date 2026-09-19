@@ -116,9 +116,14 @@ async function run(params: GenerateParams, refinements: string[] = []): Promise<
     resolution: params.resolution,
     aspect_ratio: params.aspect,
     ...(model.supports.audio ? { audio: params.audio } : {}),
-    // Reference material and a first frame are different modes upstream, so a
-    // selection that carries reference media never also sends an image.
-    imageUrl: Object.keys(metadata).length ? undefined : await providerImageUrl(params.images, model),
+    // For some models reference material and a first frame are different modes
+    // upstream, and a request that mixes them is refused - so for those, a
+    // selection carrying reference media never also sends an image. Models that
+    // take both (Seedance) say so in their catalogue row, and keep the image.
+    imageUrl:
+      Object.keys(metadata).length && model.reference?.mutually_exclusive_with_frames
+        ? undefined
+        : await providerImageUrl(params.images, model),
     metadata,
   });
 
