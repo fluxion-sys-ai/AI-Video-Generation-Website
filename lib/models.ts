@@ -16,8 +16,8 @@ export type Model = {
   /** What this model takes as reference material, and what each file must be.
    *  From the catalogue row in the backend, so nothing here is hardcoded. */
   reference?: ReferenceRules;
-  /** How many reusable characters this model will take at once; absent = none. */
-  portraits?: { max_count?: number };
+  /** Whether images may be registered with the provider as reusable characters. */
+  characters?: { max_count?: number };
   /** Cheapest price per output second, in dollars. Backend mode reads it from
    *  the hub's rate card; the demo list carries its own figures. */
   usdPerSecond: number;
@@ -159,9 +159,9 @@ function toModel(entry: Awaited<ReturnType<typeof getCatalog>>[number]): Model {
       imageReference: Boolean(entry.supports?.image_reference || entry.supports?.reference?.image),
     },
     reference: entry.supports?.reference,
-    // A portrait competes for the same reference-image slots, so this is a cap
-    // on how many may be named at once rather than a separate allowance.
-    portraits: entry.supports?.portrait,
+    // A registered image competes for the same reference-image slots, so this
+    // is a cap on how many may be named at once rather than a separate budget.
+    characters: entry.supports?.portrait,
     preview: entry.preview,
     usdPerSecond: perSecond ?? 0,
     sortOrder: entry.sortOrder,

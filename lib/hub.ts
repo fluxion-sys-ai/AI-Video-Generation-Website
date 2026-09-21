@@ -819,9 +819,27 @@ export function setLowBalanceAlert(input: { thresholdUsd: number; email: string;
 
 export type MediaKind = "image" | "video" | "audio";
 
+/**
+ * Whether the video provider has been told about this image, and how that went.
+ *
+ * Present only on an image somebody registered as a reusable character, which
+ * is almost none of them. It is a note on the file rather than a separate kind
+ * of object: registering buys pre-authorisation, not a new kind of input.
+ */
+export type CharacterState = {
+  id: string;
+  status: "pending" | "processing" | "ready" | "failed";
+  kind: "virtual" | "person";
+  error: { code: string; message: string } | null;
+  created_at?: string;
+  ready_at?: string | null;
+};
+
 export type LibraryItem = {
   id: string;
   kind: MediaKind;
+  /** Set when this image is registered with the provider. Usually absent. */
+  character?: CharacterState | null;
   name: string;
   content_type: string;
   bytes: number;
@@ -911,75 +929,42 @@ export function libraryImageLink(id: string): Promise<{ url: string; expires_at:
 
 /** Which library files play which part in a request. */
 /**
- * The portrait library: characters a customer keeps and names in generations.
+ * Registers an image with the video provider so it can be reused as a
+ * character, or removes it again.
  *
- * A portrait is not a reference image, even though the provider ends up
- * treating it as one. A reference is per-request - picked, sent, forgotten. A
- * portrait is registered with the provider once from a file already in the
- * library, takes a few minutes to become usable, can be refused by their
- * review, and is reusable afterwards. So it has a status a customer has to be
- * shown, rather than a URL that either works or does not.
+ * Not a separate library: the registration travels on the image in
+ * `listLibrary`, and these act on the image's id. What registering buys is
+ * pre-authorisation - the provider intercepts reference material that looks
+ * like a deepfake or an infringement, and a registered image is let through
+ * where the same file sent as a plain link would be stopped.
  *
- * The ids here are ours. The provider's own asset id never reaches the browser:
- * the backend maps one to the other, scoped to the owner, because provider ids
- * are flat across the whole account and naming one directly would name somebody
- * else's character.
+ * Deliberate rather than automatic, because it takes a slot in a quota bought
+ * from the provider. An unregistered image still generates.
  */
-export type PortraitStatus = "pending" | "processing" | "ready" | "failed";
-
-export type Portrait = {
-  id: string;
-  name: string;
-  kind: "virtual" | "person";
-  status: PortraitStatus;
-  media_id: string | null;
-  /** From our own copy: the provider's URL for an asset expires in 12 hours. */
-  url: string | null;
-  error: { code: string; message: string } | null;
-  created_at: string;
-  ready_at: string | null;
-  last_used_at: string | null;
-};
-
-export async function listPortraits(): Promise<Portrait[]> {
-  const body = await sidecar<{ portraits: Portrait[] }>("GET", "/media/library/portraits");
-  return body.portraits || [];
+export async function registerCharacter(
+  itemId: string,
+  input: { kind: "virtual" | "person"; consent?: Record<string, unknown> },
+): Promise<CharacterState> {
+  return sidecar<CharacterState>("POST", `/media/library/media/${encodeURIComponent(itemId)}/character`, {
+    kind: input.kind,
+    consent: input.consent ?? {},
+  });
 }
 
 /**
- * Registers a library image as a portrait.
+ * Removes an image from the provider. The file itself is untouched.
  *
- * `consent` is what the customer asserted about the image. Nothing verifies it,
- * which is exactly why it is worth recording what was claimed rather than that
- * a box was ticked.
+ * Immediate and not undoable at their end, which is worth saying wherever this
+ * is offered. Registering again is one click; it is the preparation that has
+ * to be repeated.
  */
-export async function createPortrait(input: {
-  media_id: string;
-  name?: string;
-  kind: "virtual" | "person";
-  consent?: Record<string, unknown>;
-}): Promise<Portrait> {
-  return sidecar<Portrait>("POST", "/media/library/portraits", { consent: {}, ...input });
+export async function unregisterCharacter(itemId: string): Promise<void> {
+  await sidecar<void>("DELETE", `/media/library/media/${encodeURIComponent(itemId)}/character`);
 }
 
-export async function renamePortrait(id: string, name: string): Promise<Portrait> {
-  return sidecar<Portrait>("PATCH", `/media/library/portraits/${encodeURIComponent(id)}`, { name });
-}
-
-/**
- * Deletes a portrait here and at the provider in the same request.
- *
- * Worth saying plainly wherever this is offered: removal at the provider is
- * immediate and cannot be undone. Restoring means registering the image again
- * and waiting through preparation a second time.
- */
-export async function deletePortrait(id: string): Promise<void> {
-  await sidecar<void>("DELETE", `/media/library/portraits/${encodeURIComponent(id)}`);
-}
-
-/** Whether anything about this portrait is still expected to change. */
-export function portraitSettling(portrait: Portrait): boolean {
-  return portrait.status === "pending" || portrait.status === "processing";
+/** Whether anything about this registration is still expected to change. */
+export function characterSettling(state: CharacterState | null | undefined): boolean {
+  return state?.status === "pending" || state?.status === "processing";
 }
 
 export type ReferenceSelection = {
@@ -989,12 +974,6 @@ export type ReferenceSelection = {
   reference_video?: string[];
   reference_audio?: string[];
   reference_image?: string[];
-  /**
-   * Portraits, by our id. They come back resolved into reference_image ahead of
-   * any plain images, because the prompt refers to attachments by position
-   * ("Image 1") and that order has to be one a customer can predict.
-   */
-  portrait?: string[];
 };
 
 export type ReferenceCheck = {
@@ -1005,8 +984,8 @@ export type ReferenceCheck = {
   /** Files the backend could not measure; the provider judges these itself. */
   unverified: string[];
   urls: Partial<Record<"first_frame" | "last_frame" | "reference_video" | "reference_audio" | "reference_image", string | string[]>>;
-  /** The portraits that were placed, in the order they occupy. */
-  portraits?: { id: string; name: string }[];
+  /** Which of the picked files travelled as a registered character. */
+  registered?: string[];
   expires_at?: number | null;
 };
 

@@ -11,7 +11,16 @@
 // backend's own check, which the page runs whenever the selection changes.
 
 import { useEffect, useRef, useState } from "react";
-import { listLibrary, uploadLibraryMedia, type LibraryItem, type ReferenceLimits } from "@/lib/hub";
+import {
+  characterSettling,
+  listLibrary,
+  registerCharacter,
+  unregisterCharacter,
+  uploadLibraryMedia,
+  type CharacterState,
+  type LibraryItem,
+  type ReferenceLimits,
+} from "@/lib/hub";
 import { refreshLibrary } from "@/lib/prefs";
 import { money } from "@/lib/rate-card";
 import { toast } from "@/lib/toast";
@@ -120,6 +129,193 @@ export function LibraryImagePicker({ chosen, onPick }: { chosen: string[]; onPic
   );
 }
 
+/**
+ * Registering a picked image with the provider, so it can be reused as a
+ * character and, more to the point, so a likeness gets through their review.
+ *
+ * This lives on the image rather than in a library of its own, because that is
+ * what it is: the same file, with a note saying the provider has been told
+ * about it. Three things it has to be honest about, all of them visible to a
+ * customer and none of them ours to hide:
+ *
+ *   it takes time      Preparation is asynchronous with no promised
+ *                      turnaround, so a freshly registered image says so
+ *                      instead of looking broken.
+ *   it can be refused  Their review has the final say, and showing their
+ *                      reason is the difference between a customer fixing the
+ *                      photo and retrying the same one.
+ *   removing is final  It reaches the provider immediately and cannot be
+ *                      undone. The file stays, so doing it again is one click.
+ */
+function CharacterControl({
+  item,
+  onChange,
+  disabled,
+}: {
+  item: LibraryItem;
+  onChange: (next: CharacterState | null) => void;
+  disabled?: boolean;
+}) {
+  const [asking, setAsking] = useState(false);
+  const [kind, setKind] = useState<"virtual" | "person">("virtual");
+  const [consented, setConsented] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const state = item.character;
+
+  // Look again while preparation is still running, and stop when it is not.
+  useEffect(() => {
+    if (!characterSettling(state)) return;
+    const timer = setInterval(async () => {
+      try {
+        const listing = await listLibrary("image");
+        const fresh = listing.items.find((i) => i.id === item.id);
+        if (fresh && fresh.character?.status !== state?.status) onChange(fresh.character ?? null);
+      } catch {
+        // A failed poll is not worth a message: the next one will do.
+      }
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [state, item.id, onChange]);
+
+  async function register() {
+    if (kind === "person" && !consented) {
+      toast("Confirm you have the right to use this person's likeness first.");
+      return;
+    }
+    setBusy(true);
+    try {
+      onChange(
+        await registerCharacter(item.id, {
+          kind,
+          consent: {
+            has_permission: true,
+            asserted: kind === "person" ? "the subject has agreed to this use" : "not a real person",
+            at: new Date().toISOString(),
+          },
+        }),
+      );
+      setAsking(false);
+      setConsented(false);
+      toast("Preparing this character — usually a few minutes.");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Could not register that image.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    const ok = window.confirm(
+      `Stop using "${item.name}" as a character?\n\n` +
+        "This removes it from the video provider immediately and cannot be undone. " +
+        "The image stays in your library, so you can register it again — it just has to be prepared from scratch.",
+    );
+    if (!ok) return;
+    setBusy(true);
+    try {
+      await unregisterCharacter(item.id);
+      onChange(null);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Could not remove that character.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (state && state.status === "ready") {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="border border-accent/60 bg-accent/10 px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.04em] text-accent-ink">
+          character
+        </span>
+        <button
+          type="button"
+          onClick={remove}
+          disabled={busy || disabled}
+          className="text-[11px] text-dim underline hover:text-danger"
+        >
+          stop
+        </button>
+      </div>
+    );
+  }
+
+  if (state && characterSettling(state)) {
+    return <span className="text-[11px] text-blue">Preparing as a character — usually a few minutes.</span>;
+  }
+
+  if (state && state.status === "failed") {
+    return (
+      <div className="min-w-0">
+        <p className="text-[11px] leading-snug text-danger">
+          {state.error?.message || "The provider would not accept this image as a character."}
+        </p>
+        <button
+          type="button"
+          onClick={() => setAsking(true)}
+          disabled={busy || disabled}
+          className="text-[11px] text-dim underline hover:text-fg"
+        >
+          try again
+        </button>
+      </div>
+    );
+  }
+
+  if (!asking) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAsking(true)}
+        disabled={busy || disabled}
+        title="Register this image with the provider so it can be reused, and so a likeness passes their review"
+        className="text-[11px] text-dim underline hover:text-fg"
+      >
+        use as a character
+      </button>
+    );
+  }
+
+  return (
+    <div className="min-w-0 space-y-1">
+      <div className="flex flex-wrap items-center gap-2 text-[11px]">
+        <span className="text-dim">This is</span>
+        {(["virtual", "person"] as const).map((option) => (
+          <label key={option} className="flex items-center gap-1">
+            <input
+              type="radio"
+              name={`character-kind-${item.id}`}
+              checked={kind === option}
+              onChange={() => {
+                setKind(option);
+                setConsented(false);
+              }}
+            />
+            <span>{option === "virtual" ? "invented" : "a real person"}</span>
+          </label>
+        ))}
+      </div>
+      {kind === "person" && (
+        <label className="flex items-start gap-1.5 text-[11px] leading-snug text-muted">
+          <input type="checkbox" checked={consented} onChange={(e) => setConsented(e.target.checked)} className="mt-0.5" />
+          <span>
+            They have agreed to appear in videos I generate and I can show that if asked. We keep a
+            record of this.
+          </span>
+        </label>
+      )}
+      <div className="flex gap-2 text-[11px]">
+        <button type="button" onClick={register} disabled={busy} className="text-accent-ink underline">
+          {busy ? "registering…" : "register"}
+        </button>
+        <button type="button" onClick={() => setAsking(false)} disabled={busy} className="text-dim underline">
+          cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function ReferenceMedia({
   kind,
   limits,
@@ -128,6 +324,7 @@ export function ReferenceMedia({
   onChange,
   disabled,
   disabledReason,
+  offersCharacters,
 }: {
   kind: Kind;
   limits: ReferenceLimits | undefined;
@@ -136,6 +333,8 @@ export function ReferenceMedia({
   onChange: (items: LibraryItem[]) => void;
   disabled?: boolean;
   disabledReason?: string;
+  /** Whether this model lets an image be registered as a reusable character. */
+  offersCharacters?: boolean;
 }) {
   const [browsing, setBrowsing] = useState(false);
   const [stored, setStored] = useState<LibraryItem[] | null>(null);
@@ -204,8 +403,26 @@ export function ReferenceMedia({
                 <img src={item.url} alt={item.name} className="h-20 w-32 bg-black object-contain" />
               )}
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-fg">{item.name}</p>
+                <p className="truncate text-sm text-fg">
+                  {offersCharacters && (
+                    <span className="mr-1.5 font-[family-name:var(--font-jetbrains)] text-[10px] text-dim">
+                      Image {items.indexOf(item) + 1}
+                    </span>
+                  )}
+                  {item.name}
+                </p>
                 <p className="text-xs text-muted">{describe(item)}</p>
+                {offersCharacters && (
+                  <div className="mt-1">
+                    <CharacterControl
+                      item={item}
+                      disabled={disabled}
+                      onChange={(next) =>
+                        onChange(items.map((i) => (i.id === item.id ? { ...i, character: next } : i)))
+                      }
+                    />
+                  </div>
+                )}
               </div>
               <button
                 type="button"
