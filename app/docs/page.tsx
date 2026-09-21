@@ -32,9 +32,9 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
   {
     group: "Your files",
     items: [
-      { id: "library", label: "Library & assets", body: "upload list delete files images video audio generated videos one listing source uploaded generated kind character storage multipart form data" },
-      { id: "portraits", label: "Portraits", body: "register an image as a character reusable consistent face real person consent deepfake review provider asset preparing ready failed quota" },
-      { id: "references", label: "Using files in a generation", body: "references endpoint library ids to urls dry run checked against the model asset reference signed link image 1 video 1 audio 1 order position expires ttl" },
+      { id: "how-files-work", label: "Assets: three calls", body: "create list delete asset upload a file id name type portrait multipart form data v1 assets curl reuse images video audio" },
+      { id: "portraits", label: "Portraits", body: "register an image as a character reusable consistent face real person consent deepfake review provider preparing ready failed quota portrait_status" },
+      { id: "references", label: "Using an asset in a generation", body: "reference field pass it to v1 videos metadata reference_image asset:// permanent signed link expires image 1 video 1 audio 1 order position prompt" },
     ],
   },
   {
@@ -184,10 +184,10 @@ curl -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
           </section>
 
           <section className="space-y-3">
-            <H id="library">Library &amp; assets</H>
+            <H id="assets">Assets</H>
             <p className="text-muted">
-              Everything you upload is kept and reusable, and everything generated is listed beside it. These
-              are the calls behind the Library page, and they are the same ones your own code should use.
+              Files you store with us and reuse. Three calls, and the same objects the Library page shows —
+              so whatever you build sees exactly what you see.
             </p>
             <LibraryDocs />
           </section>

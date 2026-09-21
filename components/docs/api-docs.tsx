@@ -78,14 +78,14 @@ export function ApiDocs({ model }: { model: Model }) {
       ? [{
           name: "metadata.reference_image",
           type: "string | string[]",
-          desc: `Images the model should draw on: ${refDesc("image")}.${price("image")} Each is a public https URL, or a value returned by POST /media/library/references — which also yields an asset:// reference for a registered portrait. Order is the order you send: the prompt names them by position, as "Image 1", "Image 2".`,
+          desc: `Images the model should draw on: ${refDesc("image")}.${price("image")} Each is a public https URL, or the \`reference\` of one of your assets (GET /v1/assets). Order is the order you send them, and the prompt names them by position — "the woman in Image 1" — never by id.`,
         }]
       : []),
     ...(model.characters
       ? [{
           name: "metadata.reference_image (portraits)",
           type: "string[]",
-          desc: `A portrait — an image registered with the provider as a reusable character — travels in this same list as asset://<id>, obtained from POST /media/library/references. Registering is what keeps a character consistent between clips, and what lets a likeness past the provider's review; ${model.characters.max_count ?? 8} may be named at once. See Library & assets in the docs.`,
+          desc: `A portrait — an image registered with the provider as a reusable character — travels in this same list as its asset:// reference, which never expires. Upload one with POST /v1/assets -F portrait=person (or virtual). Registering is what keeps a character consistent between clips and what lets a likeness past the provider's review; ${model.characters.max_count ?? 8} may be named at once. See Assets in the docs.`,
         }]
       : []),
     ...(model.supports.image
