@@ -78,14 +78,14 @@ export function ApiDocs({ model }: { model: Model }) {
       ? [{
           name: "metadata.reference_image",
           type: "string | string[]",
-          desc: `Images the model should draw on: ${refDesc("image")}.${price("image")} Each is a public https URL, or the \`reference\` of one of your assets (GET /v1/assets). Order is the order you send them, and the prompt names them by position — "the woman in Image 1" — never by id.`,
+          desc: `Images the model should draw on: ${refDesc("image")}.${price("image")} Each is a public https URL or the \`reference\` of one of your assets ($REFERENCE_…, from GET /v1/assets); the two mix freely in one list. Order is the order you send them, and the prompt names them by position — "the woman in Image 1" — never by id.`,
         }]
       : []),
     ...(model.characters
       ? [{
           name: "metadata.reference_image (portraits)",
           type: "string[]",
-          desc: `A portrait — an image registered with the provider as a reusable character — travels in this same list as its asset:// reference, which never expires. Upload one with POST /v1/assets -F portrait=person (or virtual). Registering is what keeps a character consistent between clips and what lets a likeness past the provider's review; ${model.characters.max_count ?? 8} may be named at once. See Assets in the docs.`,
+          desc: `A portrait — an image registered with the provider as a reusable character — travels in this same list, by its own $REFERENCE_. Make one with POST /v1/assets -F portrait=true. Registering is what keeps a character consistent between clips and what lets a likeness past the provider's review; ${model.characters.max_count ?? 8} may be named at once. See Assets in the docs.`,
         }]
       : []),
     ...(model.supports.image
@@ -99,7 +99,7 @@ export function ApiDocs({ model }: { model: Model }) {
       ? [{
           name: "metadata.content",
           type: "array",
-          desc: "The provider's own multimodal array, passed through: items of type text, image_url, video_url or audio_url, each with a role of first_frame, last_frame, reference_image, reference_video or reference_audio. A url may be an https link, a data: URI, or an asset:// reference to a registered portrait. Send this instead of the fields above, not as well.",
+          desc: "The provider's own multimodal array, passed through: items of type text, image_url, video_url or audio_url, each with a role of first_frame, last_frame, reference_image, reference_video or reference_audio. A url may be an https link, a data: URI, or a $REFERENCE_ naming one of your assets. Send this instead of the fields above, not as well.",
         }]
       : []),
   ];
@@ -202,46 +202,64 @@ curl -L -o out.mp4 ${host}/v1/videos/$VIDEO_ID/content \\
   // for anyone porting code that already speaks it.
   // The library route, which takes the same API key: upload once, reference it
   // as often as you like, and let the platform check it against the limits.
-  const librarySnippet = `# 1. Put the clip in your library (once). Any video or audio is accepted.
-curl -sS ${host}/media/library/media \\
-  -H "Authorization: Bearer $FLUXION_API_KEY" \\
-  -F file=@clip.mp4
-# -> {"id":"9f2c…","kind":"video","duration_seconds":6.0,"codec":"h264", …}
-
-# 2. Ask for it as a reference. This is where ${model.name}'s rules are applied -
-#    format, codec, size, duration, counts, totals - and where the links come from.
-curl -sS ${host}/media/library/references \\
-  -H "Authorization: Bearer $FLUXION_API_KEY" -H "Content-Type: application/json" \\
-  -d '{"model": "${model.slug}", "reference_video": ["9f2c…"]}'
-# -> {"ok":true,"facts":{"input_video_seconds":6,"input_images":0,"input_audios":0},
-#     "urls":{"reference_video":["https://…"]},"expires_at":1789460000}
-# A file that breaks a rule comes back as 422 with the reason:
-#   {"detail":{"message":"clip.mp4 is 20s; the maximum is 15s","problems":[…]}}
-
-# 3. Generate with those URLs.
-curl -sS ${host}/v1/videos \\
-  -H "Authorization: Bearer $FLUXION_API_KEY" -H "Content-Type: application/json" \\
-  -d '{"model": "${id}", "prompt": "Match this motion", "seconds": ${dur},
-       "resolution": "${res}", "metadata": {"reference_video": ["https://…"]}}'`;
-
+  // Several references at once, mixing stored assets with URLs of your own,
+  // because that is what a real request looks like and it is where the two
+  // things people get wrong live: the prompt refers to attachments by
+  // position, and the position is the order of the list.
   const referenceSnippet = `curl -sS ${host}/v1/videos \\
   -H "Authorization: Bearer $FLUXION_API_KEY" -H "Content-Type: application/json" \\
   -d '{
     "model": "${id}",
-    "prompt": "Match the motion of the reference clip",
+    "prompt": "The woman in Image 1 wears the jacket from Image 2 and walks through
+               the street in Image 3, matching the camera move of Video 1.",
     "seconds": ${dur},
     "resolution": "${res}",
+    "aspect_ratio": "${ar}",
     "metadata": {
-      "reference_video": ["https://example.com/clip.mp4"],
-      "reference_audio": ["https://example.com/voice.wav"]
+      "reference_image": [
+        "$REFERENCE_0A7304DE",
+        "$REFERENCE_31CA18C7",
+        "https://example.com/street.jpg"
+      ],
+      "reference_video": ["$REFERENCE_9F2C41B8"]
     }
   }'
 
-# The same request in the provider's own vocabulary, which is accepted as-is:
+# Image 1, Image 2, Image 3 are the reference_image entries in that order;
+# Video 1 is the reference_video. Numbering restarts per type, and a plain URL
+# counts the same as an asset - what matters is position, not where it came
+# from. Never write an id or a $REFERENCE_ in the prompt: it is not recognised
+# and the model reads it as words.
+
+# The same request in the provider's own vocabulary, which is accepted as-is.
+# Here the order is simply the order of the array:
 #   "metadata": { "content": [
+#     { "type": "image_url", "image_url": { "url": "$REFERENCE_0A7304DE" },
+#       "role": "reference_image" },
 #     { "type": "video_url", "video_url": { "url": "https://example.com/clip.mp4" },
 #       "role": "reference_video" }
 #   ]}`;
+
+  const librarySnippet = `# 1. Store the file once. Returns its id and a reference.
+curl -sS ${host}/v1/assets \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" \\
+  -F file=@clip.mp4 -F name="dolly shot"
+# -> {"id":"9f2c41b8…","type":"video","portrait":false,
+#     "reference":"$REFERENCE_9F2C41B8", …}
+
+# 2. Use that reference as often as you like. It does not expire.
+curl -sS ${host}/v1/videos \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" -H "Content-Type: application/json" \\
+  -d '{"model": "${id}", "prompt": "Match the camera move of Video 1", "seconds": ${dur},
+       "resolution": "${res}", "metadata": {"reference_video": ["$REFERENCE_9F2C41B8"]}}'
+
+# A file that breaks one of ${model.name}'s rules is refused when it is used,
+# with the reason:
+#   {"detail":{"message":"clip.mp4 is 20s; the maximum is 15s","problems":[…]}}
+
+# 3. What do I have? What can go?
+curl -sS ${host}/v1/assets -H "Authorization: Bearer $FLUXION_API_KEY"
+curl -sS -X DELETE ${host}/v1/assets/9f2c41b8… -H "Authorization: Bearer $FLUXION_API_KEY"`;
 
   const langLabel: Record<Lang, string> = { js: "JavaScript", python: "Python", curl: "cURL" };
 
@@ -333,11 +351,11 @@ curl -sS ${host}/v1/videos \\
             Reference video, audio and images
           </h2>
           <p className="mt-2 text-sm text-muted">
-            Hand {model.name} material to follow rather than a still to start from. The URLs must be https and
-            reachable by the provider; anything in your library has a link for exactly this
-            (<code className="text-gold-2">POST /media/library/references</code> checks a selection against the
-            limits above and returns them). A first or last frame image and reference material are different modes
-            and cannot be combined in one request.
+            Hand {model.name} material to follow rather than a still to start from. Each entry is either a
+            public https URL of your own or the <code className="text-gold-2">reference</code> of one of your
+            assets (<code className="text-gold-2">GET /v1/assets</code>), and the two mix freely in one list.
+            A first or last frame image and reference material are different modes and cannot be combined in
+            one request.
           </p>
           <div className="relative mt-3">
             <CopyButton text={referenceSnippet} />
@@ -351,12 +369,13 @@ curl -sS ${host}/v1/videos \\
           </p>
 
           <h3 className="mt-6 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg-soft">
-            Using your library, from the API
+            Storing a file instead of hosting one
           </h3>
           <p className="mt-2 text-sm text-muted">
-            You do not need to host the files. The same API key works on the library routes, so a clip can be
-            uploaded once and referenced as often as you like, and the platform hands you links the provider can
-            fetch. Uploading is permissive - any video or audio - and a file is only judged when you ask to use it.
+            You do not need to host anything. The same API key works on{" "}
+            <code className="text-gold-2">/v1/assets</code>, so a clip is uploaded once and referenced as often
+            as you like. Uploading is permissive — any video or audio — and a file is only judged against this
+            model&apos;s rules when you actually use it.
           </p>
           <div className="relative mt-3">
             <CopyButton text={librarySnippet} />
@@ -366,8 +385,8 @@ curl -sS ${host}/v1/videos \\
           </div>
           <p className="mt-3 text-xs text-dim">
             Stored files are charged by the gigabyte-month (see Pricing); deleting one stops its charge.
-            <code className="ml-1 text-gold-2">GET /media/library/media</code> lists what you have,
-            <code className="ml-1 text-gold-2">DELETE /media/library/media/&#123;id&#125;</code> removes one.
+            A reference that names nothing is refused before the job is submitted, so a typo costs a message
+            rather than a generation.
           </p>
         </section>
       )}

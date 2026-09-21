@@ -829,7 +829,6 @@ export type MediaKind = "image" | "video" | "audio";
 export type CharacterState = {
   id: string;
   status: "pending" | "processing" | "ready" | "failed";
-  kind: "virtual" | "person";
   error: { code: string; message: string } | null;
   created_at?: string;
   ready_at?: string | null;
@@ -898,7 +897,7 @@ export function uploadLibraryMedia(
      * file is while you have it in hand beats uploading, finding it, picking
      * it and then marking it.
      */
-    character?: "virtual" | "person";
+    character?: boolean;
     consent?: Record<string, unknown>;
   } = {},
 ): Promise<LibraryItem> {
@@ -907,7 +906,9 @@ export function uploadLibraryMedia(
   if (opts.model) form.append("model", opts.model);
   if (opts.folderId) form.append("folder_id", opts.folderId);
   if (opts.character) {
-    form.append("character", opts.character);
+    // A portrait is a portrait: the provider's two libraries turned out to be
+    // one, so the customer is no longer asked to categorise a face.
+    form.append("character", "portrait");
     form.append("consent", JSON.stringify(opts.consent ?? {}));
   }
   return sidecar<LibraryItem>("POST", "/media/library/media", form);
@@ -981,10 +982,9 @@ export function libraryImageLink(id: string): Promise<{ url: string; expires_at:
  */
 export async function registerCharacter(
   itemId: string,
-  input: { kind: "virtual" | "person"; consent?: Record<string, unknown> },
+  input: { consent?: Record<string, unknown> } = {},
 ): Promise<CharacterState> {
   return sidecar<CharacterState>("POST", `/media/library/media/${encodeURIComponent(itemId)}/character`, {
-    kind: input.kind,
     consent: input.consent ?? {},
   });
 }

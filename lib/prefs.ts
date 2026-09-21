@@ -411,12 +411,12 @@ export async function renameUpload(id: string, name: string): Promise<void> {
  */
 export async function uploadFiles(
   files: File[],
-  opts: { folderId?: string; character?: "virtual" | "person" } = {},
+  opts: { folderId?: string; character?: boolean } = {},
 ): Promise<void> {
   const consent = opts.character
     ? {
         has_permission: true,
-        asserted: opts.character === "person" ? "the subject has agreed to this use" : "not a real person",
+        asserted: "the uploader has the right to use this likeness",
         at: new Date().toISOString(),
       }
     : undefined;
@@ -443,16 +443,12 @@ export async function uploadFiles(
  * file itself is untouched either way, so changing your mind costs the
  * preparation again and nothing else.
  */
-export async function setUploadPortrait(
-  id: string,
-  kind: "virtual" | "person" | null,
-): Promise<void> {
-  if (kind) {
+export async function setUploadPortrait(id: string, on: boolean): Promise<void> {
+  if (on) {
     await registerCharacter(id, {
-      kind,
       consent: {
         has_permission: true,
-        asserted: kind === "person" ? "the subject has agreed to this use" : "not a real person",
+        asserted: "the uploader has the right to use this likeness",
         at: new Date().toISOString(),
       },
     });

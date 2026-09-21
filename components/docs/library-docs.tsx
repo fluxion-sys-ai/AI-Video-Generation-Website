@@ -154,7 +154,7 @@ export function LibraryDocs() {
           rows={[
             ["file", "binary", "The image, video or audio file."],
             ["name", "string", "What to call it. Defaults to the filename."],
-            ["portrait", "enum", "virtual or person — register an image as a reusable character. Images only."],
+            ["portrait", "boolean", "Register this image as a reusable character. Images only."],
           ]}
         />
         <Snippets
@@ -169,8 +169,7 @@ export function LibraryDocs() {
   "type": "image",
   "bytes": 184213,
   "portrait": false,
-  "reference": "https://storage.googleapis.com/…?X-Goog-Signature=…",
-  "reference_expires": 3600,
+  "reference": "$REFERENCE_0A7304DE",
   "created_at": "2026-09-21T22:00:02Z"
 }`,
             js: `import { readFile } from "node:fs/promises";
@@ -181,7 +180,7 @@ form.append("file", new File([await readFile("lead-singer.jpg")], "lead-singer.j
   type: "image/jpeg",
 }));
 form.append("name", "Ana");
-// form.append("portrait", "person");   // also register it as a character
+// form.append("portrait", "true");     // also register it as a character
 
 const res = await fetch("${host}/v1/assets", {
   method: "POST",
@@ -202,7 +201,7 @@ with open("lead-singer.jpg", "rb") as fh:
         headers={"Authorization": "Bearer " + os.environ["FLUXION_API_KEY"]},
         # requests builds the multipart body and sets the boundary itself.
         files={"file": ("lead-singer.jpg", fh, "image/jpeg")},
-        data={"name": "Ana"},          # "portrait": "person" to register it
+        data={"name": "Ana"},          # "portrait": "true" to register it
     ).json()
 
 print(asset["id"], asset["reference"])`,
@@ -244,13 +243,13 @@ print(asset["id"], asset["reference"])`,
         </p>
         <Code>{`curl -sS ${host}/v1/assets \
   -H "Authorization: Bearer $FLUXION_API_KEY" \
-  -F file=@ana.jpg -F name="Ana" -F portrait=person`}</Code>
-        <Fields
-          rows={[
-            ["portrait=virtual", "enum", "A character you invented."],
-            ["portrait=person", "enum", "A real human being. You are asserting they agreed to this, and we keep a record of it."],
-          ]}
-        />
+  -F file=@ana.jpg -F name="Ana" -F portrait=true`}</Code>
+        <p className="mt-3 text-muted">
+          It is a yes or no. There is no kind to choose: the provider has two libraries and only one of them
+          can be reached at all, so an invented character and a real person go to the same place. By
+          registering one you are asserting you have the right to use the likeness, and we keep a record of
+          that with the file.
+        </p>
         <p className="mt-4 text-muted">
           Registering is asynchronous and not instant. The asset exists straight away and works as an ordinary
           file; <code className="text-gold-2">portrait</code> turns <code className="text-gold-2">true</code>{" "}
@@ -283,7 +282,7 @@ print(asset["id"], asset["reference"])`,
         <Code>{`# 1. what do I have?
 curl -sS ${host}/v1/assets -H "Authorization: Bearer $FLUXION_API_KEY"
 
-# 2. generate, passing the reference through
+# 2. generate, writing those references straight into the request
 curl -sS ${host}/v1/videos \
   -H "Authorization: Bearer $FLUXION_API_KEY" -H 'Content-Type: application/json' \
   -d '{
@@ -293,32 +292,31 @@ curl -sS ${host}/v1/videos \
     "resolution": "720p",
     "aspect_ratio": "16:9",
     "metadata": {
-      "reference_image": [
-        "asset://asset-20260922060506-lkqdg",
-        "https://storage.googleapis.com/…?X-Goog-Signature=…"
-      ]
+      "reference_image": ["$REFERENCE_0A7304DE", "$REFERENCE_31CA18C7"]
     }
   }'`}</Code>
         <p className="mt-4 text-muted">
-          <strong className="text-fg">The two kinds of reference behave differently, and it matters.</strong>{" "}
-          A portrait&apos;s is an <code className="text-gold-2">asset://</code> value that never expires —
-          cache it and reuse it for ever. Any other file&apos;s is a signed link that lasts{" "}
-          <code className="text-gold-2">reference_expires</code> seconds, so fetch it when you are about to
-          generate rather than storing it.
+          <strong className="text-fg">A reference does not expire.</strong> It names one of your assets, and
+          what it stands for — a registered portrait, or a fresh link to your file — is worked out when the
+          request is submitted. Store it in your own config if you like; it keeps working.
         </p>
         <p className="mt-3 text-muted">
           <strong className="text-fg">The prompt names them by position.</strong>{" "}
           <code className="text-gold-2">Image 1</code>, <code className="text-gold-2">Image 2</code>,{" "}
           <code className="text-gold-2">Video 1</code>, <code className="text-gold-2">Audio 1</code> —
-          counting within each type, in the order you put them in the list. Never put an id in the prompt: it
-          is not recognised, and the model reads it as words.
+          counting within each type, in the order you put them in the list. Never put a reference or an id in
+          the prompt itself: it is not recognised, and the model reads it as words.
+        </p>
+        <p className="mt-3 text-muted">
+          A reference that names nothing is refused with <code className="text-danger">404</code> before the
+          job is submitted, so a typo costs you a message rather than a generation.
         </p>
         <p className="mt-3 text-muted">
           The same values go in <code className="text-gold-2">metadata.reference_video</code>,{" "}
           <code className="text-gold-2">metadata.reference_audio</code> and{" "}
-          <code className="text-gold-2">metadata.first_frame_image</code>. You can also pass any public{" "}
-          <code className="text-gold-2">https</code> URL of your own and skip assets entirely — they exist
-          so you do not have to host anything, and so a face is one id away next time.
+          <code className="text-gold-2">metadata.first_frame_image</code>. You can still pass any public{" "}
+          <code className="text-gold-2">https</code> URL of your own instead — assets exist so you do not have
+          to host anything, not because the API insists on them.
         </p>
       </div>
     </div>

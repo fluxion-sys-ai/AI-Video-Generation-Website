@@ -337,9 +337,7 @@ export function ReferenceMedia({
                         <span
                           title={
                             item.character.status === "ready"
-                              ? `A portrait — registered with the provider (${
-                                  item.character.kind === "person" ? "a real person" : "invented"
-                                })`
+                              ? "A portrait — registered with the provider"
                               : item.character.status === "failed"
                                 ? item.character.error?.message ||
                                   "The provider would not accept this as a portrait"

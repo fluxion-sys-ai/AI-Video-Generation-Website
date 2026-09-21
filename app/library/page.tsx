@@ -117,8 +117,8 @@ function PortraitToggle({ item, onDone }: { item: Upload; onDone: () => void }) 
   const box =
     "rounded-none border border-white/40 px-2 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-white transition-colors hover:border-white hover:bg-white/10 disabled:opacity-50";
 
-  async function run(kind: "virtual" | "person" | null) {
-    if (kind === null) {
+  async function run(on: boolean) {
+    if (!on) {
       const ok = window.confirm(
         `Stop using "${item.name}" as a portrait?\n\n` +
           "It is removed from the video provider immediately and that cannot be undone. " +
@@ -128,8 +128,8 @@ function PortraitToggle({ item, onDone }: { item: Upload; onDone: () => void }) 
     }
     setBusy(true);
     try {
-      await setUploadPortrait(item.id, kind);
-      toast(kind ? "Preparing as a portrait — usually a few minutes." : "No longer a portrait.");
+      await setUploadPortrait(item.id, on);
+      toast(on ? "Preparing as a portrait — usually a few minutes." : "No longer a portrait.");
       onDone();
     } catch (err) {
       toast(err instanceof Error ? err.message : "Could not change that.");
@@ -140,20 +140,15 @@ function PortraitToggle({ item, onDone }: { item: Upload; onDone: () => void }) 
 
   if (state) {
     return (
-      <button type="button" disabled={busy} onClick={() => void run(null)} className={box}>
+      <button type="button" disabled={busy} onClick={() => void run(false)} className={box}>
         {state.status === "failed" ? "Remove failed portrait" : "Not a portrait"}
       </button>
     );
   }
   return (
-    <>
-      <button type="button" disabled={busy} onClick={() => void run("virtual")} className={box}>
-        Make a portrait
-      </button>
-      <button type="button" disabled={busy} onClick={() => void run("person")} className={box}>
-        Portrait of a real person
-      </button>
-    </>
+    <button type="button" disabled={busy} onClick={() => void run(true)} className={box}>
+      Make a portrait
+    </button>
   );
 }
 
@@ -226,7 +221,7 @@ function LibraryInner() {
   // as a portrait. Asked here because this is where the decision belongs: it
   // costs a slot of a purchased allowance, and the playground only ever picks
   // one that already exists.
-  const [uploadPortrait, setUploadPortrait] = useState<"virtual" | "person" | null>(null);
+  const [uploadPortrait, setUploadPortrait] = useState(false);
   // The dialog that asks what is being added. It exists because the answer
   // changes what happens to the file - a portrait is registered with the video
   // provider, takes minutes to settle and uses a slot of a bought allowance -
@@ -561,14 +556,14 @@ function LibraryInner() {
       uploadRef.current?.click();
       return;
     }
-    setUploadPortrait(null);
+    setUploadPortrait(false);
     setConsented(false);
     setAskingUpload(true);
   }
 
   function chooseFiles() {
-    if (uploadPortrait === "person" && !consented) {
-      toast("Confirm you have this person's agreement first.");
+    if (uploadPortrait && !consented) {
+      toast("Confirm you have the right to use this likeness first.");
       return;
     }
     setAskingUpload(false);
@@ -583,7 +578,7 @@ function LibraryInner() {
       const asPortrait = uploadPortrait;
       void uploadFiles(files, {
         folderId: activeFolder && activeFolder !== "favorites" ? activeFolder : undefined,
-        character: asPortrait ?? undefined,
+        character: asPortrait || undefined,
       })
         .then(() => {
           if (asPortrait) toast("Uploaded. Preparing as a portrait — usually a few minutes.");
@@ -591,7 +586,7 @@ function LibraryInner() {
         .catch((err) => toast(err instanceof Error ? err.message : "Could not upload that file."));
       // One deliberate choice per batch: leaving it on would quietly register
       // the next set of screenshots somebody dropped in.
-      setUploadPortrait(null);
+      setUploadPortrait(false);
       e.target.value = "";
       return;
     }
@@ -1024,7 +1019,7 @@ function LibraryInner() {
                           <span
                             title={
                               img.character.status === "ready"
-                                ? `Registered with the video provider as a portrait (${img.character.kind === "person" ? "a real person" : "invented"})`
+                                ? "Registered with the video provider as a portrait"
                                 : img.character.status === "failed"
                                   ? img.character.error?.message || "The provider would not accept this as a portrait"
                                   : "Being prepared as a portrait — usually a few minutes"
@@ -1239,16 +1234,11 @@ function LibraryInner() {
             <div className="mt-4 space-y-2">
               {(
                 [
-                  [null, "Files", "Images, video or audio. Use them as reference material in any model."],
+                  [false, "Files", "Images, video or audio. Use them as reference material in any model."],
                   [
-                    "virtual",
-                    "A portrait — invented character",
-                    "A character you made up. Registered with the video provider so you can reuse them.",
-                  ],
-                  [
-                    "person",
-                    "A portrait — a real person",
-                    "A real human being. Needs their agreement, and we keep a record of yours.",
+                    true,
+                    "Portraits",
+                    "Characters you will reuse. Registered with the video provider, so the same face comes out the same way each time — and so a likeness gets past their review.",
                   ],
                 ] as const
               ).map(([value, title, note]) => {
@@ -1272,26 +1262,29 @@ function LibraryInner() {
               })}
             </div>
 
-            {uploadPortrait === "person" && (
-              <label className="mt-3 flex items-start gap-2 text-xs leading-snug text-muted">
-                <input
-                  type="checkbox"
-                  checked={consented}
-                  onChange={(e) => setConsented(e.target.checked)}
-                  className="mt-0.5"
-                />
-                <span>
-                  This person has agreed to appear in videos I generate, and I can show that if asked.
-                </span>
-              </label>
-            )}
-
             {uploadPortrait && (
-              <p className="mt-3 border-l-2 border-line pl-3 text-xs leading-snug text-dim">
-                Images only. A portrait is registered with the video provider so it can be reused, and so a
-                likeness gets past their review. It takes a few minutes to become usable and uses one slot
-                of your allowance. You can change this later from the library.
-              </p>
+              <>
+                {/* One assertion, covering both cases. Whether the face is
+                    invented or real is not a question we ask any more - the
+                    provider has one library either way - but having the right
+                    to use it is a question that still matters. */}
+                <label className="mt-3 flex items-start gap-2 text-xs leading-snug text-muted">
+                  <input
+                    type="checkbox"
+                    checked={consented}
+                    onChange={(e) => setConsented(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span>
+                    I have the right to use this likeness. If it is a real person, they have agreed to appear
+                    in videos I generate and I can show that if asked.
+                  </span>
+                </label>
+                <p className="mt-3 border-l-2 border-line pl-3 text-xs leading-snug text-dim">
+                  Images only. Preparing one takes a few minutes and uses one slot of your provider
+                  allowance. You can change this later from the library.
+                </p>
+              </>
             )}
 
             <div className="mt-5 flex justify-end gap-2">
