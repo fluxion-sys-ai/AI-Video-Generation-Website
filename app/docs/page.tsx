@@ -16,7 +16,7 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
     group: "Getting started",
     items: [
       { id: "introduction", label: "Introduction", body: "fluxion turns text and images into video pick a model describe the shot set duration aspect ratio resolution generate playground or http api" },
-      { id: "quickstart", label: "Quickstart", body: "install the client npm install @fluxion-ai/client run your first generation fluxion.run aurora prompt duration aspect_ratio resolution video url" },
+      { id: "quickstart", label: "Quickstart", body: "two http calls submit a job poll it minimax h3 fast prompt seconds resolution aspect_ratio video url curl no sdk required" },
       { id: "authentication", label: "Authentication", body: "create a key in your dashboard pass it as an environment variable FLUXION_API_KEY never ship a key in client-side code rotate keys" },
     ],
   },
@@ -107,7 +107,7 @@ curl -X POST https://api.fluxion-sys.ai/v1/videos \\
   -H "Authorization: Bearer $FLUXION_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "model": "MiniMax-H3",
+    "model": "MiniMax-H3-Fast",
     "prompt": "A cinematic aerial shot at golden hour",
     "seconds": 6,
     "resolution": "768P",

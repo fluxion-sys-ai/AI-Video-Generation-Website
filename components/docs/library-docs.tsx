@@ -169,8 +169,10 @@ export function LibraryDocs() {
   "type": "image",
   "bytes": 184213,
   "portrait": false,
-  "reference": "$REFERENCE_0A7304DE",
-  "created_at": "2026-09-21T22:00:02Z"
+  "portrait_status": null,
+  "portrait_error": null,
+  "created_at": "2026-09-21T22:00:02Z",
+  "reference": "$REFERENCE_0A7304DE"
 }`,
             js: `import { readFile } from "node:fs/promises";
 
@@ -208,14 +210,42 @@ print(asset["id"], asset["reference"])`,
           }}
         />
         <p className="mt-3 text-muted">
-          Listing returns that same shape for every asset. <code className="text-gold-2">?type=</code> and{" "}
+          Listing returns exactly the same object for every asset — nothing is trimmed, so whatever you can
+          read after creating one you can read again here. <code className="text-gold-2">?type=</code> and{" "}
           <code className="text-gold-2">?portrait=true</code> narrow it.
         </p>
         <Code>{`curl -sS "${host}/v1/assets?portrait=true" \
   -H "Authorization: Bearer $FLUXION_API_KEY"
 
-{ "assets": [ { "id": "0a7304de…", "name": "Ana", "type": "image", "portrait": true } ] }`}</Code>
-        <p className="mt-3 text-muted">
+{
+  "assets": [
+    {
+      "id": "0a7304deacbf42e6bc8d908d6c67ba8d",
+      "name": "Ana",
+      "type": "image",
+      "bytes": 184213,
+      "portrait": true,
+      "portrait_status": null,
+      "portrait_error": null,
+      "created_at": "2026-09-21T22:00:02Z",
+      "reference": "$REFERENCE_0A7304DE"
+    }
+  ]
+}`}</Code>
+        <Fields
+          rows={[
+            ["id", "string", "The asset. Use it to delete one."],
+            ["name", "string", "What you called it, or the filename."],
+            ["type", "enum", "image, video or audio."],
+            ["bytes", "integer", "Size on disk. Storage is charged by the gigabyte-month."],
+            ["portrait", "boolean", "Whether the video provider has accepted it as a reusable character."],
+            ["portrait_status", "enum", "pending, processing or failed while it is being registered; null once portrait is true, and null if it never was one."],
+            ["portrait_error", "string", "The provider's reason, when registering failed."],
+            ["created_at", "string", "RFC 3339, when it was stored."],
+            ["reference", "string", "What to write in a generation request. Does not expire."],
+          ]}
+        />
+        <p className="mt-5 text-muted">
           Deleting removes it from your library and, if it was a portrait, from the video provider —
           immediately, and that part cannot be undone. A file some generation was made from is refused with{" "}
           <code className="text-danger">409</code> until you add <code className="text-gold-2">?confirm=1</code>,
