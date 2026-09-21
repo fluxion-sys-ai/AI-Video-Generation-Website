@@ -218,6 +218,16 @@ export function ReferenceMedia({
   }
 
   const chosenIds = new Set(items.map((i) => i.id));
+  // Ready portraits first on a model that takes them: they are the reason
+  // somebody opened this list, and hunting for one among a hundred screenshots
+  // is the thing the tag alone does not fix. Everything else keeps its order.
+  const browseOrder =
+    offersCharacters && stored
+      ? [...stored].sort(
+          (a, b) =>
+            Number(b.character?.status === "ready") - Number(a.character?.status === "ready"),
+        )
+      : stored || [];
   const label = kind === "video" ? "Reference video" : kind === "audio" ? "Reference audio" : "Reference images";
 
   return (
@@ -309,10 +319,49 @@ export function ReferenceMedia({
             <p className="p-3 text-sm text-muted">Nothing here yet. Upload a {kind} file and it stays in your library.</p>
           ) : (
             <ul className="divide-y divide-hairline">
-              {stored.map((item) => (
+              {browseOrder.map((item) => (
                 <li key={item.id} className="flex items-center gap-3 p-2">
+                  {/* A face cannot be recognised from a filename, and a
+                      portrait is picked by which face it is. */}
+                  {kind === "image" && item.url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.url}
+                      alt=""
+                      className="h-10 w-10 shrink-0 border border-line bg-black object-cover"
+                    />
+                  )}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-fg">{item.name}</p>
+                    <p className="flex items-center gap-1.5 truncate text-sm text-fg">
+                      {item.character && (
+                        <span
+                          title={
+                            item.character.status === "ready"
+                              ? `A portrait — registered with the provider (${
+                                  item.character.kind === "person" ? "a real person" : "invented"
+                                })`
+                              : item.character.status === "failed"
+                                ? item.character.error?.message ||
+                                  "The provider would not accept this as a portrait"
+                                : "Being prepared as a portrait — not usable yet"
+                          }
+                          className={`shrink-0 px-1 py-0.5 font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.04em] ${
+                            item.character.status === "ready"
+                              ? "bg-accent/90 text-ink"
+                              : item.character.status === "failed"
+                                ? "bg-danger/90 text-ink"
+                                : "bg-blue/90 text-ink"
+                          }`}
+                        >
+                          {item.character.status === "ready"
+                            ? "portrait"
+                            : item.character.status === "failed"
+                              ? "refused"
+                              : "preparing"}
+                        </span>
+                      )}
+                      <span className="truncate">{item.name}</span>
+                    </p>
                     <p className="text-xs text-muted">{describe(item)}</p>
                   </div>
                   <button
