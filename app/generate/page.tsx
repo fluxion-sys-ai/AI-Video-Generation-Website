@@ -15,6 +15,8 @@ import { addRecent, takePendingImages, takePendingRequest, addLibraryImages, isF
 import { BACKEND_ENABLED, checkReferences, listLibrary, type LibraryItem } from "@/lib/hub";
 import { ReferenceMedia, LibraryImagePicker, IMAGE_ACCEPT } from "@/components/generate/reference-media";
 import { costBreakdown, estimateTokens, money, ratesFor, useRateCard } from "@/lib/rate-card";
+import { Portraits } from "@/components/generate/portraits";
+import type { Portrait } from "@/lib/hub";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { useSkin } from "@/lib/use-skin";
 import { PreviewBadge } from "@/components/models/preview-badge";
@@ -124,13 +126,15 @@ function GenerateInner() {
   // provider treats the two as different modes, which is why they are separate
   // here and why choosing one closes the other off.
   const [refImages, setRefImages] = useState<LibraryItem[]>([]);
+  const [portraits, setPortraits] = useState<Portrait[]>([]);
   const [refVerdict, setRefVerdict] = useState<{ problems: string[]; facts: { input_video_seconds: number; input_images: number } | null }>({
     problems: [],
     facts: null,
   });
   const { card } = useRateCard();
   const rules = model?.reference;
-  const hasReference = refVideos.length > 0 || refAudios.length > 0 || refImages.length > 0;
+  const hasReference =
+    refVideos.length > 0 || refAudios.length > 0 || refImages.length > 0 || portraits.length > 0;
   // H3 treats reference material and frame images as two different modes and
   // refuses a request that mixes them, so the form does not offer the mix.
   const exclusive = Boolean(rules?.mutually_exclusive_with_frames);
@@ -150,7 +154,8 @@ function GenerateInner() {
   const referenceBlocked = exclusive && images.length > 0;
   // A first frame counts as something to follow where the model takes one; on a
   // reference-only deployment it is not offered at all.
-  const visualCount = refVideos.length + refImages.length + (framesBlocked ? 0 : images.length);
+  const visualCount =
+    refVideos.length + refImages.length + portraits.length + (framesBlocked ? 0 : images.length);
   const missingReference = needsReference && visualCount < Number(rules?.min_visual || 0);
   // With nothing selected there is nothing to judge, so the verdict is derived
   // rather than cleared: the effect below only writes when an answer arrives.
@@ -166,6 +171,7 @@ function GenerateInner() {
         reference_video: refVideos.map((i) => i.id),
         reference_audio: refAudios.map((i) => i.id),
         reference_image: refImages.map((i) => i.id),
+        portrait: portraits.map((p) => p.id),
       },
       true,
     )
@@ -183,7 +189,7 @@ function GenerateInner() {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model?.slug, refVideos, refAudios, refImages]);
+  }, [model?.slug, refVideos, refAudios, refImages, portraits]);
 
   function addImages(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -280,7 +286,8 @@ function GenerateInner() {
     const freeImages = rules?.frame_image?.free_count ?? rules?.image?.free_count ?? 0;
     // Every reference still is an input image, and so is the first frame - of
     // which only the first is sent (lib/api.ts). The two never appear together.
-    const inputImages = refImages.length || (framesBlocked || images.length === 0 ? 0 : 1);
+    const inputImages =
+      portraits.length + (refImages.length || (framesBlocked || images.length === 0 ? 0 : 1));
     const facts = {
       seconds: duration,
       resolution,
@@ -337,6 +344,7 @@ function GenerateInner() {
     setRefVideos([]);
     setRefAudios([]);
     setRefImages([]);
+    setPortraits([]);
     setStatus("idle");
     setResultUrl(null);
     setSession(false);
@@ -484,6 +492,7 @@ function GenerateInner() {
     setRefVideos([]);
     setRefAudios([]);
     setRefImages([]);
+    setPortraits([]);
     setResultUrl(null);
     setStatus("idle");
     setSession(false);
@@ -536,6 +545,7 @@ function GenerateInner() {
       referenceVideoIds: refVideos.map((i) => i.id),
       referenceAudioIds: refAudios.map((i) => i.id),
       referenceImageIds: refImages.map((i) => i.id),
+      portraitIds: portraits.map((p) => p.id),
     })
       .then((r) => {
         if (id !== genId.current) return; // superseded, drop the result
@@ -586,6 +596,7 @@ function GenerateInner() {
         referenceVideoIds: refVideos.map((i) => i.id),
         referenceAudioIds: refAudios.map((i) => i.id),
         referenceImageIds: refImages.map((i) => i.id),
+        portraitIds: portraits.map((p) => p.id),
       },
       [],
     )
@@ -966,6 +977,15 @@ function GenerateInner() {
               modelSlug={slug}
               items={refVideos}
               onChange={setRefVideos}
+              disabled={referenceBlocked}
+              disabledReason="not with a first frame image"
+            />
+          )}
+          {model?.portraits && (
+            <Portraits
+              chosen={portraits}
+              onChange={setPortraits}
+              max={model.portraits.max_count ?? 8}
               disabled={referenceBlocked}
               disabledReason="not with a first frame image"
             />

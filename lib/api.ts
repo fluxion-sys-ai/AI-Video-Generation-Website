@@ -29,6 +29,8 @@ export type GenerateParams = {
   referenceAudioIds?: string[];
   /** Stills the model follows throughout, which is not the same as a first frame. */
   referenceImageIds?: string[];
+  /** Reusable characters, by our id. Placed ahead of plain reference images. */
+  portraitIds?: string[];
 };
 
 export type GenerateResult = {
@@ -67,12 +69,17 @@ async function referenceMetadata(params: GenerateParams, model: ReturnType<typeo
   const videos = params.referenceVideoIds || [];
   const audios = params.referenceAudioIds || [];
   const stills = params.referenceImageIds || [];
-  if (!model || (!videos.length && !audios.length && !stills.length)) return {};
+  const characters = params.portraitIds || [];
+  if (!model || (!videos.length && !audios.length && !stills.length && !characters.length)) return {};
   const checked = await checkReferences({
     model: model.slug,
     ...(videos.length ? { reference_video: videos } : {}),
     ...(audios.length ? { reference_audio: audios } : {}),
     ...(stills.length ? { reference_image: stills } : {}),
+    // Resolved by the backend into asset references and placed at the front of
+    // reference_image, so "Image 1" means the same thing here and in the
+    // prompt the customer wrote.
+    ...(characters.length ? { portrait: characters } : {}),
   });
   const metadata: Record<string, unknown> = {};
   if (checked.urls.reference_video) metadata.reference_video = checked.urls.reference_video;
