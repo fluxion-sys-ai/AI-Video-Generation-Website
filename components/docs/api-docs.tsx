@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Model } from "@/lib/models";
 import { BACKEND_ENABLED } from "@/lib/hub";
 import { CopyButton } from "@/components/docs/copy-button";
@@ -15,7 +15,14 @@ export function ApiDocs({ model }: { model: Model }) {
   const dur = model.durations[0];
   // The value of the request's "model" field: the hub's own model name.
   const id = model.hubModel || model.slug;
-  const host = BACKEND_ENABLED && typeof window !== "undefined" ? window.location.origin : "https://api.fluxion-sys.ai";
+  // After mount, not during render: this site is a static export, so reading
+  // window.location while rendering makes the browser's first pass disagree
+  // with the built HTML. It happened to be harmless here only because these
+  // snippets sit behind a tab; it is a hydration mismatch either way.
+  const [host, setHost] = useState("https://api.fluxion-sys.ai");
+  useEffect(() => {
+    if (BACKEND_ENABLED) setHost(window.location.origin);
+  }, []);
 
   // Reference limits come from the model's catalogue row, so what is documented
   // is what the platform enforces - there is no second copy to keep in step.
@@ -71,7 +78,14 @@ export function ApiDocs({ model }: { model: Model }) {
       ? [{
           name: "metadata.reference_image",
           type: "string | string[]",
-          desc: `https URLs of images the model should draw on: ${refDesc("image")}.${price("image")}`,
+          desc: `Images the model should draw on: ${refDesc("image")}.${price("image")} Each is a public https URL, or a value returned by POST /media/library/references — which also yields an asset:// reference for a registered portrait. Order is the order you send: the prompt names them by position, as "Image 1", "Image 2".`,
+        }]
+      : []),
+    ...(model.characters
+      ? [{
+          name: "metadata.reference_image (portraits)",
+          type: "string[]",
+          desc: `A portrait — an image registered with the provider as a reusable character — travels in this same list as asset://<id>, obtained from POST /media/library/references. Registering is what keeps a character consistent between clips, and what lets a likeness past the provider's review; ${model.characters.max_count ?? 8} may be named at once. See Library & assets in the docs.`,
         }]
       : []),
     ...(model.supports.image
@@ -85,7 +99,7 @@ export function ApiDocs({ model }: { model: Model }) {
       ? [{
           name: "metadata.content",
           type: "array",
-          desc: "The provider's own multimodal array, passed through: items of type text, image_url, video_url or audio_url, each with a role of first_frame, last_frame, reference_image, reference_video or reference_audio. Send this instead of the fields above, not as well.",
+          desc: "The provider's own multimodal array, passed through: items of type text, image_url, video_url or audio_url, each with a role of first_frame, last_frame, reference_image, reference_video or reference_audio. A url may be an https link, a data: URI, or an asset:// reference to a registered portrait. Send this instead of the fields above, not as well.",
         }]
       : []),
   ];

@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
 import { CopyButton } from "@/components/docs/copy-button";
+import { LibraryDocs } from "@/components/docs/library-docs";
 import { ModelDocs } from "@/components/docs/model-docs";
 
 export const metadata = { title: "Documentation" };
@@ -26,6 +27,14 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
       { id: "model-reference", label: "Per-model reference", body: "what each model takes seconds resolution aspect ratio sound reference images video audio price per second curl example seedance minimax h3 fast" },
       { id: "generating", label: "Generating video", body: "send a prompt and options response includes the output video url and timing longer clips and higher resolutions cost more dollars per second curl post" },
       { id: "parameters", label: "Parameters", body: "prompt image_url duration aspect_ratio resolution image-to-video required seconds of output" },
+    ],
+  },
+  {
+    group: "Your files",
+    items: [
+      { id: "library", label: "Library & assets", body: "upload list delete files images video audio generated videos one listing source uploaded generated kind character storage multipart form data" },
+      { id: "portraits", label: "Portraits", body: "register an image as a character reusable consistent face real person consent deepfake review provider asset preparing ready failed quota" },
+      { id: "references", label: "Using files in a generation", body: "references endpoint library ids to urls dry run checked against the model asset reference signed link image 1 video 1 audio 1 order position expires ttl" },
     ],
   },
   {
@@ -172,6 +181,15 @@ curl -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
               <li><code className="text-gold-2">audio</code>, generate sound, on models that support it.</li>
               <li><code className="text-gold-2">seed</code>, for reproducible output, on models that support it.</li>
             </ul>
+          </section>
+
+          <section className="space-y-3">
+            <H id="library">Library &amp; assets</H>
+            <p className="text-muted">
+              Everything you upload is kept and reusable, and everything generated is listed beside it. These
+              are the calls behind the Library page, and they are the same ones your own code should use.
+            </p>
+            <LibraryDocs />
           </section>
 
           <section className="space-y-3">
