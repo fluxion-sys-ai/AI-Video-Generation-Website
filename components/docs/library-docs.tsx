@@ -90,7 +90,10 @@ export function LibraryDocs() {
   return (
     <div className="space-y-10">
       <div>
-        <h3 className="font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-fg-soft">
+        <h3
+          id="how-files-work"
+          className="scroll-mt-28 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-fg-soft"
+        >
           How a file becomes an input
         </h3>
         <p className="mt-2 text-muted">
@@ -111,7 +114,10 @@ export function LibraryDocs() {
       </div>
 
       <div>
-        <h3 className="font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-fg-soft">
+        <h3
+          id="library-endpoints"
+          className="scroll-mt-28 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-fg-soft"
+        >
           What you have
         </h3>
         <Endpoints
@@ -183,7 +189,10 @@ export function LibraryDocs() {
       </div>
 
       <div>
-        <h3 className="font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-fg-soft">
+        <h3
+          id="portraits"
+          className="scroll-mt-28 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-fg-soft"
+        >
           Portraits
         </h3>
         <p className="mt-2 text-muted">
@@ -231,7 +240,10 @@ export function LibraryDocs() {
       </div>
 
       <div>
-        <h3 className="font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-fg-soft">
+        <h3
+          id="references"
+          className="scroll-mt-28 font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.06em] text-fg-soft"
+        >
           Using files in a generation
         </h3>
         <p className="mt-2 text-muted">
