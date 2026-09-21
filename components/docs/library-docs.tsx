@@ -75,6 +75,45 @@ function Fields({ rows }: { rows: [string, string, string][] }) {
 
 const FALLBACK_HOST = "https://api.fluxion-sys.ai";
 
+type Lang = "curl" | "js" | "python";
+const LANGS: { id: Lang; label: string }[] = [
+  { id: "curl", label: "cURL" },
+  { id: "js", label: "JavaScript" },
+  { id: "python", label: "Python" },
+];
+
+/**
+ * One example in three languages.
+ *
+ * Uploading a local file is the thing people get stuck on, and cURL is the one
+ * place it looks easy: `-F file=@photo.jpg` hides everything. The JavaScript
+ * and Python versions exist because that is where the multipart body actually
+ * has to be assembled, and "post multipart/form-data" is not an instruction
+ * anybody can act on without seeing it done once.
+ */
+function Snippets({ by }: { by: Record<Lang, string> }) {
+  const [lang, setLang] = useState<Lang>("curl");
+  return (
+    <div className="mt-3">
+      <div className="flex gap-4 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em]">
+        {LANGS.map(({ id, label }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setLang(id)}
+            className={`pb-1 transition-colors ${
+              lang === id ? "border-b border-accent text-accent-ink" : "text-muted hover:text-fg"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <Code>{by[lang]}</Code>
+    </div>
+  );
+}
+
 export function LibraryDocs() {
   // The origin the reader is actually on, so a copied curl works as pasted.
   //
@@ -118,7 +157,9 @@ export function LibraryDocs() {
             ["portrait", "enum", "virtual or person — register an image as a reusable character. Images only."],
           ]}
         />
-        <Code>{`curl -sS ${host}/v1/assets \
+        <Snippets
+          by={{
+            curl: `curl -sS ${host}/v1/assets \
   -H "Authorization: Bearer $FLUXION_API_KEY" \
   -F file=@lead-singer.jpg -F name="Ana"
 
@@ -131,7 +172,42 @@ export function LibraryDocs() {
   "reference": "https://storage.googleapis.com/…?X-Goog-Signature=…",
   "reference_expires": 3600,
   "created_at": "2026-09-21T22:00:02Z"
-}`}</Code>
+}`,
+            js: `import { readFile } from "node:fs/promises";
+
+const form = new FormData();
+// A File keeps the name and type; a bare Blob arrives called "upload".
+form.append("file", new File([await readFile("lead-singer.jpg")], "lead-singer.jpg", {
+  type: "image/jpeg",
+}));
+form.append("name", "Ana");
+// form.append("portrait", "person");   // also register it as a character
+
+const res = await fetch("${host}/v1/assets", {
+  method: "POST",
+  // No Content-Type here: fetch sets it, with the multipart boundary.
+  headers: { Authorization: "Bearer " + process.env.FLUXION_API_KEY },
+  body: form,
+});
+const asset = await res.json();
+console.log(asset.id, asset.reference);
+
+// In a browser it is the same call with the file straight from an input:
+//   form.append("file", input.files[0]);`,
+            python: `import os, requests
+
+with open("lead-singer.jpg", "rb") as fh:
+    asset = requests.post(
+        "${host}/v1/assets",
+        headers={"Authorization": "Bearer " + os.environ["FLUXION_API_KEY"]},
+        # requests builds the multipart body and sets the boundary itself.
+        files={"file": ("lead-singer.jpg", fh, "image/jpeg")},
+        data={"name": "Ana"},          # "portrait": "person" to register it
+    ).json()
+
+print(asset["id"], asset["reference"])`,
+          }}
+        />
         <p className="mt-3 text-muted">
           Listing returns that same shape for every asset. <code className="text-gold-2">?type=</code> and{" "}
           <code className="text-gold-2">?portrait=true</code> narrow it.
