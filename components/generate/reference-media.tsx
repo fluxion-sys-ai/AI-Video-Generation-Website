@@ -11,16 +11,7 @@
 // backend's own check, which the page runs whenever the selection changes.
 
 import { useEffect, useRef, useState } from "react";
-import {
-  characterSettling,
-  listLibrary,
-  registerCharacter,
-  unregisterCharacter,
-  uploadLibraryMedia,
-  type CharacterState,
-  type LibraryItem,
-  type ReferenceLimits,
-} from "@/lib/hub";
+import { listLibrary, uploadLibraryMedia, type LibraryItem, type ReferenceLimits } from "@/lib/hub";
 import { refreshLibrary } from "@/lib/prefs";
 import { money } from "@/lib/rate-card";
 import { toast } from "@/lib/toast";
@@ -161,193 +152,6 @@ export function LibraryImagePicker({ chosen, onPick }: { chosen: string[]; onPic
   );
 }
 
-/**
- * Registering a picked image with the provider, so it can be reused as a
- * character and, more to the point, so a likeness gets through their review.
- *
- * This lives on the image rather than in a library of its own, because that is
- * what it is: the same file, with a note saying the provider has been told
- * about it. Three things it has to be honest about, all of them visible to a
- * customer and none of them ours to hide:
- *
- *   it takes time      Preparation is asynchronous with no promised
- *                      turnaround, so a freshly registered image says so
- *                      instead of looking broken.
- *   it can be refused  Their review has the final say, and showing their
- *                      reason is the difference between a customer fixing the
- *                      photo and retrying the same one.
- *   removing is final  It reaches the provider immediately and cannot be
- *                      undone. The file stays, so doing it again is one click.
- */
-function CharacterControl({
-  item,
-  onChange,
-  disabled,
-}: {
-  item: LibraryItem;
-  onChange: (next: CharacterState | null) => void;
-  disabled?: boolean;
-}) {
-  const [asking, setAsking] = useState(false);
-  const [kind, setKind] = useState<"virtual" | "person">("virtual");
-  const [consented, setConsented] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const state = item.character;
-
-  // Look again while preparation is still running, and stop when it is not.
-  useEffect(() => {
-    if (!characterSettling(state)) return;
-    const timer = setInterval(async () => {
-      try {
-        const listing = await listLibrary("image");
-        const fresh = listing.items.find((i) => i.id === item.id);
-        if (fresh && fresh.character?.status !== state?.status) onChange(fresh.character ?? null);
-      } catch {
-        // A failed poll is not worth a message: the next one will do.
-      }
-    }, 8000);
-    return () => clearInterval(timer);
-  }, [state, item.id, onChange]);
-
-  async function register() {
-    if (kind === "person" && !consented) {
-      toast("Confirm you have the right to use this person's likeness first.");
-      return;
-    }
-    setBusy(true);
-    try {
-      onChange(
-        await registerCharacter(item.id, {
-          kind,
-          consent: {
-            has_permission: true,
-            asserted: kind === "person" ? "the subject has agreed to this use" : "not a real person",
-            at: new Date().toISOString(),
-          },
-        }),
-      );
-      setAsking(false);
-      setConsented(false);
-      toast("Preparing this character — usually a few minutes.");
-    } catch (err) {
-      toast(err instanceof Error ? err.message : "Could not register that image.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function remove() {
-    const ok = window.confirm(
-      `Stop using "${item.name}" as a character?\n\n` +
-        "This removes it from the video provider immediately and cannot be undone. " +
-        "The image stays in your library, so you can register it again — it just has to be prepared from scratch.",
-    );
-    if (!ok) return;
-    setBusy(true);
-    try {
-      await unregisterCharacter(item.id);
-      onChange(null);
-    } catch (err) {
-      toast(err instanceof Error ? err.message : "Could not remove that character.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (state && state.status === "ready") {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="border border-accent/60 bg-accent/10 px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.04em] text-accent-ink">
-          character
-        </span>
-        <button
-          type="button"
-          onClick={remove}
-          disabled={busy || disabled}
-          className="text-[11px] text-dim underline hover:text-danger"
-        >
-          stop
-        </button>
-      </div>
-    );
-  }
-
-  if (state && characterSettling(state)) {
-    return <span className="text-[11px] text-blue">Preparing as a character — usually a few minutes.</span>;
-  }
-
-  if (state && state.status === "failed") {
-    return (
-      <div className="min-w-0">
-        <p className="text-[11px] leading-snug text-danger">
-          {state.error?.message || "The provider would not accept this image as a character."}
-        </p>
-        <button
-          type="button"
-          onClick={() => setAsking(true)}
-          disabled={busy || disabled}
-          className="text-[11px] text-dim underline hover:text-fg"
-        >
-          try again
-        </button>
-      </div>
-    );
-  }
-
-  if (!asking) {
-    return (
-      <button
-        type="button"
-        onClick={() => setAsking(true)}
-        disabled={busy || disabled}
-        title="Register this image with the provider so it can be reused, and so a likeness passes their review"
-        className="text-[11px] text-dim underline hover:text-fg"
-      >
-        use as a character
-      </button>
-    );
-  }
-
-  return (
-    <div className="min-w-0 space-y-1">
-      <div className="flex flex-wrap items-center gap-2 text-[11px]">
-        <span className="text-dim">This is</span>
-        {(["virtual", "person"] as const).map((option) => (
-          <label key={option} className="flex items-center gap-1">
-            <input
-              type="radio"
-              name={`character-kind-${item.id}`}
-              checked={kind === option}
-              onChange={() => {
-                setKind(option);
-                setConsented(false);
-              }}
-            />
-            <span>{option === "virtual" ? "invented" : "a real person"}</span>
-          </label>
-        ))}
-      </div>
-      {kind === "person" && (
-        <label className="flex items-start gap-1.5 text-[11px] leading-snug text-muted">
-          <input type="checkbox" checked={consented} onChange={(e) => setConsented(e.target.checked)} className="mt-0.5" />
-          <span>
-            They have agreed to appear in videos I generate and I can show that if asked. We keep a
-            record of this.
-          </span>
-        </label>
-      )}
-      <div className="flex gap-2 text-[11px]">
-        <button type="button" onClick={register} disabled={busy} className="text-accent-ink underline">
-          {busy ? "registering…" : "register"}
-        </button>
-        <button type="button" onClick={() => setAsking(false)} disabled={busy} className="text-dim underline">
-          cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export function ReferenceMedia({
   kind,
   limits,
@@ -371,8 +175,6 @@ export function ReferenceMedia({
   const [browsing, setBrowsing] = useState(false);
   const [stored, setStored] = useState<LibraryItem[] | null>(null);
   const [busy, setBusy] = useState(false);
-  // What the next upload should be registered as, if anything.
-  const [uploadKind, setUploadKind] = useState<"virtual" | "person" | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const full = Boolean(limits?.max_count && items.length >= limits.max_count);
 
@@ -396,26 +198,12 @@ export function ReferenceMedia({
     if (!files.length) return;
     setBusy(true);
     const added: LibraryItem[] = [];
-    // Registering as part of the upload, when asked. The file is stored either
-    // way: a provider that cannot be reached must not cost somebody their
-    // upload.
-    const asCharacter = offersCharacters && uploadKind ? uploadKind : undefined;
+    // Plain reference material. A character is made in the library, where the
+    // decision belongs: registering costs a slot of a purchased allowance and
+    // is not something to walk into while assembling one generation.
     for (const file of files) {
       try {
-        added.push(
-          await uploadLibraryMedia(file, {
-            name: file.name,
-            model: modelSlug,
-            character: asCharacter,
-            consent: asCharacter
-              ? {
-                  has_permission: true,
-                  asserted: asCharacter === "person" ? "the subject has agreed to this use" : "not a real person",
-                  at: new Date().toISOString(),
-                }
-              : undefined,
-          }),
-        );
+        added.push(await uploadLibraryMedia(file, { name: file.name, model: modelSlug }));
       } catch (err) {
         toast(err instanceof Error ? err.message : `Could not upload ${file.name}.`);
       }
@@ -463,16 +251,10 @@ export function ReferenceMedia({
                   {item.name}
                 </p>
                 <p className="text-xs text-muted">{describe(item)}</p>
-                {offersCharacters && (
-                  <div className="mt-1">
-                    <CharacterControl
-                      item={item}
-                      disabled={disabled}
-                      onChange={(next) =>
-                        onChange(items.map((i) => (i.id === item.id ? { ...i, character: next } : i)))
-                      }
-                    />
-                  </div>
+                {offersCharacters && item.character?.status === "ready" && (
+                  <p className="mt-0.5 text-[11px] text-accent-ink">
+                    Registered character — refer to it as &ldquo;Image {items.indexOf(item) + 1}&rdquo; in your prompt.
+                  </p>
                 )}
               </div>
               <button
@@ -488,41 +270,6 @@ export function ReferenceMedia({
         </ul>
       )}
 
-      {offersCharacters && kind === "image" && (
-        <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
-          <span className="text-dim">Uploading a character?</span>
-          {(
-            [
-              [null, "no"],
-              ["virtual", "invented"],
-              ["person", "a real person"],
-            ] as const
-          ).map(([value, label]) => (
-            <label key={label} className="flex items-center gap-1">
-              <input
-                type="radio"
-                name={`upload-kind-${kind}`}
-                checked={uploadKind === value}
-                onChange={() => setUploadKind(value)}
-              />
-              <span>{label}</span>
-            </label>
-          ))}
-          {uploadKind === "person" && (
-            <span className="basis-full leading-snug">
-              By uploading, you confirm this person has agreed to appear in videos you generate and that
-              you can show that if asked. We keep a record of this.
-            </span>
-          )}
-          {uploadKind && (
-            <span className="basis-full leading-snug text-dim">
-              Registering takes a few minutes and uses one slot of your provider allowance. You can also
-              do it later, from any image you have already uploaded.
-            </span>
-          )}
-        </div>
-      )}
-
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -530,13 +277,7 @@ export function ReferenceMedia({
           onClick={() => fileInput.current?.click()}
           className={`${box} disabled:cursor-not-allowed disabled:opacity-50`}
         >
-          {busy
-            ? "Uploading…"
-            : kind === "image"
-              ? uploadKind
-                ? "Upload as a character"
-                : "Upload images"
-              : `Upload ${kind}`}
+          {busy ? "Uploading…" : kind === "image" ? "Upload images" : `Upload ${kind}`}
         </button>
         <input
           ref={fileInput}

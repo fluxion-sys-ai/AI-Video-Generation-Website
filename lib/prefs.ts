@@ -11,8 +11,11 @@ import {
   setLibraryOrder,
   updateLibraryImage,
   uploadLibraryImage as hubUploadLibraryImage,
+  registerCharacter,
+  unregisterCharacter,
   uploadLibraryMedia as hubUploadLibraryMedia,
   type LibraryFolder,
+  type CharacterState,
   type LibraryItem,
   type LibraryLimits,
 } from "./hub";
@@ -344,6 +347,13 @@ export type Upload = {
   height?: number | null;
   container?: string;
   codec?: string;
+  /**
+   * Set when this image is registered with the video provider as a portrait.
+   * Only images can be, and only from the library - the playground selects one
+   * but never makes one, because registering costs a slot of a purchased
+   * allowance and is not a decision to walk into while assembling one clip.
+   */
+  character?: CharacterState | null;
 };
 
 export function getUploads(kind?: Upload["kind"]): Upload[] {
@@ -364,6 +374,7 @@ export function getUploads(kind?: Upload["kind"]): Upload[] {
         height: i.height,
         container: i.container,
         codec: i.codec || i.audio_codec,
+        character: i.character ?? null,
       }))
     : getLibraryImages().map((i) => ({
         id: i.id,
@@ -398,13 +409,57 @@ export async function renameUpload(id: string, name: string): Promise<void> {
  * upload is settled, the library is refreshed either way, and the first failure
  * is what the caller reports.
  */
-export async function uploadFiles(files: File[], opts: { folderId?: string } = {}): Promise<void> {
+export async function uploadFiles(
+  files: File[],
+  opts: { folderId?: string; character?: "virtual" | "person" } = {},
+): Promise<void> {
+  const consent = opts.character
+    ? {
+        has_permission: true,
+        asserted: opts.character === "person" ? "the subject has agreed to this use" : "not a real person",
+        at: new Date().toISOString(),
+      }
+    : undefined;
   const results = await Promise.allSettled(
-    files.map((file) => hubUploadLibraryMedia(file, { name: file.name, folderId: opts.folderId })),
+    files.map((file) =>
+      hubUploadLibraryMedia(file, {
+        name: file.name,
+        folderId: opts.folderId,
+        character: opts.character,
+        consent,
+      }),
+    ),
   );
   await refreshLibrary().catch(() => {});
   const failed = results.find((r): r is PromiseRejectedResult => r.status === "rejected");
   if (failed) throw failed.reason;
+}
+
+/**
+ * Turns a stored image into a portrait, or stops it being one.
+ *
+ * Both directions reach the provider. Registering queues it for their review;
+ * unregistering removes it from them immediately and cannot be undone - the
+ * file itself is untouched either way, so changing your mind costs the
+ * preparation again and nothing else.
+ */
+export async function setUploadPortrait(
+  id: string,
+  kind: "virtual" | "person" | null,
+): Promise<void> {
+  if (kind) {
+    await registerCharacter(id, {
+      kind,
+      consent: {
+        has_permission: true,
+        asserted: kind === "person" ? "the subject has agreed to this use" : "not a real person",
+        at: new Date().toISOString(),
+      },
+    });
+  } else {
+    await unregisterCharacter(id);
+  }
+  await refreshLibrary();
 }
 
 /** Library limits and the storage price, as the backend reports them. */

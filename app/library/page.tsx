@@ -21,6 +21,7 @@ import {
   getLibraryLimits,
   refreshLibrary,
   getLibraryFolders,
+  setUploadPortrait,
   uploadFiles,
   removeLibraryImages,
   renameUpload,
@@ -101,6 +102,61 @@ function describeUpload(item: Upload): string {
 // A tile's preview. A video shows its own first frame (preload=metadata) and
 // plays on hover like the generated clips do; audio has nothing to show, so it
 // says what it is.
+/**
+ * Making a stored image into a portrait, or stopping it being one.
+ *
+ * Registering queues it for the provider's review and takes a slot of a bought
+ * allowance; unregistering removes it from them immediately and cannot be
+ * undone. The file is untouched either way, so changing your mind costs the
+ * preparation again and nothing else - which the confirmation says rather than
+ * leaving somebody to find out.
+ */
+function PortraitToggle({ item, onDone }: { item: Upload; onDone: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const state = item.character;
+  const box =
+    "rounded-none border border-white/40 px-2 py-1 font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-white transition-colors hover:border-white hover:bg-white/10 disabled:opacity-50";
+
+  async function run(kind: "virtual" | "person" | null) {
+    if (kind === null) {
+      const ok = window.confirm(
+        `Stop using "${item.name}" as a portrait?\n\n` +
+          "It is removed from the video provider immediately and that cannot be undone. " +
+          "The image stays in your library, so you can register it again — it just has to be prepared from scratch.",
+      );
+      if (!ok) return;
+    }
+    setBusy(true);
+    try {
+      await setUploadPortrait(item.id, kind);
+      toast(kind ? "Preparing as a portrait — usually a few minutes." : "No longer a portrait.");
+      onDone();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Could not change that.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (state) {
+    return (
+      <button type="button" disabled={busy} onClick={() => void run(null)} className={box}>
+        {state.status === "failed" ? "Remove failed portrait" : "Not a portrait"}
+      </button>
+    );
+  }
+  return (
+    <>
+      <button type="button" disabled={busy} onClick={() => void run("virtual")} className={box}>
+        Make a portrait
+      </button>
+      <button type="button" disabled={busy} onClick={() => void run("person")} className={box}>
+        Portrait of a real person
+      </button>
+    </>
+  );
+}
+
 function UploadPreview({ item, dimmed }: { item: Upload; dimmed: boolean }) {
   const player = useRef<HTMLVideoElement | null>(null);
   const dim = dimmed ? "opacity-80" : "";
@@ -166,6 +222,11 @@ function LibraryInner() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [uploadOpen, setUploadOpen] = useState(false);
+  // Whether the next upload should also be registered with the video provider
+  // as a portrait. Asked here because this is where the decision belongs: it
+  // costs a slot of a purchased allowance, and the playground only ever picks
+  // one that already exists.
+  const [uploadPortrait, setUploadPortrait] = useState<"virtual" | "person" | null>(null);
   const [modelFilter, setModelFilter] = useState<"all" | "recents" | "favorites">("all");
   const [modelQuery, setModelQuery] = useState("");
 
@@ -471,14 +532,39 @@ function LibraryInner() {
     setSelectMode(false);
     setSelected(new Set());
   }
+  // A portrait being prepared settles at the provider, not here, so nothing
+  // would tell this page about it. Look again while any is still in flight and
+  // stop the moment none is: a library of finished files should not poll.
+  const preparing = uploads.some(
+    (u) => u.character?.status === "pending" || u.character?.status === "processing",
+  );
+  useEffect(() => {
+    if (!BACKEND_ENABLED || !preparing) return;
+    const timer = setInterval(() => {
+      void refreshLibrary()
+        .then(() => setUploads(getUploads()))
+        .catch(() => {});
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [preparing]);
+
   // Add uploaded files. If viewing a folder, file them into it.
   function onUploadFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
     if (BACKEND_ENABLED) {
+      const asPortrait = uploadPortrait;
       void uploadFiles(files, {
         folderId: activeFolder && activeFolder !== "favorites" ? activeFolder : undefined,
-      }).catch((err) => toast(err instanceof Error ? err.message : "Could not upload that file."));
+        character: asPortrait ?? undefined,
+      })
+        .then(() => {
+          if (asPortrait) toast("Uploaded. Preparing as a portrait — usually a few minutes.");
+        })
+        .catch((err) => toast(err instanceof Error ? err.message : "Could not upload that file."));
+      // One deliberate choice per batch: leaving it on would quietly register
+      // the next set of screenshots somebody dropped in.
+      setUploadPortrait(null);
       e.target.value = "";
       return;
     }
@@ -680,6 +766,48 @@ function LibraryInner() {
               className="hidden"
               onChange={onUploadFiles}
             />
+
+            {/* Portraits are made here and nowhere else. A model's playground
+                picks one that already exists; it cannot create one, because
+                registering costs a slot of an allowance bought from the video
+                provider and is not a decision to walk into mid-generation. */}
+            {BACKEND_ENABLED && (
+              <div className="mt-4 border border-line bg-surface/60 p-3">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                  <span className="text-dim">Uploading a portrait?</span>
+                  {(
+                    [
+                      [null, "no, just a file"],
+                      ["virtual", "yes — an invented character"],
+                      ["person", "yes — a real person"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <label key={label} className="flex items-center gap-1.5">
+                      <input
+                        type="radio"
+                        name="upload-portrait"
+                        checked={uploadPortrait === value}
+                        onChange={() => setUploadPortrait(value)}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+                {uploadPortrait === "person" && (
+                  <p className="mt-1.5 text-xs leading-snug text-muted">
+                    By uploading you confirm this person has agreed to appear in videos you generate, and
+                    that you can show that if asked. We keep a record of this with the file.
+                  </p>
+                )}
+                {uploadPortrait && (
+                  <p className="mt-1.5 text-xs leading-snug text-dim">
+                    A portrait is registered with the video provider so it can be reused, and so a likeness
+                    gets past their review. It takes a few minutes to become usable and uses one slot of
+                    your allowance. Images only.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* What is here, and what keeping it costs at the backend's rate. */}
             {BACKEND_ENABLED && uploads.length > 0 && (
@@ -907,6 +1035,30 @@ function LibraryInner() {
                             {folderNameFor(img.id)}
                           </span>
                         )}
+                        {img.character && (
+                          <span
+                            title={
+                              img.character.status === "ready"
+                                ? `Registered with the video provider as a portrait (${img.character.kind === "person" ? "a real person" : "invented"})`
+                                : img.character.status === "failed"
+                                  ? img.character.error?.message || "The provider would not accept this as a portrait"
+                                  : "Being prepared as a portrait — usually a few minutes"
+                            }
+                            className={`absolute bottom-1.5 left-1.5 rounded-[5px] px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.04em] ${
+                              img.character.status === "ready"
+                                ? "bg-accent/90 text-ink"
+                                : img.character.status === "failed"
+                                  ? "bg-danger/90 text-ink"
+                                  : "bg-blue/90 text-ink"
+                            }`}
+                          >
+                            {img.character.status === "ready"
+                              ? "portrait"
+                              : img.character.status === "failed"
+                                ? "portrait refused"
+                                : "preparing"}
+                          </span>
+                        )}
                         {selectMode ? (
                           <span
                             className={`absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border text-ink transition-colors ${
@@ -1065,6 +1217,17 @@ function LibraryInner() {
               >
                 Rename
               </button>
+              {/* Changing your mind about a portrait. Without this the only fix
+                  for picking the wrong option at upload is uploading again. */}
+              {BACKEND_ENABLED && imgLightbox.kind === "image" && (
+                <PortraitToggle
+                  item={imgLightbox}
+                  onDone={() => {
+                    setUploads(getUploads());
+                    closeItem();
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>
