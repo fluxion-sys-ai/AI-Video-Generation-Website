@@ -227,6 +227,13 @@ function LibraryInner() {
   // costs a slot of a purchased allowance, and the playground only ever picks
   // one that already exists.
   const [uploadPortrait, setUploadPortrait] = useState<"virtual" | "person" | null>(null);
+  // The dialog that asks what is being added. It exists because the answer
+  // changes what happens to the file - a portrait is registered with the video
+  // provider, takes minutes to settle and uses a slot of a bought allowance -
+  // and a question with consequences deserves to be asked rather than left
+  // sitting as a control somebody may not have noticed.
+  const [askingUpload, setAskingUpload] = useState(false);
+  const [consented, setConsented] = useState(false);
   const [modelFilter, setModelFilter] = useState<"all" | "recents" | "favorites">("all");
   const [modelQuery, setModelQuery] = useState("");
 
@@ -548,6 +555,26 @@ function LibraryInner() {
     return () => clearInterval(timer);
   }, [preparing]);
 
+  function startUpload() {
+    if (!BACKEND_ENABLED) {
+      // Demo mode registers nothing, so there is nothing to ask about.
+      uploadRef.current?.click();
+      return;
+    }
+    setUploadPortrait(null);
+    setConsented(false);
+    setAskingUpload(true);
+  }
+
+  function chooseFiles() {
+    if (uploadPortrait === "person" && !consented) {
+      toast("Confirm you have this person's agreement first.");
+      return;
+    }
+    setAskingUpload(false);
+    uploadRef.current?.click();
+  }
+
   // Add uploaded files. If viewing a folder, file them into it.
   function onUploadFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -761,53 +788,11 @@ function LibraryInner() {
             <input
               ref={uploadRef}
               type="file"
-              accept={BACKEND_ENABLED ? "image/*,video/*,audio/*" : "image/*"}
+              accept={uploadPortrait ? "image/*" : BACKEND_ENABLED ? "image/*,video/*,audio/*" : "image/*"}
               multiple
               className="hidden"
               onChange={onUploadFiles}
             />
-
-            {/* Portraits are made here and nowhere else. A model's playground
-                picks one that already exists; it cannot create one, because
-                registering costs a slot of an allowance bought from the video
-                provider and is not a decision to walk into mid-generation. */}
-            {BACKEND_ENABLED && (
-              <div className="mt-4 border border-line bg-surface/60 p-3">
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                  <span className="text-dim">Uploading a portrait?</span>
-                  {(
-                    [
-                      [null, "no, just a file"],
-                      ["virtual", "yes — an invented character"],
-                      ["person", "yes — a real person"],
-                    ] as const
-                  ).map(([value, label]) => (
-                    <label key={label} className="flex items-center gap-1.5">
-                      <input
-                        type="radio"
-                        name="upload-portrait"
-                        checked={uploadPortrait === value}
-                        onChange={() => setUploadPortrait(value)}
-                      />
-                      <span>{label}</span>
-                    </label>
-                  ))}
-                </div>
-                {uploadPortrait === "person" && (
-                  <p className="mt-1.5 text-xs leading-snug text-muted">
-                    By uploading you confirm this person has agreed to appear in videos you generate, and
-                    that you can show that if asked. We keep a record of this with the file.
-                  </p>
-                )}
-                {uploadPortrait && (
-                  <p className="mt-1.5 text-xs leading-snug text-dim">
-                    A portrait is registered with the video provider so it can be reused, and so a likeness
-                    gets past their review. It takes a few minutes to become usable and uses one slot of
-                    your allowance. Images only.
-                  </p>
-                )}
-              </div>
-            )}
 
             {/* What is here, and what keeping it costs at the backend's rate. */}
             {BACKEND_ENABLED && uploads.length > 0 && (
@@ -918,7 +903,7 @@ function LibraryInner() {
                   </>
                 ) : (
                   <>
-                    <button onClick={() => uploadRef.current?.click()} className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">
+                    <button onClick={() => startUpload()} className="rounded-none bg-accent px-4 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-ink transition-colors hover:bg-accent-hover">
                       Upload {activeFolderObj ? "to folder" : BACKEND_ENABLED ? "files" : "images"}
                     </button>
                     <button onClick={() => setSelectMode(true)} className={toolbarBtn}>Select</button>
@@ -993,7 +978,7 @@ function LibraryInner() {
                       icon={<FolderOpen size={22} />}
                       title="This folder is empty"
                       hint="Drag files here, or upload into it."
-                      action={{ label: "Upload files", onClick: () => uploadRef.current?.click() }}
+                      action={{ label: "Upload files", onClick: () => startUpload() }}
                     />
                   ) : (
                     <EmptyState
@@ -1004,7 +989,7 @@ function LibraryInner() {
                           ? "Upload images to start a video from, or clips and sound for a model to follow."
                           : "Upload images to use them across your models."
                       }
-                      action={{ label: BACKEND_ENABLED ? "Upload files" : "Upload images", onClick: () => uploadRef.current?.click() }}
+                      action={{ label: BACKEND_ENABLED ? "Upload files" : "Upload images", onClick: () => startUpload() }}
                     />
                   )}
                 </div>
@@ -1228,6 +1213,102 @@ function LibraryInner() {
                   }}
                 />
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* What is being added. Asked before the file picker rather than after,
+          because the answer decides whether the file is also registered with
+          the video provider - which costs a slot of a bought allowance, takes
+          minutes to settle, and is not undone by deleting the upload. */}
+      {askingUpload && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6"
+          onClick={() => setAskingUpload(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-[14px] border border-line bg-surface p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-[family-name:var(--font-jetbrains)] text-lg font-medium uppercase tracking-[0.02em]">
+              Upload files
+            </h3>
+            <p className="mt-1 text-xs text-dim">What are you adding?</p>
+
+            <div className="mt-4 space-y-2">
+              {(
+                [
+                  [null, "Files", "Images, video or audio. Use them as reference material in any model."],
+                  [
+                    "virtual",
+                    "A portrait — invented character",
+                    "A character you made up. Registered with the video provider so you can reuse them.",
+                  ],
+                  [
+                    "person",
+                    "A portrait — a real person",
+                    "A real human being. Needs their agreement, and we keep a record of yours.",
+                  ],
+                ] as const
+              ).map(([value, title, note]) => {
+                const on = uploadPortrait === value;
+                return (
+                  <button
+                    key={title}
+                    type="button"
+                    onClick={() => {
+                      setUploadPortrait(value);
+                      setConsented(false);
+                    }}
+                    className={`block w-full rounded-none border p-3 text-left transition-colors ${
+                      on ? "border-accent bg-accent-soft" : "border-line hover:border-blue"
+                    }`}
+                  >
+                    <span className={`block text-sm ${on ? "text-accent-ink" : "text-fg"}`}>{title}</span>
+                    <span className="mt-0.5 block text-xs leading-snug text-muted">{note}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {uploadPortrait === "person" && (
+              <label className="mt-3 flex items-start gap-2 text-xs leading-snug text-muted">
+                <input
+                  type="checkbox"
+                  checked={consented}
+                  onChange={(e) => setConsented(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>
+                  This person has agreed to appear in videos I generate, and I can show that if asked.
+                </span>
+              </label>
+            )}
+
+            {uploadPortrait && (
+              <p className="mt-3 border-l-2 border-line pl-3 text-xs leading-snug text-dim">
+                Images only. A portrait is registered with the video provider so it can be reused, and so a
+                likeness gets past their review. It takes a few minutes to become usable and uses one slot
+                of your allowance. You can change this later from the library.
+              </p>
+            )}
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setAskingUpload(false)}
+                className="rounded-none border border-line-strong px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-muted transition-colors hover:bg-hover hover:text-fg"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={chooseFiles}
+                className="rounded-none bg-accent px-4 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-ink transition-colors hover:bg-accent-hover"
+              >
+                Choose files
+              </button>
             </div>
           </div>
         </div>
