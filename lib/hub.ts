@@ -889,13 +889,51 @@ export function listLibrary(kind?: MediaKind): Promise<LibraryListing> {
 
 export function uploadLibraryMedia(
   file: Blob,
-  opts: { name?: string; model?: string; folderId?: string } = {},
+  opts: {
+    name?: string;
+    model?: string;
+    folderId?: string;
+    /**
+     * Register this image with the provider as it is stored. Saying what a
+     * file is while you have it in hand beats uploading, finding it, picking
+     * it and then marking it.
+     */
+    character?: "virtual" | "person";
+    consent?: Record<string, unknown>;
+  } = {},
 ): Promise<LibraryItem> {
   const form = new FormData();
   form.append("file", file, opts.name || "upload");
   if (opts.model) form.append("model", opts.model);
   if (opts.folderId) form.append("folder_id", opts.folderId);
+  if (opts.character) {
+    form.append("character", opts.character);
+    form.append("consent", JSON.stringify(opts.consent ?? {}));
+  }
   return sidecar<LibraryItem>("POST", "/media/library/media", form);
+}
+
+/**
+ * Everything this account holds, uploaded and generated, in one listing.
+ *
+ * `source` separates the two, `kind` narrows by file type, and `character`
+ * filters to images registered with the provider. Each row says what it is
+ * rather than leaving the caller to infer it: source, kind, bytes,
+ * content_type, and the registration or null.
+ */
+export async function listAssets(
+  query: { source?: "uploaded" | "generated" | "all"; kind?: MediaKind; character?: boolean; limit?: number } = {},
+): Promise<{
+  items: (LibraryItem & { source: "uploaded" | "generated"; model?: string | null })[];
+  counts: { uploaded: number; generated: number; characters: number };
+}> {
+  const params = new URLSearchParams();
+  if (query.source) params.set("source", query.source);
+  if (query.kind) params.set("kind", query.kind);
+  if (query.character !== undefined) params.set("character", String(query.character));
+  if (query.limit) params.set("limit", String(query.limit));
+  const suffix = params.toString();
+  return sidecar("GET", `/media/library/assets${suffix ? `?${suffix}` : ""}`);
 }
 
 /** Uploading an image is the same call; the backend classifies the file. */

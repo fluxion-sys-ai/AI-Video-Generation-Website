@@ -71,6 +71,14 @@ function describe(item: LibraryItem): string {
  * library already serves it from; the generation then sends that link rather
  * than re-uploading the bytes.
  */
+/**
+ * The grid of stored images.
+ *
+ * A registered one is badged here, not only once it has been picked: choosing
+ * between "the face I set up" and "some other photo of the same person" is the
+ * choice being made at this moment, and a label that only appears afterwards
+ * is a label that arrives too late to help.
+ */
 export function LibraryImagePicker({ chosen, onPick }: { chosen: string[]; onPick: (item: LibraryItem) => void }) {
   const [items, setItems] = useState<LibraryItem[] | null>(null);
 
@@ -116,6 +124,30 @@ export function LibraryImagePicker({ chosen, onPick }: { chosen: string[]; onPic
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={item.url} alt={item.name} className="h-full w-full object-cover" />
+              {item.character && (
+                <span
+                  title={
+                    item.character.status === "ready"
+                      ? "Registered with the provider as a character"
+                      : item.character.status === "failed"
+                        ? item.character.error?.message || "The provider would not accept this as a character"
+                        : "Being prepared as a character"
+                  }
+                  className={`absolute left-0 top-0 px-1 py-0.5 font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.04em] ${
+                    item.character.status === "ready"
+                      ? "bg-accent/90 text-ink"
+                      : item.character.status === "failed"
+                        ? "bg-danger/90 text-ink"
+                        : "bg-blue/90 text-ink"
+                  }`}
+                >
+                  {item.character.status === "ready"
+                    ? "character"
+                    : item.character.status === "failed"
+                      ? "refused"
+                      : "preparing"}
+                </span>
+              )}
               {on && (
                 <span className="absolute inset-x-0 bottom-0 bg-accent/90 py-0.5 text-center font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.04em] text-ink">
                   chosen
@@ -339,6 +371,8 @@ export function ReferenceMedia({
   const [browsing, setBrowsing] = useState(false);
   const [stored, setStored] = useState<LibraryItem[] | null>(null);
   const [busy, setBusy] = useState(false);
+  // What the next upload should be registered as, if anything.
+  const [uploadKind, setUploadKind] = useState<"virtual" | "person" | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const full = Boolean(limits?.max_count && items.length >= limits.max_count);
 
@@ -362,9 +396,26 @@ export function ReferenceMedia({
     if (!files.length) return;
     setBusy(true);
     const added: LibraryItem[] = [];
+    // Registering as part of the upload, when asked. The file is stored either
+    // way: a provider that cannot be reached must not cost somebody their
+    // upload.
+    const asCharacter = offersCharacters && uploadKind ? uploadKind : undefined;
     for (const file of files) {
       try {
-        added.push(await uploadLibraryMedia(file, { name: file.name, model: modelSlug }));
+        added.push(
+          await uploadLibraryMedia(file, {
+            name: file.name,
+            model: modelSlug,
+            character: asCharacter,
+            consent: asCharacter
+              ? {
+                  has_permission: true,
+                  asserted: asCharacter === "person" ? "the subject has agreed to this use" : "not a real person",
+                  at: new Date().toISOString(),
+                }
+              : undefined,
+          }),
+        );
       } catch (err) {
         toast(err instanceof Error ? err.message : `Could not upload ${file.name}.`);
       }
@@ -437,6 +488,41 @@ export function ReferenceMedia({
         </ul>
       )}
 
+      {offersCharacters && kind === "image" && (
+        <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
+          <span className="text-dim">Uploading a character?</span>
+          {(
+            [
+              [null, "no"],
+              ["virtual", "invented"],
+              ["person", "a real person"],
+            ] as const
+          ).map(([value, label]) => (
+            <label key={label} className="flex items-center gap-1">
+              <input
+                type="radio"
+                name={`upload-kind-${kind}`}
+                checked={uploadKind === value}
+                onChange={() => setUploadKind(value)}
+              />
+              <span>{label}</span>
+            </label>
+          ))}
+          {uploadKind === "person" && (
+            <span className="basis-full leading-snug">
+              By uploading, you confirm this person has agreed to appear in videos you generate and that
+              you can show that if asked. We keep a record of this.
+            </span>
+          )}
+          {uploadKind && (
+            <span className="basis-full leading-snug text-dim">
+              Registering takes a few minutes and uses one slot of your provider allowance. You can also
+              do it later, from any image you have already uploaded.
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -444,7 +530,13 @@ export function ReferenceMedia({
           onClick={() => fileInput.current?.click()}
           className={`${box} disabled:cursor-not-allowed disabled:opacity-50`}
         >
-          {busy ? "Uploading…" : kind === "image" ? "Upload images" : `Upload ${kind}`}
+          {busy
+            ? "Uploading…"
+            : kind === "image"
+              ? uploadKind
+                ? "Upload as a character"
+                : "Upload images"
+              : `Upload ${kind}`}
         </button>
         <input
           ref={fileInput}
