@@ -9,6 +9,47 @@ import { getPricing } from "./hub";
 import { estimateCost, matchTier, parseTaskTiers, perSecondPrice, type ParsedTaskTier } from "./pricing-expr";
 
 /** Tiers keyed by the hub's model name. */
+/**
+ * The provider's token estimate for one clip, in the provider's own formula.
+ *
+ * BytePlus bills ModelArk by pixels, not by seconds:
+ *
+ *     tokens = width * height * frame_rate * duration / 1024
+ *
+ * which means the aspect ratio changes the bill as much as the resolution does:
+ * at "480p" a 1:1 clip is 480x480 and a 21:9 clip is 1120x480, the same named
+ * resolution for 2.3x the cost. The short side is the named resolution and the
+ * long side follows the ratio.
+ *
+ * This has to match plugins/fluxion-seedance/plugin.js exactly - it is the same
+ * arithmetic on the same inputs, so that what the playground quotes is what the
+ * backend charges rather than a second opinion about it.
+ *
+ * Models priced per second ignore the `tokens` fact entirely; supplying it
+ * costs them nothing.
+ */
+const FRAME_RATE = 24;
+const SHORT_SIDE: Record<string, number> = { "480p": 480, "720p": 720, "1080p": 1080 };
+const RATIO_VALUE: Record<string, number> = {
+  "21:9": 21 / 9,
+  "16:9": 16 / 9,
+  "4:3": 4 / 3,
+  "1:1": 1,
+  "3:4": 3 / 4,
+  "9:16": 9 / 16,
+  // The model picks; reserve the widest shape, as the plugin does.
+  adaptive: 21 / 9,
+};
+
+export function estimateTokens(resolution: string, ratio: string, seconds: number): number {
+  const short = SHORT_SIDE[String(resolution).toLowerCase()];
+  if (!short || !Number.isFinite(seconds) || seconds <= 0) return 0;
+  const value = RATIO_VALUE[ratio] ?? RATIO_VALUE["16:9"];
+  const width = value >= 1 ? Math.round(short * value) : short;
+  const height = value >= 1 ? short : Math.round(short / value);
+  return Math.round((width * height * FRAME_RATE * seconds) / 1024);
+}
+
 export type RateCard = Record<string, ParsedTaskTier[]>;
 
 let cached: Promise<RateCard> | null = null;

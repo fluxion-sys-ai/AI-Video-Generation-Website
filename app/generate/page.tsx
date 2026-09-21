@@ -14,7 +14,7 @@ import { NumberField, isPositive } from "@/components/ui/number-field";
 import { addRecent, takePendingImages, takePendingRequest, addLibraryImages, isFavorite, toggleFavorite, getSettings, uploadLibraryImage } from "@/lib/prefs";
 import { BACKEND_ENABLED, checkReferences, listLibrary, type LibraryItem } from "@/lib/hub";
 import { ReferenceMedia, LibraryImagePicker, IMAGE_ACCEPT } from "@/components/generate/reference-media";
-import { costBreakdown, money, ratesFor, useRateCard } from "@/lib/rate-card";
+import { costBreakdown, estimateTokens, money, ratesFor, useRateCard } from "@/lib/rate-card";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { useSkin } from "@/lib/use-skin";
 import { PreviewBadge } from "@/components/models/preview-badge";
@@ -284,6 +284,11 @@ function GenerateInner() {
     const facts = {
       seconds: duration,
       resolution,
+      // Some providers bill by pixels rather than by seconds, so the aspect
+      // ratio is part of the price. Computed with the same arithmetic the
+      // plugin uses, so this quotes the charge rather than guessing at it;
+      // models priced per second ignore it.
+      tokens: estimateTokens(resolution, aspect, duration),
       input_video_seconds: refFacts?.input_video_seconds ?? 0,
       input_images: inputImages,
       input_images_billable: Math.max(0, inputImages - freeImages),
@@ -293,6 +298,10 @@ function GenerateInner() {
     if (!broken) return null;
     const labels: Record<string, (units: number) => string> = {
       seconds: (units) => `${units}s at ${resolution}`,
+      // Say the shape too: at one resolution a 21:9 clip costs 2.3x a square
+      // one, and a price that moves when you change the ratio is confusing
+      // until you are told why.
+      tokens: (units) => `${duration}s at ${resolution} ${aspect} (${units.toLocaleString()} tokens)`,
       input_video_seconds: (units) => `${Number(units.toFixed(2))}s of reference video`,
       input_images_billable: (units) => `${units} image${units === 1 ? "" : "s"} past the first ${freeImages}`,
     };
