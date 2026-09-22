@@ -29,7 +29,7 @@ import { estimateCost, matchTier, parseTaskTiers, perSecondPrice, type ParsedTas
  * costs them nothing.
  */
 const FRAME_RATE = 24;
-const SHORT_SIDE: Record<string, number> = { "480p": 480, "720p": 720, "1080p": 1080 };
+const SHORT_SIDE: Record<string, number> = { "480p": 480, "720p": 720, "1080p": 1080, "4k": 2160 };
 const RATIO_VALUE: Record<string, number> = {
   "21:9": 21 / 9,
   "16:9": 16 / 9,

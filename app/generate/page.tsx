@@ -289,6 +289,11 @@ function GenerateInner() {
       // plugin uses, so this quotes the charge rather than guessing at it;
       // models priced per second ignore it.
       tokens: estimateTokens(resolution, aspect, duration),
+      // Some providers charge two rates for the same model and pick between
+      // them on whether a video is among the inputs. Counter-intuitively the
+      // rate with one is the cheaper, so this is not cosmetic: the quote moves
+      // when a reference clip is added or removed.
+      video_input: refVideos.length > 0 ? "yes" : "no",
       input_video_seconds: refFacts?.input_video_seconds ?? 0,
       input_images: inputImages,
       input_images_billable: Math.max(0, inputImages - freeImages),
