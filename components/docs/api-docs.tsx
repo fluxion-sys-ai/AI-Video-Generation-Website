@@ -27,6 +27,15 @@ export function ApiDocs({ model }: { model: Model }) {
   // Reference limits come from the model's catalogue row, so what is documented
   // is what the platform enforces - there is no second copy to keep in step.
   const ref = model.reference;
+  // Some models cannot work from a prompt alone: a reference-to-video
+  // deployment follows material rather than inventing it. Documenting a
+  // text-only request for one of those is documenting a request that fails, so
+  // the examples below carry a reference when the catalogue says one is needed.
+  const minVisual = Number(ref?.min_visual || 0);
+  const needsReference = minVisual > 0;
+  const refLine = needsReference
+    ? `,\n    "metadata": { "reference_image": ["$REFERENCE_0A7304DE"] }`
+    : "";
   const list = (values: string[] | undefined) => (values || []).map((v) => v.toUpperCase()).join(", ");
   const mb = (bytes: number | undefined) => (bytes ? `${Math.round(bytes / 1048576)} MB` : "");
   const refDesc = (kind: "video" | "audio" | "image") => {
@@ -54,6 +63,14 @@ export function ApiDocs({ model }: { model: Model }) {
 
   const params: { name: string; type: string; req?: boolean; desc: string }[] = [
     { name: "prompt", type: "string", req: true, desc: "Text description of the shot." },
+    ...(needsReference
+      ? [{
+          name: "metadata.reference_image",
+          type: "string[]",
+          req: true,
+          desc: `${model.name} follows material rather than inventing it, so at least ${minVisual} reference image or clip is required — a request with a prompt alone is refused. Use metadata.reference_video instead if you are following a clip.`,
+        }]
+      : []),
     ...(model.supports.image ? [{ name: "image_url", type: "string", desc: "Public https URL or data: URI of an image to animate (the first frame). To upload the file instead, post multipart/form-data with an `image` part." }] : []),
     { name: "seconds", type: "integer", desc: `Clip length (${model.durations[0]}-${model.durations[model.durations.length - 1]}). Defaults to ${model.durations[0]}. Also accepted as \`duration\`.` },
     { name: "aspect_ratio", type: "enum", desc: `${model.aspectRatios.join(", ")}. Defaults to ${model.aspectRatios[0]}. Also accepted as \`ratio\`, and \`adaptive\` when there is a visual input.` },
@@ -114,10 +131,13 @@ const submit = await fetch(base + "/v1/videos", {
   headers: { ...auth, "Content-Type": "application/json" },
   body: JSON.stringify({
     model: "${id}",
-    prompt: "A cinematic aerial shot at golden hour",
+    prompt: "${needsReference ? "Follow the motion in Image 1" : "A cinematic aerial shot at golden hour"}",
     seconds: ${dur},
     resolution: "${res}",
-    aspect_ratio: "${ar}",
+    aspect_ratio: "${ar}",${needsReference ? `
+    // ${model.name} follows material rather than inventing it: at least
+    // ${minVisual} reference is required. Store one with POST /v1/assets.
+    metadata: { reference_image: ["$REFERENCE_0A7304DE"] },` : ""}
   }),
 });
 let video = await submit.json();
@@ -141,10 +161,13 @@ auth = {"Authorization": "Bearer " + os.environ["FLUXION_API_KEY"]}
 # 1. Submit the job. Credits are held when this returns.
 video = requests.post(base + "/v1/videos", headers=auth, json={
     "model": "${id}",
-    "prompt": "A cinematic aerial shot at golden hour",
+    "prompt": "${needsReference ? "Follow the motion in Image 1" : "A cinematic aerial shot at golden hour"}",
     "seconds": ${dur},
     "resolution": "${res}",
-    "aspect_ratio": "${ar}",
+    "aspect_ratio": "${ar}",${needsReference ? `
+    # ${model.name} follows material rather than inventing it: at least
+    # ${minVisual} reference is required. Store one with POST /v1/assets.
+    "metadata": {"reference_image": ["$REFERENCE_0A7304DE"]},` : ""}
 }).json()
 
 # 2. Poll until it finishes (usually under a minute).
@@ -164,10 +187,10 @@ curl -X POST ${host}/v1/videos \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "${id}",
-    "prompt": "A cinematic aerial shot at golden hour",
+    "prompt": "${needsReference ? "Follow the motion in Image 1" : "A cinematic aerial shot at golden hour"}",
     "seconds": ${dur},
     "resolution": "${res}",
-    "aspect_ratio": "${ar}"
+    "aspect_ratio": "${ar}"${refLine}
   }'
 
 # 2. Poll that id until "status": "completed".

@@ -16,7 +16,7 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
     group: "Getting started",
     items: [
       { id: "introduction", label: "Introduction", body: "fluxion turns text and images into video pick a model describe the shot set duration aspect ratio resolution generate playground or http api" },
-      { id: "quickstart", label: "Quickstart", body: "two http calls submit a job poll it minimax h3 fast prompt seconds resolution aspect_ratio video url curl no sdk required" },
+      { id: "quickstart", label: "Quickstart", body: "store an image asset submit a job poll it minimax h3 fast reference_image required prompt seconds resolution aspect_ratio video url curl" },
       { id: "authentication", label: "Authentication", body: "create a key in your dashboard pass it as an environment variable FLUXION_API_KEY never ship a key in client-side code rotate keys" },
     ],
   },
@@ -100,26 +100,39 @@ export default function DocsPage() {
           <section className="space-y-3">
             <H id="quickstart">Quickstart</H>
             <p className="text-muted">
-              Two HTTP calls: submit a job, then poll it until the video is ready. No SDK required.
+              MiniMax-H3-Fast follows material you give it rather than inventing a scene from words, so a
+              generation starts with an image or a clip. Store one, then submit and poll.
             </p>
-            <Code>{`# Submit; the response carries the video id.
-curl -X POST https://api.fluxion-sys.ai/v1/videos \\
+            <Code>{`# 1. Store an image. The response carries a reference to use below.
+curl -sS https://api.fluxion-sys.ai/v1/assets \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" \\
+  -F file=@start.jpg
+# -> {"id":"0a7304de…","type":"image","reference":"$REFERENCE_0A7304DE", …}
+
+# 2. Submit; the response carries the video id.
+curl -sS -X POST https://api.fluxion-sys.ai/v1/videos \\
   -H "Authorization: Bearer $FLUXION_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "MiniMax-H3-Fast",
-    "prompt": "A cinematic aerial shot at golden hour",
+    "prompt": "A slow push in on the scene in Image 1, golden hour",
     "seconds": 6,
     "resolution": "768P",
-    "aspect_ratio": "16:9"
+    "aspect_ratio": "16:9",
+    "metadata": { "reference_image": ["$REFERENCE_0A7304DE"] }
   }'
 
-# Poll until "status": "completed", then download the MP4.
-curl https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID \\
+# 3. Poll until "status": "completed", then download the MP4.
+curl -sS https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID \\
   -H "Authorization: Bearer $FLUXION_API_KEY"
 
-curl -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
+curl -sS -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
   -H "Authorization: Bearer $FLUXION_API_KEY"`}</Code>
+            <p className="text-xs text-dim">
+              Not every model needs a reference — each model&apos;s own page says whether it does, and the
+              ones that generate from a prompt alone take the same request without the{" "}
+              <code className="text-gold-2">metadata</code> block.
+            </p>
           </section>
 
           <section className="space-y-3">
