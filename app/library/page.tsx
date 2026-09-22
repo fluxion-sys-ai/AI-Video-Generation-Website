@@ -9,7 +9,7 @@ import { isSignedIn } from "@/lib/auth";
 import { getModels, getModel, type Model, refreshCatalog } from "@/lib/models";
 import { getGenerations, refreshGenerations, formatWhen, type Generation } from "@/lib/generations";
 import { ApiError, BACKEND_ENABLED } from "@/lib/hub";
-import { useLive } from "@/lib/live";
+import { useLive, useLiveState } from "@/lib/live";
 import {
   getFavorites,
   getRecents,
@@ -149,6 +149,31 @@ function PortraitToggle({ item, onDone }: { item: Upload; onDone: () => void }) 
     <button type="button" disabled={busy} onClick={() => void run(true)} className={box}>
       Make a portrait
     </button>
+  );
+}
+
+/**
+ * What the grid shows while the first load is in flight.
+ *
+ * Shaped like the thing it stands in for - same grid, same square tiles, same
+ * two lines of caption - so nothing jumps when the real items arrive. Six is
+ * one row at the widest layout and more than a screenful at the narrowest,
+ * which is enough to read as "loading" without pretending to know the count.
+ */
+function LoadingGrid({ label }: { label: string }) {
+  return (
+    <div className="mt-5">
+      <p className="sr-only" role="status" aria-live="polite">{label}</p>
+      <div className="lib-grid grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6" aria-hidden="true">
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={i}>
+            <div className="skeleton relative aspect-square w-full overflow-hidden" />
+            <div className="skeleton mt-2 h-2.5 w-3/4" />
+            <div className="skeleton mt-1 h-2.5 w-1/2" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -352,8 +377,13 @@ function LibraryInner() {
   // Backend mode: images, folders and videos come from the server. These hooks
   // refresh them on mount and re-render whenever they change.
   useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
-  const libraryVersion = useLive("library", BACKEND_ENABLED ? refreshLibrary : undefined);
-  const generationsVersion = useLive("generations", BACKEND_ENABLED ? refreshGenerations : undefined);
+  // `ready` matters more than the version here: until the first load lands,
+  // "you have nothing" and "we have not looked yet" are the same state to this
+  // component and opposite things to a person reading it.
+  const { version: libraryVersion, ready: libraryReady } =
+    useLiveState("library", BACKEND_ENABLED ? refreshLibrary : undefined);
+  const { version: generationsVersion, ready: generationsReady } =
+    useLiveState("generations", BACKEND_ENABLED ? refreshGenerations : undefined);
   useEffect(() => {
     if (!BACKEND_ENABLED) return;
     // The seams have already loaded; copying their caches into state is what
@@ -756,7 +786,9 @@ function LibraryInner() {
         {/* GENERATED: videos the platform made. Poster thumbnail always shown;
             hover plays the clip. */}
         {tab === "generated" && (
-          gens.length === 0 ? (
+          !generationsReady && gens.length === 0 ? (
+            <LoadingGrid label="Loading your generations…" />
+          ) : gens.length === 0 ? (
             <EmptyState
               className="mt-8"
               icon={<Clapperboard size={22} />}
@@ -959,6 +991,9 @@ function LibraryInner() {
 
 
             {/* image grid */}
+            {!libraryReady && uploads.length === 0 ? (
+              <LoadingGrid label="Loading your files…" />
+            ) : (
             <div className="lib-grid mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
               {shownImages.length === 0 ? (
                 <div className="col-span-full">
@@ -1073,6 +1108,7 @@ function LibraryInner() {
                 })
               )}
             </div>
+            )}
           </>
         )}
       </main>
