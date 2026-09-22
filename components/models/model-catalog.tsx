@@ -14,7 +14,7 @@ import { BACKEND_ENABLED } from "@/lib/hub";
 import { useLive } from "@/lib/live";
 import { isFavorite, toggleFavorite } from "@/lib/prefs";
 import { useSkin } from "@/lib/use-skin";
-import { KindSwitch, type Kind } from "@/components/ui/kind-switch";
+import type { Kind } from "@/components/ui/kind-switch";
 
 type Sort = "popular" | "price-asc" | "price-desc" | "name";
 const SORTS: { key: Sort; label: string }[] = [
@@ -51,38 +51,22 @@ function SortSelect({ sort, setSort }: { sort: Sort; setSort: (s: Sort) => void 
 }
 
 /**
- * What to browse, and the chips that narrow it.
+ * The chips that narrow one section's list.
  *
- * The two are one control because the first decides the second: a video's tags
- * and a picture's have almost nothing in common, and a single row of both came
- * to 39 chips - most of them narrowing a list the reader was not looking at.
- * So the kind comes first, reads as a bigger decision than a tag, and the
- * chips beside it are only ever about the thing being browsed.
- *
- * The switch hides itself when the account has only one kind, which is most of
- * them: image models are invitation-based. With one kind this is exactly the
- * tag row it has always been.
+ * One of these per kind, above that kind's own models, because a video's tags
+ * and a picture's have almost nothing in common - a single row of both came to
+ * 39 chips, most of them narrowing a list the reader was not looking at. Each
+ * row is only ever about the models directly beneath it, and a selection in
+ * one does not touch the other.
  */
-function Facets({
-  kind, setKind, counts, allTags, tags, toggleTag, clear,
-}: {
-  kind: Kind;
-  setKind: (k: Kind) => void;
-  counts: Record<Kind, number>;
+function TagChips({ allTags, tags, toggleTag, clear }: {
   allTags: string[];
   tags: Set<string>;
   toggleTag: (t: string) => void;
   clear: () => void;
 }) {
-  const bothKinds = counts.video > 0 && counts.image > 0;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {bothKinds && (
-        <>
-          <KindSwitch value={kind} onChange={setKind} counts={counts} />
-          <span aria-hidden="true" className="mx-1 h-5 w-px bg-line" />
-        </>
-      )}
       <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-dim">Tags</span>
       {allTags.map((t) => {
         const on = tags.has(t);
@@ -91,6 +75,24 @@ function Facets({
         );
       })}
       {tags.size > 0 && <button onClick={clear} className="text-xs text-muted transition-colors hover:text-fg">Clear</button>}
+    </div>
+  );
+}
+
+/**
+ * "Video models" / "Image models", above a section.
+ *
+ * Only rendered when the account has both kinds. With one kind the page is the
+ * single list it has always been, and a heading saying so would be noise.
+ */
+function KindHeading({ kind, count }: { kind: Kind; count: number }) {
+  return (
+    <div className="flex items-baseline gap-3">
+      <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.12em] text-gold">
+        {kind === "image" ? "Image models" : "Video models"}
+      </h2>
+      <span className="text-xs text-dim">{count}</span>
+      <span className="h-px flex-1 bg-hairline" />
     </div>
   );
 }
@@ -113,52 +115,86 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
   useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const all = BACKEND_ENABLED ? getModels() : initial;
   const [q, setQ] = useState("");
-  const [tags, setTags] = useState<Set<string>>(new Set());
+  // One selection per section, because there is one chip row per section: a
+  // tag chosen among the video models must not filter the image models by
+  // something their own row does not even offer.
+  const [tags, setTags] = useState<Record<Kind, Set<string>>>({ video: new Set(), image: new Set() });
   const [sort, setSort] = useState<Sort>("popular");
-  const [kind, setKind] = useState<Kind>("video");
   const query = q.trim().toLowerCase();
 
-  const counts: Record<Kind, number> = {
-    video: all.filter((m) => m.modality !== "image").length,
-    image: all.filter((m) => m.modality === "image").length,
-  };
-  // An account with only image models should not be looking at an empty Video
-  // tab. Video is the default because that is what nearly every account has.
-  const shown: Kind = counts[kind] === 0 && counts[kind === "video" ? "image" : "video"] > 0
-    ? (kind === "video" ? "image" : "video")
-    : kind;
-  const models = all.filter((m) => (m.modality === "image") === (shown === "image"));
-  const allTags = modelTags(models);
-
-  function toggleTag(t: string) {
-    setTags((prev) => { const next = new Set(prev); next.has(t) ? next.delete(t) : next.add(t); return next; });
+  function toggleTag(kind: Kind, tag: string) {
+    setTags((prev) => {
+      const next = new Set(prev[kind]);
+      next.has(tag) ? next.delete(tag) : next.add(tag);
+      return { ...prev, [kind]: next };
+    });
   }
+  const clearTags = (kind: Kind) => setTags((prev) => ({ ...prev, [kind]: new Set() }));
 
-  // Switching kind drops the selection rather than carrying it across: the
-  // chips are different chips, and a tag left on from the other tab would
-  // filter by something the new row does not even show.
-  function chooseKind(next: Kind) {
-    if (next === shown) return;
-    setKind(next);
-    setTags(new Set());
-  }
+  /**
+   * One section per kind: its heading, its own chips, its own models.
+   *
+   * Both are on the page at once rather than behind a switch - browsing is not
+   * a mode, and someone on this page is comparing what is available rather
+   * than having already decided which sort of thing they want. Search and sort
+   * stay shared at the top, because those are the same question for both.
+   */
+  const sections = (["video", "image"] as const)
+    .map((kind) => {
+      const models = all.filter((m) => (m.modality === "image") === (kind === "image"));
+      // Each chip narrows this section's list (see lib/model-facets.ts): a
+      // model has to satisfy every selected tag, and a tag is anything true
+      // about it - a capability it lists or a resolution it sells - not only a
+      // label it happens to carry.
+      let list = models.filter(
+        (m) => (!query || modelSearchText(m).includes(query)) && matchesAllTags(m, tags[kind]),
+      );
+      // By the model's own unit: an image model has no per-second rate, and
+      // sorting on the zero it would report put all of them at the cheap end.
+      if (sort === "price-asc") list = [...list].sort((a, b) => unitRate(a).usd - unitRate(b).usd);
+      else if (sort === "price-desc") list = [...list].sort((a, b) => unitRate(b).usd - unitRate(a).usd);
+      else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
+      return { kind, models, list, allTags: modelTags(models) };
+    })
+    // A kind the account has none of is not an empty section; it is not a
+    // section. Image models are invitation-based, so for most accounts this
+    // page is the single list it has always been.
+    .filter((section) => section.models.length > 0);
 
-  // Each chip narrows the list (see lib/model-facets.ts): a model has to satisfy
-  // every selected tag, and a tag is anything true about it - a capability it
-  // lists or a resolution it sells - not only a label it happens to carry.
-  let list = models.filter(
-    (m) => (!query || modelSearchText(m).includes(query)) && matchesAllTags(m, tags),
-  );
-  // By the model's own unit: an image model has no per-second rate, and
-  // sorting on the zero it would report put all of them at the cheap end.
-  if (sort === "price-asc") list = [...list].sort((a, b) => unitRate(a).usd - unitRate(b).usd);
-  else if (sort === "price-desc") list = [...list].sort((a, b) => unitRate(b).usd - unitRate(a).usd);
-  else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
+  // With one kind, no headings: they would be labelling the only thing there.
+  const titled = sections.length > 1;
 
-  const empty = (
-    <p className="mt-8 text-sm text-dim">
-      No {shown === "image" ? "image" : "video"} models match your filters.
-    </p>
+  /**
+   * The chrome around one section's list, so each skin only has to say how it
+   * draws the models themselves.
+   */
+  const Section = ({
+    section, children, gap = "mt-8", style,
+  }: {
+    section: (typeof sections)[number];
+    children: (list: Model[]) => React.ReactNode;
+    gap?: string;
+    style?: React.CSSProperties;
+  }) => (
+    // Space after the search row for the first section, and a clear gap
+    // between sections after that. Not `first:` - in most skins this is not the
+    // first child of its parent, so the selector would never match.
+    <section key={section.kind} className={sections.indexOf(section) === 0 ? "mt-4" : "mt-12"}>
+      {titled && <div className="mb-4"><KindHeading kind={section.kind} count={section.models.length} /></div>}
+      <TagChips
+        allTags={section.allTags}
+        tags={tags[section.kind]}
+        toggleTag={(t) => toggleTag(section.kind, t)}
+        clear={() => clearTags(section.kind)}
+      />
+      {section.list.length === 0 ? (
+        <p className="mt-8 text-sm text-dim">
+          No {section.kind === "image" ? "image" : "video"} models match your filters.
+        </p>
+      ) : (
+        <div className={gap} style={style}>{children(section.list)}</div>
+      )}
+    </section>
   );
 
   // ===== EDITORIAL, no big title; search up top; Instagram-style feed. =====
@@ -169,10 +205,9 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
           <SearchBox q={q} setQ={setQ} className="flex-1" placeholder="Search the feed" />
           <SortSelect sort={sort} setSort={setSort} />
         </div>
-        <div className="mt-4"><Facets kind={shown} setKind={chooseKind} counts={counts} allTags={allTags} tags={tags} toggleTag={toggleTag} clear={() => setTags(new Set())} /></div>
-        {list.length === 0 ? empty : (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2">
-            {list.map((m) => (
+        {sections.map((section) => (
+          <Section key={section.kind} section={section} gap="mt-8 grid gap-6 sm:grid-cols-2">
+            {(list) => list.map((m) => (
               <article key={m.slug} className="overflow-hidden rounded-[18px] bg-surface shadow-lg">
                 <div className="flex items-center gap-3 px-4 py-3">
                   <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-ink" style={{ background: "linear-gradient(135deg, var(--c-accent-ink), var(--c-gold))" }}>{m.name[0]}</span>
@@ -193,8 +228,8 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                 </div>
               </article>
             ))}
-          </div>
-        )}
+          </Section>
+        ))}
       </div>
     );
   }
@@ -210,13 +245,10 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
           </div>
           <SearchBox q={q} setQ={setQ} className="w-full max-w-xs" placeholder="Search the collection" />
         </div>
-        <div className="mt-5 flex items-center justify-between gap-4">
-          <Facets kind={shown} setKind={chooseKind} counts={counts} allTags={allTags} tags={tags} toggleTag={toggleTag} clear={() => setTags(new Set())} />
-          <SortSelect sort={sort} setSort={setSort} />
-        </div>
-        {list.length === 0 ? empty : (
-          <div className="mt-8">
-            {list.map((m, i) => (
+        <div className="mt-5 flex justify-end"><SortSelect sort={sort} setSort={setSort} /></div>
+        {sections.map((section) => (
+          <Section key={section.kind} section={section} gap="mt-8">
+            {(list) => list.map((m, i) => (
               <Link key={m.slug} href={`/generate?model=${m.slug}`} className="group flex items-center gap-6 border-t border-line py-6 last:border-b hover:bg-hover">
                 <b className="min-w-[52px] font-[family-name:var(--font-playfair)] text-3xl text-accent-ink">{String(i + 1).padStart(2, "0")}</b>
                 <ModelPoster slug={m.slug} name={m.name} src={m.poster} className="relative hidden h-16 w-28 shrink-0 rounded-[8px] sm:block" />
@@ -232,8 +264,8 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                 <span className="text-accent-ink transition-transform group-hover:translate-x-1">→</span>
               </Link>
             ))}
-          </div>
-        )}
+          </Section>
+        ))}
       </div>
     );
   }
@@ -249,10 +281,9 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search for a vibe…" className="w-full rounded-full border-2 border-accent-border bg-surface py-3.5 pl-11 pr-4 text-center text-sm text-fg outline-none placeholder:text-dim" style={{ boxShadow: "5px 5px 0 rgba(26,20,64,0.12)" }} />
           </div>
         </div>
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2"><Facets kind={shown} setKind={chooseKind} counts={counts} allTags={allTags} tags={tags} toggleTag={toggleTag} clear={() => setTags(new Set())} /></div>
-        {list.length === 0 ? empty : (
-          <div className="mt-8 grid auto-rows-[220px] grid-cols-2 gap-6 text-left lg:grid-cols-4">
-            {list.map((m, i) => (
+        {sections.map((section) => (
+          <Section key={section.kind} section={section} gap="mt-8 grid auto-rows-[220px] grid-cols-2 gap-6 text-left lg:grid-cols-4">
+            {(list) => list.map((m, i) => (
               <Link key={m.slug} href={`/generate?model=${m.slug}`} className={`group relative overflow-hidden rounded-[24px] p-5 transition-transform hover:-translate-y-1 ${modelFeatured(m.sortOrder ?? i) ? "col-span-2 row-span-2" : ""}`} style={{ background: modelTint(m.slug), color: "#1a1440", boxShadow: "6px 6px 0 rgba(26,20,64,0.16)" }}>
                 <ModelPoster
                   slug={m.slug}
@@ -270,8 +301,8 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                 </div>
               </Link>
             ))}
-          </div>
-        )}
+          </Section>
+        ))}
       </div>
     );
   }
@@ -287,10 +318,14 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
           </div>
           <div className="flex items-center gap-3"><SearchBox q={q} setQ={setQ} className="w-full max-w-xs" placeholder="Search" /><SortSelect sort={sort} setSort={setSort} /></div>
         </div>
-        <div className="mt-4"><Facets kind={shown} setKind={chooseKind} counts={counts} allTags={allTags} tags={tags} toggleTag={toggleTag} clear={() => setTags(new Set())} /></div>
-        {list.length === 0 ? empty : (
-          <div className="mt-6 grid auto-cols-[300px] grid-flow-col grid-rows-2 gap-5 overflow-x-auto pb-4" style={{ scrollSnapType: "x mandatory" }}>
-            {list.map((m, i) => (
+        {sections.map((section) => (
+          <Section
+            key={section.kind}
+            section={section}
+            gap="mt-6 grid auto-cols-[300px] grid-flow-col grid-rows-2 gap-5 overflow-x-auto pb-4"
+            style={{ scrollSnapType: "x mandatory" }}
+          >
+            {(list) => list.map((m, i) => (
               <Link key={m.slug} href={`/generate?model=${m.slug}`} style={{ scrollSnapAlign: "start" }} className="group overflow-hidden rounded-[12px] border border-hairline bg-surface transition-transform hover:-translate-y-1">
                 <div className="relative aspect-video overflow-hidden">
                   <ModelPoster
@@ -313,8 +348,8 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                 </div>
               </Link>
             ))}
-          </div>
-        )}
+          </Section>
+        ))}
       </div>
     );
   }
@@ -326,20 +361,18 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
       <h1 className="mt-2 font-[family-name:var(--font-jetbrains)] text-4xl font-medium uppercase tracking-[0.01em]">Model catalog</h1>
       <span className="mt-3 block h-px w-10 bg-gold" />
       <p className="mt-4 max-w-xl text-muted">
-        {shown === "image"
-          ? "Compare models by capability and the sizes they render. Every price is per image."
-          : "Compare models by capability, duration, and resolution. Hover a card to preview."}
+        Compare models by capability, duration, and resolution. Hover a card to preview.
+        {sections.length > 1 && " Image models are listed separately below: they are priced per picture, and sized rather than timed."}
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <SearchBox q={q} setQ={setQ} className="w-full max-w-md" placeholder="Search models by name or capability" />
         <SortSelect sort={sort} setSort={setSort} />
       </div>
-      <div className="mt-4"><Facets kind={shown} setKind={chooseKind} counts={counts} allTags={allTags} tags={tags} toggleTag={toggleTag} clear={() => setTags(new Set())} /></div>
-      {list.length === 0 ? empty : (
-        <div className="mt-8 grid grid-cols-2 gap-8 lg:grid-cols-4">
-          {list.map((m) => <ModelCard key={m.slug} model={m} highlight={tags} />)}
-        </div>
-      )}
+      {sections.map((section) => (
+        <Section key={section.kind} section={section} gap="mt-8 grid grid-cols-2 gap-8 lg:grid-cols-4">
+          {(list) => list.map((m) => <ModelCard key={m.slug} model={m} highlight={tags[section.kind]} />)}
+        </Section>
+      ))}
     </div>
   );
 }

@@ -779,7 +779,6 @@ function GenerateInner() {
           model name reads as though it might be filtering the models. */}
       {bothKinds && (
         <KindSwitch
-          caption="Make"
           value={kind}
           onChange={(k) => {
             const first = (k === "image" ? imageModels : videoModels)[0];

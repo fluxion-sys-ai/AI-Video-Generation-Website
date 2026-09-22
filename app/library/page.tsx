@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
-import { getModels, getModel, type Model, refreshCatalog } from "@/lib/models";
+import { getModels, getModel, getModelsOfKind, type Model, refreshCatalog } from "@/lib/models";
 import { getGenerations, refreshGenerations, formatWhen, type Generation } from "@/lib/generations";
 import { ApiError, BACKEND_ENABLED } from "@/lib/hub";
 import { useLive, useLiveState } from "@/lib/live";
@@ -801,37 +801,42 @@ function LibraryInner() {
             video: gens.filter((g) => g.kind !== "image").length,
             image: gens.filter((g) => g.kind === "image").length,
           };
-          // Do not leave someone on an empty Video tab when everything they
-          // have made is a picture.
-          const shown: Kind = counts[genKind] === 0 && counts[genKind === "video" ? "image" : "video"] > 0
-            ? (genKind === "video" ? "image" : "video")
-            : genKind;
-          const showing = gens.filter((g) => (g.kind === "image") === (shown === "image"));
-          const bothKinds = counts.video > 0 && counts.image > 0;
+          // Offered because this account *can* make pictures, not because it
+          // already has. Keyed on having some, the switch was invisible to the
+          // one person it was built for - and a tab reading "image 0" is the
+          // useful answer to "where are my images", where no tab at all is not.
+          const offerKinds = getModelsOfKind("image").length > 0;
+          const showing = gens.filter((g) => (g.kind === "image") === (genKind === "image"));
           if (!generationsReady && gens.length === 0) return <LoadingGrid label="Loading your generations…" />;
-          if (gens.length === 0) {
-            return (
-              <EmptyState
-                className="mt-8"
-                icon={<Clapperboard size={22} />}
-                title="No generations yet"
-                hint="Generate a video and it'll show up here."
-                action={{ label: "Generate a video", href: "/generate" }}
-              />
-            );
-          }
           return (
             <>
-              {bothKinds && (
+              {offerKinds && (
                 <div className="mt-6">
-                  <KindSwitch value={shown} onChange={setGenKind} counts={counts} />
+                  <KindSwitch value={genKind} onChange={setGenKind} counts={counts} />
                 </div>
               )}
-              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {showing.map((g) => (
-                  <VideoThumb key={g.id} g={g} onOpen={openRecord} />
-                ))}
-              </div>
+              {showing.length === 0 ? (
+                <EmptyState
+                  className="mt-8"
+                  icon={genKind === "image" ? <ImageIcon size={22} /> : <Clapperboard size={22} />}
+                  title={genKind === "image" ? "No generated images yet" : "No generated videos yet"}
+                  hint={
+                    genKind === "image"
+                      ? "Generate an image and it'll show up here."
+                      : "Generate a video and it'll show up here."
+                  }
+                  action={{
+                    label: genKind === "image" ? "Generate an image" : "Generate a video",
+                    href: genKind === "image" ? `/generate?model=${getModelsOfKind("image")[0]?.slug ?? ""}` : "/generate",
+                  }}
+                />
+              ) : (
+                <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {showing.map((g) => (
+                    <VideoThumb key={g.id} g={g} onOpen={openRecord} />
+                  ))}
+                </div>
+              )}
             </>
           );
         })()}
