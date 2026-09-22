@@ -1123,6 +1123,20 @@ function GenerateInner() {
               disabledReason="not with a first frame image"
             />
           )}
+          {/* A registered portrait travels to a video model as an asset the
+              provider already holds, which is what carries a likeness past
+              their review. The image API takes URLs only and refuses that
+              form, so here the same file goes over as an ordinary link - and
+              somebody whose face was fine in a clip and refused in a picture
+              deserves to know why before they spend anything. */}
+          {isImage && refImages.some((i) => i.character?.status === "ready") && (
+            <p className="border border-line-strong bg-raised p-3 text-sm text-fg-soft">
+              Registered portraits are sent to {model.name} as ordinary images. This provider takes reference
+              images by URL for image generation, with no channel for the characters you have registered, so the
+              pre-authorisation a registration carries does not apply here — a likeness may still be refused.
+            </p>
+          )}
+
           {refProblems.length > 0 && (
             <ul className="border border-danger/60 bg-danger/10 p-3 text-sm text-danger">
               {refProblems.map((problem) => (
