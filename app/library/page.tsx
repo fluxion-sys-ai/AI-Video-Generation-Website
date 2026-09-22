@@ -40,6 +40,7 @@ import { useEscapeKey } from "@/lib/use-escape-key";
 import { toast } from "@/lib/toast";
 import { money } from "@/lib/rate-card";
 import { Heart, ImageIcon, FolderOpen, Search, Clapperboard, Music, Film } from "lucide-react";
+import { KindSwitch, type Kind } from "@/components/ui/kind-switch";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GenerationRecordPanel } from "@/components/library/generation-record";
 import { SkeletonImg } from "@/components/ui/skeleton";
@@ -273,6 +274,11 @@ function LibraryInner() {
   const [usedWarning, setUsedWarning] = useState<{ ids: string[]; message: string } | null>(null);
   // Past generations (the Generated tab). Source of truth: lib/generations.
   const [gens, setGens] = useState<Generation[]>([]);
+  // Which of them to show. A clip and a picture are made by different models,
+  // read differently and are looked for separately, so they are two lists
+  // rather than one mixed grid - and the switch appears only once there is
+  // something of each, which for most accounts is never.
+  const [genKind, setGenKind] = useState<Kind>("video");
   // The generated video whose record is open, if any. ?video=<task id> opens
   // one directly, which is what a usage-history entry links to.
   const [record, setRecord] = useState<Generation | null>(null);
@@ -788,27 +794,47 @@ function LibraryInner() {
           ))}
         </div>
 
-        {/* GENERATED: videos the platform made. Poster thumbnail always shown;
-            hover plays the clip. */}
-        {tab === "generated" && (
-          !generationsReady && gens.length === 0 ? (
-            <LoadingGrid label="Loading your generations…" />
-          ) : gens.length === 0 ? (
-            <EmptyState
-              className="mt-8"
-              icon={<Clapperboard size={22} />}
-              title="No generations yet"
-              hint="Generate a video and it'll show up here."
-              action={{ label: "Generate a video", href: "/generate" }}
-            />
-          ) : (
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {gens.map((g) => (
-                <VideoThumb key={g.id} g={g} onOpen={openRecord} />
-              ))}
-            </div>
-          )
-        )}
+        {/* GENERATED: what the platform made. A clip shows its poster and plays
+            on hover; a picture is simply itself. */}
+        {tab === "generated" && (() => {
+          const counts = {
+            video: gens.filter((g) => g.kind !== "image").length,
+            image: gens.filter((g) => g.kind === "image").length,
+          };
+          // Do not leave someone on an empty Video tab when everything they
+          // have made is a picture.
+          const shown: Kind = counts[genKind] === 0 && counts[genKind === "video" ? "image" : "video"] > 0
+            ? (genKind === "video" ? "image" : "video")
+            : genKind;
+          const showing = gens.filter((g) => (g.kind === "image") === (shown === "image"));
+          const bothKinds = counts.video > 0 && counts.image > 0;
+          if (!generationsReady && gens.length === 0) return <LoadingGrid label="Loading your generations…" />;
+          if (gens.length === 0) {
+            return (
+              <EmptyState
+                className="mt-8"
+                icon={<Clapperboard size={22} />}
+                title="No generations yet"
+                hint="Generate a video and it'll show up here."
+                action={{ label: "Generate a video", href: "/generate" }}
+              />
+            );
+          }
+          return (
+            <>
+              {bothKinds && (
+                <div className="mt-6">
+                  <KindSwitch value={shown} onChange={setGenKind} counts={counts} />
+                </div>
+              )}
+              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {showing.map((g) => (
+                  <VideoThumb key={g.id} g={g} onOpen={openRecord} />
+                ))}
+              </div>
+            </>
+          );
+        })()}
 
         {/* UPLOADED: images, video and audio the customer put here. One grid,
             because they are organised the same way - folders, names, favourites -

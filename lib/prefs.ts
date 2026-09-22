@@ -163,18 +163,21 @@ export function takePendingImages(): PendingImage[] {
 }
 
 // User settings (Profile → Settings). Persisted and actually applied:
-//   - autoplay:          hover-play video thumbnails (library + catalog)
-//   - defaultModel:      preselected model when opening /generate with no ?model
-//   - defaultResolution: initial resolution in the playground (when supported)
-//   - emailUpdates:      notification preference (mock; stored only)
+//   - autoplay:      hover-play video thumbnails (library + catalog)
+//   - emailUpdates:  notification preference (mock; stored only)
+//
+// There were two generation defaults here, a model and a resolution. They were
+// a settings page standing between somebody and the thing they came to do:
+// every route into the playground already names a model, and each model's own
+// usual resolution is a better answer than one number applied to all of them -
+// an image model does not even sell the same kind of value. A key left in
+// storage by an older build is ignored, which is what the spread below does.
 export type Settings = {
   autoplay: boolean;
-  defaultModel: string;
-  defaultResolution: string;
   emailUpdates: boolean;
 };
 const SETTINGS_KEY = "fluxion.settings";
-const SETTINGS_DEFAULTS: Settings = { autoplay: true, defaultModel: "", defaultResolution: "", emailUpdates: false };
+const SETTINGS_DEFAULTS: Settings = { autoplay: true, emailUpdates: false };
 
 export function getSettings(): Settings {
   if (typeof window === "undefined") return SETTINGS_DEFAULTS;

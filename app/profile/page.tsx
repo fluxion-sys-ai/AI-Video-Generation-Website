@@ -26,7 +26,7 @@ import {
   type TopupInfo,
 } from "@/lib/hub";
 import { useLive } from "@/lib/live";
-import { getModels, getModel, refreshCatalog } from "@/lib/models";
+import { getModel, refreshCatalog } from "@/lib/models";
 import { getGenerations, refreshGenerations, formatWhen, type Generation } from "@/lib/generations";
 import { getTheme, applyTheme, getSettings, saveSettings, type Theme } from "@/lib/prefs";
 import { getCards, addCard as billAddCard, removeCard as billRemoveCard, saveCards, cardsSupported, refreshBilling, startTopup } from "@/lib/billing";
@@ -147,10 +147,6 @@ function ProfileInner() {
   const [cardCvc, setCardCvc] = useState("");
 
   // preferences (persisted via lib/prefs settings)
-  // Empty until the catalogue arrives (backend mode); the select shows whatever
-  // it then offers.
-  const [prefModelSlug, setPrefModelSlug] = useState(() => getModels()[0]?.slug ?? "");
-  const [prefRes, setPrefRes] = useState("720p");
   const [autoplay, setAutoplay] = useState(true);
   const [emailUpdates, setEmailUpdates] = useState(false);
   const [theme, setThemeState] = useState<Theme>("dark");
@@ -161,15 +157,13 @@ function ProfileInner() {
     const s = getSettings();
     setAutoplay(s.autoplay);
     setEmailUpdates(s.emailUpdates);
-    if (s.defaultModel) setPrefModelSlug(s.defaultModel);
-    if (s.defaultResolution) setPrefRes(s.defaultResolution);
   }, []);
   function chooseTheme(t: Theme) {
     setThemeState(t);
     applyTheme(t);
   }
   function savePrefs() {
-    saveSettings({ autoplay, emailUpdates, defaultModel: prefModelSlug, defaultResolution: prefRes });
+    saveSettings({ autoplay, emailUpdates });
     toast("Settings saved");
   }
 
@@ -404,9 +398,6 @@ function ProfileInner() {
 
   // Payment methods: always show the default card first.
   const sortedCards = [...cards].sort((a, b) => Number(b.primary) - Number(a.primary));
-
-  const prefModels = getModels();
-  const prefModel = prefModels.find((m) => m.slug === prefModelSlug) ?? prefModels[0];
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -904,24 +895,6 @@ function ProfileInner() {
                     <span className="font-[family-name:var(--font-jetbrains)] text-sm text-blue">Open →</span>
                   </Link>
                 </div>
-
-                <section className="border-t border-hairline pt-5">
-                  <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-muted">Generation defaults</h2>
-                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className={label}>Default model</label>
-                      <select value={prefModelSlug} onChange={(e) => setPrefModelSlug(e.target.value)} className={inputClass}>
-                        {prefModels.map((m) => <option key={m.slug} value={m.slug}>{m.name}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className={label}>Default resolution</label>
-                      <select value={prefRes} onChange={(e) => setPrefRes(e.target.value)} className={inputClass}>
-                        {(prefModel?.resolutions ?? []).map((r) => <option key={r} value={r}>{r}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                </section>
 
                 <div className="flex items-center gap-3">
                   <button onClick={savePrefs} className={btnPrimary}>

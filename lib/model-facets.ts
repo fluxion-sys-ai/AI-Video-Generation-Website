@@ -15,8 +15,29 @@
 
 import type { Model } from "./models";
 
-/** A resolution name on its own, e.g. "768P", "1080p", "2K". */
-const BARE_RESOLUTION = /^\d{3,4}p$|^\d+k$/i;
+/**
+ * A label that says nothing but a resolution: "768P", "1080p", "2K", and the
+ * "Up to 2K" form an operator writes in a capability list.
+ *
+ * "Up to 4K" was the original bug wearing a different hat. As a label it
+ * matched only the one model that happened to type it, while the "4k" chip
+ * beside it matched every model that sells 4k - two chips for one question,
+ * answering it differently depending on which was pressed.
+ */
+const BARE_RESOLUTION = /^(?:up to\s+)?(?:\d{3,4}p|\d+k)$/i;
+
+/**
+ * A pixel size, e.g. "2048x1152". What an image model sells instead of named
+ * resolutions - and not a category.
+ *
+ * A named resolution is a small closed set that several models share, so
+ * "720p" is a genuine filter. A pixel size is a point on a continuum: two
+ * image models put thirteen of them in the chip row, each one selecting
+ * exactly one model, which is a link to that model dressed up as a filter.
+ * They stay searchable and stay on the model's own page; they are just not
+ * chips.
+ */
+const PIXEL_SIZE = /^\d{3,5}\s*[x\u00d7]\s*\d{3,5}$/i;
 
 function normalise(value: string): string {
   return value.trim().toLowerCase();
@@ -37,6 +58,12 @@ export function modelFacets(model: Model): Set<string> {
  * model sells are already chips, and offering "768P" twice - once as a label
  * somebody typed, once as a fact - filters differently depending on which one
  * is pressed, which is the bug this file exists to remove.
+ *
+ * Pass one kind of model at a time. The chips for video and the chips for
+ * images have almost nothing in common - "Camera control" and "Sound" mean
+ * nothing to a picture, "Any ratio from 1:16 to 16:1" means nothing to a clip -
+ * so a single row of both was 39 chips, most of which narrowed the list to
+ * something the reader was not looking at.
  */
 export function modelTags(models: Model[]): string[] {
   const seen = new Set<string>();
@@ -52,7 +79,11 @@ export function modelTags(models: Model[]): string[] {
       if (!BARE_RESOLUTION.test(label.trim())) add(label);
     }
   }
-  for (const model of models) for (const resolution of model.resolutions || []) add(resolution);
+  for (const model of models) {
+    for (const resolution of model.resolutions || []) {
+      if (!PIXEL_SIZE.test(resolution.trim())) add(resolution);
+    }
+  }
   return tags;
 }
 

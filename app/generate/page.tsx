@@ -11,13 +11,14 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { getModels, getModel, getModelsOfKind, type Model, refreshCatalog } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
 import { NumberField, isPositive } from "@/components/ui/number-field";
-import { addRecent, takePendingImages, takePendingRequest, addLibraryImages, isFavorite, toggleFavorite, getSettings, uploadLibraryImage } from "@/lib/prefs";
+import { addRecent, takePendingImages, takePendingRequest, addLibraryImages, isFavorite, toggleFavorite, uploadLibraryImage } from "@/lib/prefs";
 import { BACKEND_ENABLED, checkReferences, listLibrary, type LibraryItem } from "@/lib/hub";
 import { ReferenceMedia, LibraryImagePicker, IMAGE_ACCEPT } from "@/components/generate/reference-media";
 import { costBreakdown, estimateTokens, money, ratesFor, useRateCard } from "@/lib/rate-card";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { useSkin } from "@/lib/use-skin";
 import { PreviewBadge } from "@/components/models/preview-badge";
+import { KindSwitch } from "@/components/ui/kind-switch";
 import { generateImage, generateVideo, refineImage, refineVideo } from "@/lib/api";
 import { hasPaymentMethod } from "@/lib/billing";
 import { addGeneration } from "@/lib/generations";
@@ -73,9 +74,11 @@ function GenerateInner() {
   useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const router = useRouter();
   const params = useSearchParams();
-  // No ?model → use the saved default model (Settings), else the first model.
+  // No ?model → the first model the catalogue offers. There used to be a saved
+  // default in Settings; every route into this page names a model, so it was a
+  // setting nobody reached.
   const catalogue = getModels();
-  const slug = params.get("model") || getSettings().defaultModel || catalogue[0]?.slug || "";
+  const slug = params.get("model") || catalogue[0]?.slug || "";
   // Undefined until the catalogue arrives, or when a link names a model that no
   // longer exists; the screen holds back rather than inventing one.
   const model: Model | undefined = getModel(slug) ?? catalogue[0];
@@ -90,11 +93,12 @@ function GenerateInner() {
   const videoModels = catalogue.filter((m) => m.modality !== "image");
   const imageModels = getModelsOfKind("image");
   const bothKinds = videoModels.length > 0 && imageModels.length > 0;
-  // Prefer the saved default resolution when this model supports it.
+  // The model's own usual one. This used to consult a saved default, which was
+  // one number applied to models that do not sell the same values - and to
+  // image models, which sell sizes rather than resolutions at all.
   const preferredRes = () => {
     if (!model) return "";
-    const d = getSettings().defaultResolution;
-    return model.resolutions.includes(d) ? d : model.popularResolutions[0] || model.resolutions[0];
+    return model.popularResolutions[0] || model.resolutions[0];
   };
 
   // Generation needs an account, so the screen that configures it does too:
@@ -770,26 +774,18 @@ function GenerateInner() {
           order, because the first narrows the second. */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
       {/* Video or image. Hidden when the account has only one kind, which is
-          most of them: image models are invitation-based. */}
+          most of them: image models are invitation-based. Captioned, and framed
+          like the picker beside it, because a bare "Video | Image" next to a
+          model name reads as though it might be filtering the models. */}
       {bothKinds && (
-        <div className="flex border border-line-strong bg-raised font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em]">
-          {(["video", "image"] as const).map((k) => (
-            <button
-              key={k}
-              onClick={() => {
-                if (k === kind) return;
-                const first = (k === "image" ? imageModels : videoModels)[0];
-                if (first) router.push(`/generate?model=${first.slug}`);
-              }}
-              aria-pressed={k === kind}
-              className={`px-3.5 py-2.5 transition-colors ${
-                k === kind ? "bg-accent-soft text-accent-ink" : "text-muted hover:bg-hover hover:text-fg"
-              }`}
-            >
-              {k}
-            </button>
-          ))}
-        </div>
+        <KindSwitch
+          caption="Make"
+          value={kind}
+          onChange={(k) => {
+            const first = (k === "image" ? imageModels : videoModels)[0];
+            if (first) router.push(`/generate?model=${first.slug}`);
+          }}
+        />
       )}
       <div className="pg-modelpick relative w-full max-w-[210px]">
           <button
