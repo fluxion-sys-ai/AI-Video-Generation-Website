@@ -83,10 +83,20 @@ export default function PricingPage() {
     const perSecond = rate(m, resolution);
     return perSecond === null ? null : perSecond * seconds;
   };
-  // The headline figure: the cheapest second anyone can buy right now.
+  // The headline figure: the cheapest second of video anyone can buy right
+  // now. Image models are excluded rather than folded in - a picture and a
+  // second are not comparable, and "from $0.03 per second" has to be true of
+  // the thing it names.
   const cheapest = models
+    .filter((m) => m.modality !== "image")
     .flatMap((m) => m.resolutions.map((r) => rate(m, r)))
     .filter((v): v is number => v !== null && v > 0)
+    .sort((a, b) => a - b)[0];
+  // The cheapest picture, shown beside it when the account has an image model.
+  const cheapestImage = models
+    .filter((m) => m.modality === "image")
+    .map((m) => m.usdPerImage)
+    .filter((v): v is number => v !== undefined && v > 0)
     .sort((a, b) => a - b)[0];
 
   return (
@@ -98,17 +108,26 @@ export default function PricingPage() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-10 py-12">
         <h1 className="text-[clamp(30px,4.5vw,52px)] font-extrabold text-fg-strong">Pricing made simple</h1>
         <p className="mt-3 max-w-2xl text-fg-soft">
-          You pay per second of video you generate, at the rate for the model and resolution you pick.
+          You pay per second of video you generate, at the rate for the model and resolution you pick, or
+          per image where a model makes those.
           Reference material a generation reads is charged at the provider&apos;s own rate, and what you keep
           in your library is charged by the gigabyte-month at what the storage costs us. No subscription,
           no minimum, and nothing is charged for a generation that fails.
         </p>
-        {cheapest !== undefined && (
-          <p className="mt-6 font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-accent-ink">
-            from {money(cheapest)}
-            <span className="ml-2 text-base font-normal text-muted">per second</span>
-          </p>
-        )}
+        <div className="mt-6 flex flex-wrap items-baseline gap-x-8 gap-y-2">
+          {cheapest !== undefined && (
+            <p className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-accent-ink">
+              from {money(cheapest)}
+              <span className="ml-2 text-base font-normal text-muted">per second of video</span>
+            </p>
+          )}
+          {cheapestImage !== undefined && (
+            <p className="font-[family-name:var(--font-jetbrains)] text-4xl font-semibold text-accent-ink">
+              from {money(cheapestImage)}
+              <span className="ml-2 text-base font-normal text-muted">per image</span>
+            </p>
+          )}
+        </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
           <div>
@@ -132,32 +151,48 @@ export default function PricingPage() {
                       </Link>
                     </div>
 
-                    <dl className="mt-4 space-y-2 text-sm">
-                      {m.resolutions.map((r) => {
-                        const perSecond = rate(m, r);
-                        return (
-                          <div key={r} className="flex items-baseline justify-between gap-3 border-t border-hairline pt-2">
-                            <dt className="text-fg-soft">{r}</dt>
-                            <dd className="font-[family-name:var(--font-jetbrains)] text-accent-ink">
-                              {perSecond === null ? "—" : `${money(perSecond)} / second`}
-                            </dd>
-                          </div>
-                        );
-                      })}
-                    </dl>
+                    {/* An image is one price, whatever its size - so there is
+                        one line rather than a rate per resolution and a row of
+                        example clips, neither of which means anything here. */}
+                    {m.modality === "image" ? (
+                      <dl className="mt-4 space-y-2 text-sm">
+                        <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-2">
+                          <dt className="text-fg-soft">Any size</dt>
+                          <dd className="font-[family-name:var(--font-jetbrains)] text-accent-ink">
+                            {m.usdPerImage === undefined ? "—" : `${money(m.usdPerImage)} / image`}
+                          </dd>
+                        </div>
+                      </dl>
+                    ) : (
+                      <>
+                        <dl className="mt-4 space-y-2 text-sm">
+                          {m.resolutions.map((r) => {
+                            const perSecond = rate(m, r);
+                            return (
+                              <div key={r} className="flex items-baseline justify-between gap-3 border-t border-hairline pt-2">
+                                <dt className="text-fg-soft">{r}</dt>
+                                <dd className="font-[family-name:var(--font-jetbrains)] text-accent-ink">
+                                  {perSecond === null ? "—" : `${money(perSecond)} / second`}
+                                </dd>
+                              </div>
+                            );
+                          })}
+                        </dl>
 
-                    {/* Example clips at the durations this model actually offers. */}
-                    <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-hairline pt-3 text-sm text-muted">
-                      {m.durations.slice(0, 4).map((seconds) => {
-                        const resolution = m.popularResolutions[0] || m.resolutions[0];
-                        const cost = clip(m, resolution, seconds);
-                        return (
-                          <span key={seconds}>
-                            {seconds}s <span className="text-fg-soft">{cost === null ? "—" : money(cost)}</span>
-                          </span>
-                        );
-                      })}
-                    </div>
+                        {/* Example clips at the durations this model actually offers. */}
+                        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-hairline pt-3 text-sm text-muted">
+                          {m.durations.slice(0, 4).map((seconds) => {
+                            const resolution = m.popularResolutions[0] || m.resolutions[0];
+                            const cost = clip(m, resolution, seconds);
+                            return (
+                              <span key={seconds}>
+                                {seconds}s <span className="text-fg-soft">{cost === null ? "—" : money(cost)}</span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
 
                     {/* What this model charges for material it reads. */}
                     {m.reference && (
@@ -165,7 +200,14 @@ export default function PricingPage() {
                         {(["video", "audio", "image"] as const).map((kind) => {
                           const rate = inputRate(m, kind);
                           if (!rate) return null;
-                          const label = kind === "video" ? "Reference video" : kind === "audio" ? "Reference audio" : "Reference images";
+                          const label =
+                            kind === "video"
+                              ? "Reference video"
+                              : kind === "audio"
+                                ? "Reference audio"
+                                : m.modality === "image"
+                                  ? "Input images"
+                                  : "Reference images";
                           return (
                             <div key={kind} className="flex flex-wrap items-baseline justify-between gap-3">
                               <dt className="text-fg-soft">{label}</dt>
@@ -177,7 +219,10 @@ export default function PricingPage() {
                     )}
 
                     <p className="mt-3 text-xs text-dim">
-                      {m.durations[0]}–{m.durations[m.durations.length - 1]}s · {m.capabilities.join(" · ")}
+                      {m.modality === "image"
+                        ? `${m.resolutions[0]}–${m.resolutions[m.resolutions.length - 1]}`
+                        : `${m.durations[0]}–${m.durations[m.durations.length - 1]}s`}{" "}
+                      · {m.capabilities.join(" · ")}
                     </p>
                   </div>
                 ))}

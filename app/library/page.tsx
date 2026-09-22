@@ -66,7 +66,12 @@ function VideoThumb({ g, onOpen }: { g: Generation; onOpen: (g: Generation) => v
       className="group border border-line p-3 text-left transition-colors hover:border-blue-line"
     >
       <div className="relative aspect-video w-full overflow-hidden bg-black">
-        {g.videoUrl ? (
+        {g.videoUrl && g.kind === "image" ? (
+          // A generated image. Contained rather than cropped: a 1:16 banner
+          // filled to a 16:9 tile would show a stripe out of the middle of it.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={g.videoUrl} alt={g.prompt} className="h-full w-full object-contain" />
+        ) : g.videoUrl ? (
           <video
             ref={player}
             src={g.videoUrl}

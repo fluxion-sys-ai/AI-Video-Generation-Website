@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site/site-header";
 import { ApiDocs } from "@/components/docs/api-docs";
 import { SiteFooter } from "@/components/site/site-footer";
-import { getModels, getModel, type Model, refreshCatalog } from "@/lib/models";
+import { getModels, getModel, getModelsOfKind, type Model, refreshCatalog } from "@/lib/models";
 import { isSignedIn, saveDraft, loadDraft, clearDraft } from "@/lib/auth";
 import { NumberField, isPositive } from "@/components/ui/number-field";
 import { addRecent, takePendingImages, takePendingRequest, addLibraryImages, isFavorite, toggleFavorite, getSettings, uploadLibraryImage } from "@/lib/prefs";
@@ -18,7 +18,7 @@ import { costBreakdown, estimateTokens, money, ratesFor, useRateCard } from "@/l
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { useSkin } from "@/lib/use-skin";
 import { PreviewBadge } from "@/components/models/preview-badge";
-import { generateVideo, refineVideo } from "@/lib/api";
+import { generateImage, generateVideo, refineImage, refineVideo } from "@/lib/api";
 import { hasPaymentMethod } from "@/lib/billing";
 import { addGeneration } from "@/lib/generations";
 import { toast } from "@/lib/toast";
@@ -79,6 +79,17 @@ function GenerateInner() {
   // Undefined until the catalogue arrives, or when a link names a model that no
   // longer exists; the screen holds back rather than inventing one.
   const model: Model | undefined = getModel(slug) ?? catalogue[0];
+  // Video or image. This is the one field that changes the shape of the screen
+  // rather than its contents: an image has no length, no sound and no aspect
+  // ratio of its own, so those controls do not exist for one rather than
+  // sitting there disabled.
+  const kind: "video" | "image" = model?.modality ?? "video";
+  const isImage = kind === "image";
+  // Both switches are offered only when there is somewhere to switch to. Image
+  // models are invitation-based, so for most accounts there is not.
+  const videoModels = catalogue.filter((m) => m.modality !== "image");
+  const imageModels = getModelsOfKind("image");
+  const bothKinds = videoModels.length > 0 && imageModels.length > 0;
   // Prefer the saved default resolution when this model supports it.
   const preferredRes = () => {
     if (!model) return "";
@@ -276,8 +287,27 @@ function GenerateInner() {
   // charged for: the output, the reference video by its own length, and input
   // images past the free allowance. Every rate comes from the hub's rate card.
   const estimate = (() => {
-    if (!model || !isPositive(duration)) return null;
+    if (!model) return null;
     const freeImages = rules?.frame_image?.free_count ?? rules?.image?.free_count ?? 0;
+    // An image is one price per call, not an expression over what was asked
+    // for, so there is no rate card to consult: the figure is on the model.
+    // The second term is the one the hub cannot bill and the backend settles
+    // itself (sidecar/app/images.py), and it is quoted here for the same
+    // reason the reference-video term is - the price moves when you add a
+    // file, and a customer should see that before pressing the button.
+    if (isImage) {
+      if (model.usdPerImage === undefined) return null;
+      const each = rules?.image?.usd_each ?? 0;
+      const billable = Math.max(0, refImages.length - freeImages);
+      const parts = [`${money(model.usdPerImage)} for one ${resolution} image`];
+      if (billable > 0) {
+        parts.push(
+          `${money(billable * each)} for ${billable} input image${billable === 1 ? "" : "s"} past the first ${freeImages}`,
+        );
+      }
+      return { total: model.usdPerImage + billable * each, parts, reserves: false };
+    }
+    if (!isPositive(duration)) return null;
     // Every reference still is an input image, and so is the first frame - of
     // which only the first is sent (lib/api.ts). The two never appear together.
     const inputImages = refImages.length || (framesBlocked || images.length === 0 ? 0 : 1);
@@ -331,9 +361,11 @@ function GenerateInner() {
   // undefined to real. Keying on the slug left these options unset.
   useEffect(() => {
     if (!model) return;
-    setAspect(model.aspectRatios[0]);
+    // An image model has neither, and both have to be cleared rather than
+    // left over from the video that was open a moment ago.
+    setAspect(model.aspectRatios[0] ?? "");
     setResolution(preferredRes());
-    setDuration(model.durations[0]);
+    setDuration(model.durations[0] ?? null);
     // Sound follows the model rather than the last one looked at: where it is a
     // switch the provider leaves on (Seedance), the form should open the way a
     // request with no `audio` field would be served, or the playground and the
@@ -397,7 +429,9 @@ function GenerateInner() {
     if (typeof request.prompt === "string") setPrompt(request.prompt);
     const seconds = Number(request.seconds ?? request.duration);
     if (Number.isFinite(seconds) && seconds > 0) setDuration(seconds);
-    const res = request.resolution;
+    // A video's resolution ("720p") and an image's size ("2048x1152") are the
+    // same control here, and a request carries one or the other.
+    const res = request.resolution ?? request.size;
     if (typeof res === "string" && model.resolutions.includes(res)) setResolution(res);
     const ratio = request.aspect_ratio ?? request.ratio;
     if (typeof ratio === "string" && model.aspectRatios.includes(ratio)) setAspect(ratio);
@@ -493,9 +527,9 @@ function GenerateInner() {
     setStatus("idle");
     setSession(false);
     if (model) {
-      setAspect(model.aspectRatios[0]);
+      setAspect(model.aspectRatios[0] ?? "");
       setResolution(preferredRes());
-      setDuration(model.durations[0]);
+      setDuration(model.durations[0] ?? null);
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -506,8 +540,11 @@ function GenerateInner() {
 
   function onGenerate() {
     // Gate 0: a duration has to be chosen. The field is left empty when it is
-    // cleared, rather than refilled, so this is where that is caught.
-    if (!isPositive(duration)) {
+    // cleared, rather than refilled, so this is where that is caught. An image
+    // has no duration to choose, so the check is narrowed into `seconds`
+    // rather than simply coming first - the video call below needs a number.
+    const seconds = isPositive(duration) ? duration : null;
+    if (!isImage && seconds === null) {
       toast("Enter a duration in seconds.");
       return;
     }
@@ -530,12 +567,34 @@ function GenerateInner() {
     setResultUrl(null);
     setFailure("");
     setStatus("generating");
+    if (isImage) {
+      generateImage({ slug, prompt, size: resolution, referenceImageIds: refImages.map((i) => i.id) })
+        .then((r) => {
+          if (id !== genId.current) return;
+          setResultUrl(r.imageUrl);
+          setStatus("complete");
+          setSession(true);
+        })
+        .catch((err) => {
+          if (id !== genId.current) return;
+          setStatus("failed");
+          setFailure(err instanceof Error && err.message ? err.message : "Generation failed.");
+        });
+      return;
+    }
+    // Gate 0 already refused this, so it cannot happen; it is here to hand the
+    // call a number instead of a maybe, and it undoes the spinner if it ever
+    // somehow does.
+    if (seconds === null) {
+      setStatus("idle");
+      return;
+    }
     generateVideo({
       slug,
       prompt,
       aspect,
       resolution,
-      duration,
+      duration: seconds,
       audio,
       images: framesBlocked ? [] : images.map((i) => i.url),
       referenceVideoIds: refVideos.map((i) => i.id),
@@ -575,6 +634,21 @@ function GenerateInner() {
     setResultUrl(null);
     setFailure("");
     setStatus("generating");
+    if (isImage) {
+      refineImage({ slug, prompt: withPrompt, size: resolution, referenceImageIds: refImages.map((i) => i.id) }, [])
+        .then((r) => {
+          if (id !== genId.current) return;
+          setResultUrl(r.imageUrl);
+          setStatus("complete");
+          setSession(true);
+        })
+        .catch((err) => {
+          if (id !== genId.current) return;
+          setStatus("failed");
+          setFailure(err instanceof Error && err.message ? err.message : "Generation failed.");
+        });
+      return;
+    }
     if (!isPositive(duration)) {
       toast("Enter a duration in seconds.");
       return;
@@ -630,26 +704,37 @@ function GenerateInner() {
   // clip, which is same-origin). WebM/GIF aren't produced in this demo.
   async function downloadResult() {
     if (!resultUrl) return;
+    const filename = isImage ? "fluxion-image.png" : "fluxion-video.mp4";
     try {
       const res = await fetch(resultUrl);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "fluxion-video.mp4";
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {
+      // The provider's image URL is another origin, so fetching it can be
+      // refused; the link still saves the file, it just cannot be renamed.
       const a = document.createElement("a");
       a.href = resultUrl;
-      a.download = "fluxion-video.mp4";
+      a.download = filename;
       a.click();
     }
   }
 
-  const [aw, ah] = aspect.split(":").map(Number);
+  // The preview's shape. A video gets it from the aspect ratio; an image has
+  // no ratio control at all - "2048x1152" *is* the shape - so it is read back
+  // out of the size. Either way a nonsense value falls back to 16:9 rather
+  // than dividing by zero and collapsing the pane.
+  const [aw, ah] = (() => {
+    const parts = (isImage ? resolution : aspect || "16:9").split(isImage ? "x" : ":").map(Number);
+    const [w, h] = parts;
+    return Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0 ? [w, h] : [16, 9];
+  })();
   const portrait = ah > aw;
 
   // Hold the screen back until the gate above has decided, so a signed-out
@@ -664,8 +749,10 @@ function GenerateInner() {
   }
 
   // Safe from here: the screen only renders with a model.
-  const minDuration = Math.min(...model.durations);
-  const maxDuration = Math.max(...model.durations);
+  // Empty for an image model, where Math.min() of nothing is Infinity. The
+  // duration control is not rendered for one, and these are only read by it.
+  const minDuration = model.durations.length ? Math.min(...model.durations) : 0;
+  const maxDuration = model.durations.length ? Math.max(...model.durations) : 0;
   // The nearest length this model actually renders. Clamping to the ends of the
   // range is not enough on its own: a model that sells 5, 10 and 15 would let
   // someone type 7 and then have the provider refuse it after they pressed
@@ -673,12 +760,37 @@ function GenerateInner() {
   // changes nothing for it - it keeps the promise true for anything that does
   // not.
   const nearestDuration = (typed: number) =>
-    model.durations.reduce((best, value) => (Math.abs(value - typed) < Math.abs(best - typed) ? value : best), model.durations[0]);
+    model.durations.length
+      ? model.durations.reduce((best, value) => (Math.abs(value - typed) < Math.abs(best - typed) ? value : best), model.durations[0])
+      : typed;
 
   return (
     <div className="px-6 py-6">
-      {/* Top bar: model picker + Playground/API tabs, side by side. */}
+      {/* Top bar: what to make, which model, and Playground/API - in that
+          order, because the first narrows the second. */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
+      {/* Video or image. Hidden when the account has only one kind, which is
+          most of them: image models are invitation-based. */}
+      {bothKinds && (
+        <div className="flex border border-line-strong bg-raised font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em]">
+          {(["video", "image"] as const).map((k) => (
+            <button
+              key={k}
+              onClick={() => {
+                if (k === kind) return;
+                const first = (k === "image" ? imageModels : videoModels)[0];
+                if (first) router.push(`/generate?model=${first.slug}`);
+              }}
+              aria-pressed={k === kind}
+              className={`px-3.5 py-2.5 transition-colors ${
+                k === kind ? "bg-accent-soft text-accent-ink" : "text-muted hover:bg-hover hover:text-fg"
+              }`}
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="pg-modelpick relative w-full max-w-[210px]">
           <button
             onClick={() => setPickerOpen((o) => !o)}
@@ -711,9 +823,14 @@ function GenerateInner() {
               <div className="mt-2 max-h-72 overflow-y-auto">
                 {(() => {
                   const q = pickerQuery.trim().toLowerCase();
+                  // Only the kind being made. Switching between them is the
+                  // control above, which is a different decision from picking
+                  // a model - mixing the two lists would make "Seedream" look
+                  // like an alternative to "Seedance" for the same job.
+                  const same = getModels().filter((m) => (m.modality === "image") === isImage);
                   const list = q
-                    ? getModels().filter((m) => [m.name, m.tagline, m.description, ...m.capabilities].join(" ").toLowerCase().includes(q))
-                    : getModels();
+                    ? same.filter((m) => [m.name, m.tagline, m.description, ...m.capabilities].join(" ").toLowerCase().includes(q))
+                    : same;
                   if (list.length === 0) return <p className="p-3 text-sm text-dim">No models match &ldquo;{pickerQuery}&rdquo;.</p>;
                   return list.map((m) => (
                     <button
@@ -798,7 +915,12 @@ function GenerateInner() {
             <h2 className="font-[family-name:var(--font-playfair)] text-2xl text-fg-strong">Sample outputs</h2>
             <p className="mt-1 text-sm text-muted">A sample generation from {model.name}.</p>
             <div className="mt-4 overflow-hidden rounded-[10px] bg-black">
-              <video className="aspect-video w-full object-cover" src={model.demoVideo} poster={model.poster} autoPlay muted loop controls playsInline />
+              {isImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={model.poster} alt={`Sample output from ${model.name}`} className="aspect-video w-full object-cover" />
+              ) : (
+                <video className="aspect-video w-full object-cover" src={model.demoVideo} poster={model.poster} autoPlay muted loop controls playsInline />
+              )}
             </div>
           </div>
         </div>
@@ -827,17 +949,22 @@ function GenerateInner() {
                 </button>
               </div>
               <div>
-                <video
-                  className="aspect-video w-full rounded-[10px] bg-black object-cover"
-                  src={model.demoVideo}
-                  poster={model.poster}
-                  autoPlay
-                  muted
-                  loop
-                  controls
-                  playsInline
-                  preload="auto"
-                />
+                {isImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={model.poster} alt={`Sample output from ${model.name}`} className="aspect-video w-full rounded-[10px] bg-black object-cover" />
+                ) : (
+                  <video
+                    className="aspect-video w-full rounded-[10px] bg-black object-cover"
+                    src={model.demoVideo}
+                    poster={model.poster}
+                    autoPlay
+                    muted
+                    loop
+                    controls
+                    playsInline
+                    preload="auto"
+                  />
+                )}
                 <p className="mt-2 text-xs text-dim">Sample output from {model.name}.</p>
               </div>
             </div>
@@ -881,7 +1008,7 @@ function GenerateInner() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows={3}
-              placeholder="Describe the shot: subject, motion, camera, lighting."
+              placeholder={isImage ? "Describe the picture: subject, composition, light, style." : "Describe the shot: subject, motion, camera, lighting."}
               className={`${selectClass} resize-none pg-prompt`}
             />
           </Field>
@@ -1011,17 +1138,24 @@ function GenerateInner() {
 
           {/* compact inline controls */}
           <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
-            <Field label="Aspect ratio">
-              <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={compactSelect}>
-                {model.aspectRatios.map((r) => (
-                  <option key={r} value={r}>
-                    {ASPECT_USE[r] ? `${r} (${ASPECT_USE[r]})` : r}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            {/* An image has no ratio of its own: the size is the shape, and two
+                controls that can disagree about it would be one too many. */}
+            {!isImage && (
+              <Field label="Aspect ratio">
+                <select value={aspect} onChange={(e) => setAspect(e.target.value)} className={compactSelect}>
+                  {model.aspectRatios.map((r) => (
+                    <option key={r} value={r}>
+                      {ASPECT_USE[r] ? `${r} (${ASPECT_USE[r]})` : r}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
 
-            <Field label="Resolution">
+            <Field
+              label={isImage ? "Size" : "Resolution"}
+              hint={isImage && model.imageSize?.max_pixels ? `up to ${(model.imageSize.max_pixels / 1e6).toFixed(1)} MP` : undefined}
+            >
               <select value={resolution} onChange={(e) => setResolution(e.target.value)} className={compactSelect}>
                 {model.resolutions.map((r) => (
                   <option key={r} value={r}>
@@ -1031,6 +1165,7 @@ function GenerateInner() {
               </select>
             </Field>
 
+            {!isImage && (
             <Field label="Duration" hint={`${minDuration}-${maxDuration} sec`}>
               <NumberField
                 id="pg-duration"
@@ -1048,8 +1183,9 @@ function GenerateInner() {
                 className={`${compactInput} w-20`}
               />
             </Field>
+            )}
 
-            {model.supports.audio && (
+            {!isImage && model.supports.audio && (
               <Field label="Audio">
                 <button
                   type="button"
@@ -1112,7 +1248,17 @@ function GenerateInner() {
           style={portrait ? { aspectRatio: `${aw} / ${ah}`, height: "min(72vh, 640px)" } : { aspectRatio: `${aw} / ${ah}`, width: "100%", maxWidth: 680 }}
         >
           {status === "complete" && resultUrl ? (
-            <video className="h-full w-full object-contain" src={resultUrl} controls autoPlay muted loop playsInline />
+            isImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={resultUrl}
+                alt={prompt || "Generated image"}
+                onClick={() => setLightbox({ url: resultUrl, name: prompt || "Generated image" })}
+                className="h-full w-full cursor-zoom-in object-contain"
+              />
+            ) : (
+              <video className="h-full w-full object-contain" src={resultUrl} controls autoPlay muted loop playsInline />
+            )
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
               {status === "generating" ? (
@@ -1152,7 +1298,7 @@ function GenerateInner() {
                 </div>
               ) : (
                 <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.14em] text-muted">
-                  {aspect}
+                  {isImage ? resolution : aspect}
                 </span>
               )}
             </div>
@@ -1162,14 +1308,18 @@ function GenerateInner() {
           <div className="flex flex-col items-center gap-1.5">
             <div className="flex flex-wrap items-center justify-center gap-2">
               <button onClick={downloadResult} className="rounded-none bg-accent px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-accent-hover">
-                Download MP4
+                {isImage ? "Download" : "Download MP4"}
               </button>
-              <button disabled title="Coming soon" className="cursor-not-allowed rounded-none border border-hairline-strong px-4 py-2 text-sm opacity-40">
-                WebM
-              </button>
-              <button disabled title="Coming soon" className="cursor-not-allowed rounded-none border border-hairline-strong px-4 py-2 text-sm opacity-40">
-                GIF
-              </button>
+              {!isImage && (
+                <>
+                  <button disabled title="Coming soon" className="cursor-not-allowed rounded-none border border-hairline-strong px-4 py-2 text-sm opacity-40">
+                    WebM
+                  </button>
+                  <button disabled title="Coming soon" className="cursor-not-allowed rounded-none border border-hairline-strong px-4 py-2 text-sm opacity-40">
+                    GIF
+                  </button>
+                </>
+              )}
               {/* Regenerate re-runs the prompt as it stands; passing the
                   handler directly would hand it the click event as the prompt. */}
               <button onClick={() => regen()} className="rounded-none border border-hairline-strong px-4 py-2 text-sm transition-colors hover:bg-hover">
@@ -1182,7 +1332,8 @@ function GenerateInner() {
             <p className="text-xs text-dim">
               Saved to your{" "}
               <Link href="/library?tab=generated" className="text-blue hover:text-gold-soft">library</Link>
-              {" "}· kept in cloud storage, which costs by the gigabyte-month. WebM &amp; GIF export coming soon.
+              {" "}· kept in cloud storage, which costs by the gigabyte-month.
+              {isImage ? " The link above is the provider's own and expires; the library copy does not." : " WebM & GIF export coming soon."}
             </p>
           </div>
         )}
@@ -1233,7 +1384,8 @@ function GenerateInner() {
               tool and a surprise on the bill. */}
           <p className="mt-2 px-1 text-xs text-dim">
             Your edit is added to the prompt above and the whole thing is rendered again
-            {estimate !== null ? ` at ${money(estimate.total)}` : ""} — no provider edits an existing clip.
+            {estimate !== null ? ` at ${money(estimate.total)}` : ""} —{" "}
+            {isImage ? "no provider edits an existing image" : "no provider edits an existing clip"}.
           </p>
         </div>
       )}

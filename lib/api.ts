@@ -11,7 +11,7 @@
  */
 
 import { getModel } from "./models";
-import { ApiError, BACKEND_ENABLED, checkReferences, createVideo, libraryImageLink, videoUrl, waitForVideo } from "./hub";
+import { ApiError, BACKEND_ENABLED, checkReferences, createImage, createVideo, libraryImageLink, videoUrl, waitForVideo } from "./hub";
 import { refreshBilling } from "./billing";
 import { refreshGenerations } from "./generations";
 import { uploadLibraryImage } from "./prefs";
@@ -136,6 +136,72 @@ async function run(params: GenerateParams, refinements: string[] = []): Promise<
   void refreshGenerations().catch(() => {});
   void refreshBilling().catch(() => {});
   return { videoUrl: url };
+}
+
+// ---- images ----------------------------------------------------------------------
+
+export type ImageParams = {
+  slug: string;
+  prompt: string;
+  /** "2048x1152": an image's size is one control, not a resolution and a ratio. */
+  size: string;
+  /** Library stills to work from, by id. Image-to-image. */
+  referenceImageIds?: string[];
+};
+
+export type ImageResult = {
+  /** Somewhere the browser can show it. The provider's own URL, which expires. */
+  imageUrl: string;
+};
+
+async function runImage(params: ImageParams, refinements: string[] = []): Promise<ImageResult> {
+  const model = getModel(params.slug);
+  if (!model) throw new ApiError(`Unknown model: ${params.slug}`, 400);
+  if (model.available === false) throw new ApiError(`${model.name} has no provider available right now.`, 503);
+
+  const prompt = [params.prompt.trim(), ...refinements.map((r) => `Refinement: ${r}`)].filter(Boolean).join("\n");
+  if (!prompt) throw new ApiError("Write a prompt first.", 400);
+
+  // The same check the backend runs on submit, for the same reason: it decides
+  // whether these files may be used here, and its refusal is the message that
+  // tells a customer how to fix the selection.
+  const stills = params.referenceImageIds || [];
+  let inputs: string[] = [];
+  if (stills.length) {
+    const checked = await checkReferences({ model: model.slug, reference_image: stills });
+    // One picked file comes back as one URL rather than a list of one.
+    const got = checked.urls.reference_image;
+    inputs = got === undefined ? [] : Array.isArray(got) ? got : [got];
+  }
+
+  const images = await createImage({
+    model: model.hubModel || model.slug,
+    prompt,
+    size: params.size,
+    ...(inputs.length ? { image: inputs } : {}),
+  });
+  const first = images.find((i) => i.url || i.b64_json);
+  if (!first) throw new ApiError("The provider returned no image.", 502);
+  // The archived copy is in the library either way; this is only what to show
+  // on screen now.
+  const url = first.url || `data:image/png;base64,${first.b64_json}`;
+  void refreshGenerations().catch(() => {});
+  void refreshBilling().catch(() => {});
+  return { imageUrl: url };
+}
+
+/** Generate one image from a prompt, and optionally from images. */
+export function generateImage(params: ImageParams): Promise<ImageResult> {
+  if (BACKEND_ENABLED) return runImage(params);
+  const model = getModel(params.slug);
+  if (!model) return Promise.reject(new Error(`Unknown model: ${params.slug}`));
+  return new Promise((resolve) => setTimeout(() => resolve({ imageUrl: model.poster }), 2500));
+}
+
+/** Re-render an image with refinement instructions appended to the prompt. */
+export function refineImage(params: ImageParams, refinements: string[]): Promise<ImageResult> {
+  if (BACKEND_ENABLED) return runImage(params, refinements);
+  return generateImage(params);
 }
 
 /** Generate a video from a prompt. */

@@ -13,13 +13,20 @@
  */
 
 import { getModel, getModels } from "./models";
-import { BACKEND_ENABLED, listGenerationPrompts, listGenerations, videoUrl } from "./hub";
+import { BACKEND_ENABLED, listAssets, listGenerationPrompts, listGenerations, videoUrl } from "./hub";
 import { notify } from "./live";
 
 export type Generation = {
   id: string;
   slug: string; // model used
   prompt: string;
+  /**
+   * What was made. Every generation was a video until image models, which is
+   * why this defaults rather than being required - and why the name below is
+   * still `videoUrl`: it is the result, whatever kind it is, and renaming it
+   * would touch every screen that shows one for no gain.
+   */
+  kind?: "video" | "image";
   videoUrl: string; // playable/downloadable result
   poster: string; // thumbnail
   createdAt: number; // ms timestamp
@@ -81,19 +88,60 @@ export async function refreshGenerations(limit = 24): Promise<void> {
       .then(({ generations }) => generations.forEach((r) => r.prompt && recorded.set(r.task_id, r.prompt)))
       .catch(() => {});
   }
-  live = finished.map((g, index) => {
+  const videos: Generation[] = finished.map((g, index) => {
     const model = getModels().find((m) => (m.hubModel || m.slug) === g.model) || getModel(g.model);
     const url = urls[index];
     return {
       id: g.id,
       slug: model?.slug || g.model,
       prompt: g.prompt || recorded.get(g.id) || "(no prompt)",
+      kind: "video",
       videoUrl: url.status === "fulfilled" ? url.value : "",
       poster: model?.poster || "",
       createdAt: (g.finishedAt || g.createdAt) * 1000,
     };
   });
+  live = [...videos, ...(await generatedImages(limit))].sort((a, b) => b.createdAt - a.createdAt);
   notify("generations");
+}
+
+/**
+ * Generated images, which are not tasks.
+ *
+ * A video is a job the hub runs and remembers; an image comes back in the
+ * response to the request that asked for it, so there is no task to list. What
+ * there is instead is the archived copy - the backend keeps every generated
+ * image in our own storage, the same as a video - so this reads the archive and
+ * the platform's record of what was asked for, and joins them by id.
+ *
+ * Failure here is not failure of the list: an account with no image models, or
+ * an older backend, simply has no images, and the videos above are unaffected.
+ */
+async function generatedImages(limit: number): Promise<Generation[]> {
+  const listing = await listAssets({ source: "generated", kind: "image", limit }).catch(() => null);
+  const rows = listing?.items ?? [];
+  if (!rows.length) return [];
+  const prompts = new Map<string, string>();
+  await listGenerationPrompts(Math.max(limit, 100))
+    .then(({ generations }) => generations.forEach((r) => r.prompt && prompts.set(r.task_id, r.prompt)))
+    .catch(() => {});
+  // The stored copy, signed. Same route as a video's: the archive does not care
+  // which kind it holds.
+  const urls = await Promise.allSettled(rows.map((row) => videoUrl(row.id)));
+  return rows.map((row, index) => {
+    const name = row.model || "";
+    const model = getModels().find((m) => (m.hubModel || m.slug) === name) || getModel(name);
+    const url = urls[index];
+    return {
+      id: row.id,
+      slug: model?.slug || name,
+      prompt: prompts.get(row.id) || "(no prompt)",
+      kind: "image" as const,
+      videoUrl: url.status === "fulfilled" ? url.value : "",
+      poster: model?.poster || "",
+      createdAt: row.created_at ? Date.parse(row.created_at) : Date.now(),
+    };
+  });
 }
 
 function save(list: Generation[]) {

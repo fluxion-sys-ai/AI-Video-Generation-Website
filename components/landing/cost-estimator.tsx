@@ -20,7 +20,9 @@ const sel =
 export function CostEstimator({ bare = false }: { bare?: boolean }) {
   useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const { card } = useRateCard();
-  const models = getAvailableModels();
+  // Video only: an image is one price whatever you ask for, so there is
+  // nothing to estimate and the model's own card already says the figure.
+  const models = getAvailableModels().filter((m) => m.modality !== "image");
   const [slug, setSlug] = useState("");
   const model = models.find((m) => m.slug === slug) ?? models[0];
   const [duration, setDuration] = useState<number | null>(null);

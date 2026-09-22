@@ -1,6 +1,6 @@
 "use client";
 
-import { money } from "@/lib/rate-card";
+import { money, unitRate } from "@/lib/rate-card";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Model } from "@/lib/models";
@@ -115,9 +115,13 @@ export function ModelCard({ model, highlight }: { model: Model; highlight?: Set<
 
         {/* Spec footer */}
         <div className="mt-4 flex items-center justify-between border-t border-hairline pt-3 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.05em]">
-          <span className="text-dim">{model.durations[0]}–{model.durations[model.durations.length - 1]}s</span>
+          <span className="text-dim">
+            {model.modality === "image"
+              ? `up to ${model.resolutions[model.resolutions.length - 1]}`
+              : `${model.durations[0]}–${model.durations[model.durations.length - 1]}s`}
+          </span>
           <span className="text-fg-soft">
-            <span className="text-gold-bright">{money(model.usdPerSecond)}</span> / s
+            <span className="text-gold-bright">{money(unitRate(model).usd)}</span> / {unitRate(model).unit}
           </span>
         </div>
       </div>

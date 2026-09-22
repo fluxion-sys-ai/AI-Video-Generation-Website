@@ -580,6 +580,46 @@ export function getVideo(id: string): Promise<Video> {
   return relay<Video>("GET", `/v1/videos/${encodeURIComponent(id)}`);
 }
 
+// ---- images ----------------------------------------------------------------------
+
+export type ImageRequest = {
+  model: string;
+  prompt: string;
+  /** "2048x1152". An image has no named resolution and no separate ratio. */
+  size: string;
+  /** URLs the provider fetches, for image-to-image. Signed library links. */
+  image?: string[];
+  seed?: number;
+};
+
+export type GeneratedImage = { url?: string; b64_json?: string };
+
+/**
+ * One image, synchronously.
+ *
+ * Unlike a video this is not a job: the request holds open for the seconds the
+ * render takes and the picture comes back in the response, so there is nothing
+ * to poll and no id to poll it with. What the response does not carry is the
+ * copy kept in our own storage - the backend archives each returned image on
+ * the way past (sidecar/app/images.py) and it appears under /library - so the
+ * URL here is the provider's own and expires.
+ */
+export async function createImage(req: ImageRequest): Promise<GeneratedImage[]> {
+  const body: Record<string, unknown> = {
+    model: req.model,
+    prompt: req.prompt,
+    size: req.size,
+    // A URL rather than base64: the same bytes would otherwise cross the wire
+    // twice, once to the browser and once to storage, for a file that can be
+    // sixteen megapixels.
+    response_format: "url",
+  };
+  if (req.image?.length) body.image = req.image;
+  if (req.seed !== undefined) body.seed = req.seed;
+  const out = await relay<{ data?: GeneratedImage[] }>("POST", "/v1/images/generations", { json: body });
+  return out.data ?? [];
+}
+
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(resolve, ms);
@@ -1160,6 +1200,16 @@ export type CatalogModel = {
   slug: string;
   /** The model name the hub routes, which may differ from the site's slug. */
   model: string;
+  /**
+   * What this model makes. It decides how the rest of the row reads:
+   * `resolutions` is ["720p"] for a video and ["2048x1152"] for an image,
+   * `durations` and `aspectRatios` are empty for an image, and the playground
+   * shows a different set of controls for each.
+   *
+   * Optional because an older backend does not send it, and a model that does
+   * not say is a video - which every model was before image generation.
+   */
+  modality?: "video" | "image";
   name: string;
   tagline: string;
   description: string;
@@ -1179,6 +1229,8 @@ export type CatalogModel = {
     reference?: ReferenceRules;
     /** Reusable characters registered with the provider. Absent = not offered. */
     portrait?: { max_count?: number };
+    /** What sizes an image model will render, as a pixel-count envelope. */
+    image_size?: { min_pixels?: number; max_pixels?: number; default?: string };
   };
   poster: string | null;
   demoVideo: string | null;
@@ -1189,6 +1241,12 @@ export type CatalogModel = {
     billing_mode?: string;
     billing_expr?: string;
     billing_usage_schema?: import("./pricing-expr").BillingUsageSchema;
+    /**
+     * USD per call, which is how an image is billed: one figure per image
+     * rather than an expression over usage facts. Absent for a video model,
+     * whose price depends on what was asked for.
+     */
+    model_price?: number;
   } | null;
   /**
    * True for a model that is not published yet and reaches this account only
@@ -1240,7 +1298,7 @@ export function getGeneration(taskId: string): Promise<GenerationRecord> {
  * device, and the only place at all for one submitted through the API.
  */
 export function listGenerationPrompts(limit = 100): Promise<{
-  generations: { task_id: string; prompt: string; model: string; requested_at: string }[];
+  generations: { task_id: string; prompt: string; model: string; kind?: "video" | "image"; requested_at: string }[];
 }> {
   return sidecar("GET", `/media/generations?limit=${limit}`);
 }

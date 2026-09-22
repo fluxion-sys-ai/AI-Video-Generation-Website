@@ -2,8 +2,9 @@
  * The library management API, for the docs page.
  *
  * Kept beside the generation reference rather than under it, because the two
- * answer different questions. `/v1/videos` is "make me a video". These are
- * "what do I have, and how does a file I uploaded become an input to that".
+ * answer different questions. `/v1/videos` is "make me a video" and
+ * `/v1/images/generations` is "make me a picture". These are "what do I have,
+ * and how does a file I uploaded become an input to either of those".
  *
  * The one thing this has to get across is the order of operations: a file is
  * uploaded once and kept, and a separate call turns a stored file into the
@@ -348,6 +349,20 @@ curl -sS ${host}/v1/videos \
           <code className="text-gold-2">https</code> URL of your own instead — assets exist so you do not have
           to host anything, not because the API insists on them.
         </p>
+        <p className="mt-3 text-muted">
+          <strong className="text-fg">Image generation takes the same references.</strong> There the field is
+          simply <code className="text-gold-2">image</code>, at the top level rather than under{" "}
+          <code className="text-gold-2">metadata</code>, and it counts the same way — the first entry is Image
+          1:
+        </p>
+        <Code>{`curl -sS ${host}/v1/images/generations \
+  -H "Authorization: Bearer $FLUXION_API_KEY" -H 'Content-Type: application/json' \
+  -d '{
+    "model": "Seedream-5.0-Pro",
+    "prompt": "The room in Image 1, restyled with the palette of Image 2",
+    "size": "2048x1152",
+    "image": ["$REFERENCE_0A7304DE", "$REFERENCE_31CA18C7"]
+  }'`}</Code>
       </div>
     </div>
   );

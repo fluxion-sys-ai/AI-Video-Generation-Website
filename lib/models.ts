@@ -2,6 +2,15 @@ export type Model = {
   slug: string;
   /** Model name the hub routes; defaults to the slug. */
   hubModel?: string;
+  /**
+   * What it makes. "video" everywhere until image generation, which is why it
+   * defaults rather than being required: a row that does not say is a video.
+   *
+   * The playground reads this to decide which controls exist at all - an image
+   * has no duration, no sound and no separate aspect ratio - so it is the one
+   * field that changes the shape of the screen rather than its contents.
+   */
+  modality: "video" | "image";
   /** False when no provider serves this model (backend mode). */
   available?: boolean;
   name: string;
@@ -18,6 +27,10 @@ export type Model = {
   reference?: ReferenceRules;
   /** Whether images may be registered with the provider as reusable characters. */
   characters?: { max_count?: number };
+  /** Image models only: the pixel-count envelope the provider will render. */
+  imageSize?: { min_pixels?: number; max_pixels?: number; default?: string };
+  /** Image models only: USD per output image, which is the whole output price. */
+  usdPerImage?: number;
   /** Cheapest price per output second, in dollars. Backend mode reads it from
    *  the hub's rate card; the demo list carries its own figures. */
   usdPerSecond: number;
@@ -54,6 +67,7 @@ export const MODELS: Model[] = [
     aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
     popularResolutions: ["480p", "720p"],
     supports: { image: true, audio: true, seed: true },
+    modality: "video",
     usdPerSecond: 0.08,
     demoVideo: thumb("aurora"),
     poster: poster("aurora"),
@@ -69,6 +83,7 @@ export const MODELS: Model[] = [
     aspectRatios: ["16:9", "9:16", "1:1", "4:3"],
     popularResolutions: ["480p"],
     supports: { image: false, audio: false, seed: true },
+    modality: "video",
     usdPerSecond: 0.03,
     demoVideo: thumb("pulse"),
     poster: poster("pulse"),
@@ -84,6 +99,7 @@ export const MODELS: Model[] = [
     aspectRatios: ["16:9", "9:16", "1:1", "4:3"],
     popularResolutions: ["720p"],
     supports: { image: true, audio: false, seed: true },
+    modality: "video",
     usdPerSecond: 0.06,
     demoVideo: thumb("volt"),
     poster: poster("volt"),
@@ -99,6 +115,7 @@ export const MODELS: Model[] = [
     aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
     popularResolutions: ["720p"],
     supports: { image: true, audio: true, seed: true },
+    modality: "video",
     usdPerSecond: 0.12,
     demoVideo: thumb("nova"),
     poster: poster("nova"),
@@ -116,6 +133,17 @@ export function getModels(): Model[] {
 /** Models a customer can actually pick: catalogued, and served by a provider. */
 export function getAvailableModels(): Model[] {
   return getModels().filter((m) => m.available !== false);
+}
+
+/**
+ * The models that make one kind of thing.
+ *
+ * Image models are invitation-based, so for most accounts this returns nothing
+ * for "image" - and the playground's Video/Image switch hides itself rather
+ * than offering a tab that leads to an empty list.
+ */
+export function getModelsOfKind(kind: "video" | "image"): Model[] {
+  return getModels().filter((m) => m.modality === kind);
 }
 
 export function getModel(slug: string): Model | undefined {
@@ -141,6 +169,7 @@ function toModel(entry: Awaited<ReturnType<typeof getCatalog>>[number]): Model {
   return {
     slug: entry.slug,
     hubModel: entry.model,
+    modality: entry.modality === "image" ? "image" : "video",
     available: entry.available,
     name: entry.name,
     tagline: entry.tagline,
@@ -162,6 +191,11 @@ function toModel(entry: Awaited<ReturnType<typeof getCatalog>>[number]): Model {
     // A registered image competes for the same reference-image slots, so this
     // is a cap on how many may be named at once rather than a separate budget.
     characters: entry.supports?.portrait,
+    imageSize: entry.supports?.image_size,
+    // Per image rather than per second, and read straight off the hub's rate
+    // card: an image is one price per call, so there is no expression to parse
+    // and `usdPerSecond` means nothing for it.
+    usdPerImage: entry.pricing?.model_price ?? undefined,
     preview: entry.preview,
     usdPerSecond: perSecond ?? 0,
     sortOrder: entry.sortOrder,

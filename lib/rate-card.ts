@@ -103,6 +103,51 @@ export function money(n: number): string {
   return Math.abs(Number(cents) - n) < 1e-9 ? `$${cents}` : `$${n.toFixed(3)}`;
 }
 
+/**
+ * The headline rate, phrased for what the model makes.
+ *
+ * A video is sold by the second and an image by the picture. One function
+ * because the figure is shown in seven places - the catalogue rows, the cards,
+ * three pricing skins, the pricing page - and every one of them used to read
+ * `usdPerSecond`, which is zero for an image: an account with an image model
+ * saw "$0.00 / s" on it.
+ */
+export function unitRate(model: {
+  modality?: "video" | "image";
+  usdPerSecond: number;
+  usdPerImage?: number;
+}): { usd: number; unit: "s" | "image" } {
+  if (model.modality === "image") return { usd: model.usdPerImage ?? 0, unit: "image" };
+  return { usd: model.usdPerSecond, unit: "s" };
+}
+
+/** "$0.045 / image", "$0.07 / s". */
+export function unitRateLabel(model: Parameters<typeof unitRate>[0], separator = " / "): string {
+  const { usd, unit } = unitRate(model);
+  return `${money(usd)}${separator}${unit}`;
+}
+
+/**
+ * What a sample of this model's output costs, and what that sample is.
+ *
+ * For a video that is the shortest clip it sells, priced through the hub's
+ * expression; for an image there is no sample to choose - one picture is the
+ * whole unit - so the two come back in one shape rather than making every
+ * caller ask which kind it is holding.
+ */
+export function sampleCost(
+  model: { modality?: "video" | "image"; durations: number[]; resolutions: string[]; popularResolutions: string[]; usdPerSecond: number; usdPerImage?: number },
+  tiers: ParsedTaskTier[] | undefined,
+): { usd: number; label: string } {
+  if (model.modality === "image") {
+    return { usd: model.usdPerImage ?? 0, label: "per image" };
+  }
+  const seconds = model.durations.length ? Math.min(...model.durations) : 0;
+  const resolution = model.popularResolutions[0] || model.resolutions[0];
+  const cost = tiers ? estimateCost(tiers, { seconds, resolution, input_video_seconds: 0 }) : null;
+  return { usd: cost !== null ? cost : model.usdPerSecond * seconds, label: `per ${seconds}s clip` };
+}
+
 /** "$0.03" or "$0.03-$0.045" across the resolutions a model offers. */
 export function rateRange(tiers: ParsedTaskTier[] | undefined, resolutions: string[]): string | null {
   if (!tiers) return null;

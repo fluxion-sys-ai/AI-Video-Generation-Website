@@ -58,6 +58,27 @@ function referenceSummary(model: Model): string[] {
   return parts;
 }
 
+/** The same, for a model that makes a picture: one call, no polling. */
+function imageCurlFor(model: Model, perImage: string): string {
+  const size = model.popularResolutions[0] || model.resolutions[0];
+  const input = model.reference?.image;
+  return [
+    `# ${model.name} — ${perImage} per image`,
+    `curl -X POST https://api.fluxion-sys.ai/v1/images/generations \\`,
+    `  -H "Authorization: Bearer $FLUXION_API_KEY" \\`,
+    `  -H "Content-Type: application/json" \\`,
+    `  -d '{`,
+    `    "model": "${model.hubModel || model.slug}",`,
+    `    "prompt": "A cut-glass decanter on dark walnut, late afternoon light",`,
+    `    "size": "${size}"${input ? "," : ""}`,
+    ...(input ? [`    "image": ["$REFERENCE_0A7304DE"]   # optional: work from a picture`] : []),
+    `  }'`,
+    ``,
+    `# The picture is in the response - there is no job to poll:`,
+    `#   {"created": 1789368841, "data": [{"url": "https://…"}]}`,
+  ].join("\n");
+}
+
 function curlFor(model: Model, perSecond: string): string {
   const seconds = Math.min(...model.durations);
   const resolution = model.popularResolutions[0] || model.resolutions[0];
@@ -101,7 +122,12 @@ export function ModelDocs() {
   return (
     <div className="space-y-10">
       {models.map((model) => {
+        const isImage = model.modality === "image";
         const perSecond = rateRange(ratesFor(card, model), model.resolutions) ?? money(model.usdPerSecond);
+        // An image is one price whatever its size, and it comes from the model
+        // rather than from an expression over what was asked for.
+        const perImage = money(model.usdPerImage ?? 0);
+        const input = model.reference?.image;
         const references = referenceSummary(model);
         return (
           <div key={model.slug} id={`model-${model.slug}`} className="scroll-mt-28 space-y-3">
@@ -120,24 +146,50 @@ export function ModelDocs() {
               <Row label="model">
                 <code className="text-gold-2">{model.hubModel || model.slug}</code>
               </Row>
-              <Row label="seconds">{durationRange(model.durations)}</Row>
-              <Row label="resolution">{model.resolutions.join(", ")}</Row>
-              <Row label="aspect_ratio">{model.aspectRatios.join(", ")}</Row>
-              <Row label="sound">
-                {model.supports.audio ? "on by default; send audio: false for a silent clip" : "always on"}
-              </Row>
-              {references.length > 0 && (
-                <Row label="reference material">
-                  up to {references.join(", ")} in one request, as{" "}
-                  <code className="text-gold-2">metadata.reference_image</code>,{" "}
-                  <code className="text-gold-2">reference_video</code> and{" "}
-                  <code className="text-gold-2">reference_audio</code>
-                  {Number(model.reference?.min_visual || 0) > 0 ? "; at least one image or clip is required" : ""}
-                </Row>
+              {isImage ? (
+                <>
+                  <Row label="route">
+                    <code className="text-gold-2">POST /v1/images/generations</code>
+                  </Row>
+                  <Row label="size">
+                    {model.resolutions.join(", ")}
+                    {model.imageSize?.max_pixels
+                      ? `, or any width x height up to ${(model.imageSize.max_pixels / 1e6).toFixed(1)} megapixels`
+                      : ""}
+                  </Row>
+                  {input && (
+                    <Row label="image">
+                      up to {input.max_count ?? 10} to work from, as{" "}
+                      <code className="text-gold-2">image</code>
+                      {input.usd_each
+                        ? `; the first ${input.free_count ?? 0} free, then ${money(input.usd_each)} each`
+                        : ""}
+                    </Row>
+                  )}
+                  <Row label="price">{perImage} per image</Row>
+                </>
+              ) : (
+                <>
+                  <Row label="seconds">{durationRange(model.durations)}</Row>
+                  <Row label="resolution">{model.resolutions.join(", ")}</Row>
+                  <Row label="aspect_ratio">{model.aspectRatios.join(", ")}</Row>
+                  <Row label="sound">
+                    {model.supports.audio ? "on by default; send audio: false for a silent clip" : "always on"}
+                  </Row>
+                  {references.length > 0 && (
+                    <Row label="reference material">
+                      up to {references.join(", ")} in one request, as{" "}
+                      <code className="text-gold-2">metadata.reference_image</code>,{" "}
+                      <code className="text-gold-2">reference_video</code> and{" "}
+                      <code className="text-gold-2">reference_audio</code>
+                      {Number(model.reference?.min_visual || 0) > 0 ? "; at least one image or clip is required" : ""}
+                    </Row>
+                  )}
+                  <Row label="price">{perSecond} per second of output</Row>
+                </>
               )}
-              <Row label="price">{perSecond} per second of output</Row>
             </div>
-            <Code>{curlFor(model, perSecond)}</Code>
+            <Code>{isImage ? imageCurlFor(model, perImage) : curlFor(model, perSecond)}</Code>
           </div>
         );
       })}

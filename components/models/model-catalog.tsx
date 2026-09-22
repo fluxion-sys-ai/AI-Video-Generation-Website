@@ -2,7 +2,7 @@
 
 import { modelTint, modelFeatured } from "@/lib/model-tint";
 import { matchesAllTags, modelSearchText, modelTags } from "@/lib/model-facets";
-import { money } from "@/lib/rate-card";
+import { unitRate, unitRateLabel } from "@/lib/rate-card";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
@@ -97,8 +97,10 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
   let list = models.filter(
     (m) => (!query || modelSearchText(m).includes(query)) && matchesAllTags(m, tags),
   );
-  if (sort === "price-asc") list = [...list].sort((a, b) => a.usdPerSecond - b.usdPerSecond);
-  else if (sort === "price-desc") list = [...list].sort((a, b) => b.usdPerSecond - a.usdPerSecond);
+  // By the model's own unit: an image model has no per-second rate, and
+  // sorting on the zero it would report put all of them at the cheap end.
+  if (sort === "price-asc") list = [...list].sort((a, b) => unitRate(a).usd - unitRate(b).usd);
+  else if (sort === "price-desc") list = [...list].sort((a, b) => unitRate(b).usd - unitRate(a).usd);
   else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
 
   const empty = <p className="mt-8 text-sm text-dim">No models match your filters.</p>;
@@ -169,7 +171,7 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                   </span>
                   <span className="text-sm text-muted">{m.tagline} · up to {m.resolutions[m.resolutions.length - 1]}</span>
                 </div>
-                <span className="hidden font-[family-name:var(--font-jetbrains)] text-sm text-gold sm:block">{money(m.usdPerSecond)} / s</span>
+                <span className="hidden font-[family-name:var(--font-jetbrains)] text-sm text-gold sm:block">{unitRateLabel(m)}</span>
                 <FavHeart slug={m.slug} />
                 <span className="text-accent-ink transition-transform group-hover:translate-x-1">→</span>
               </Link>
@@ -251,7 +253,7 @@ export function ModelCatalog({ models: initial }: { models: Model[] }) {
                     {m.preview && <PreviewBadge />}
                   </span>
                   <p className="mt-1 text-sm text-muted">{m.tagline}</p>
-                  <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-accent-ink">{money(m.usdPerSecond)} / s · {m.resolutions[m.resolutions.length - 1]} →</p>
+                  <p className="mt-3 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-accent-ink">{unitRateLabel(m)} · {m.resolutions[m.resolutions.length - 1]} →</p>
                 </div>
               </Link>
             ))}

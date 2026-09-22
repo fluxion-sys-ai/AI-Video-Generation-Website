@@ -8,6 +8,16 @@ import { CopyButton } from "@/components/docs/copy-button";
 type Lang = "js" | "python" | "curl";
 
 export function ApiDocs({ model }: { model: Model }) {
+  // Two documents, not one with branches in it. An image request shares the
+  // key and the host and nothing else: no polling, no download step, no
+  // duration, no ratio, a different route and a different response. Writing it
+  // as conditionals inside the video docs would make both harder to read than
+  // either is worth.
+  if (model.modality === "image") return <ImageApiDocs model={model} />;
+  return <VideoApiDocs model={model} />;
+}
+
+function VideoApiDocs({ model }: { model: Model }) {
   const [lang, setLang] = useState<Lang>("js");
 
   const ar = model.aspectRatios[0];
@@ -428,6 +438,267 @@ curl -sS -X DELETE ${host}/v1/assets/9f2c41b8… -H "Authorization: Bearer $FLUX
           <code className="text-gold-2">error.message</code>, and the amount held is returned.
         </p>
       </section>
+    </div>
+  );
+}
+
+/**
+ * The same model, over HTTP: image generation.
+ *
+ * Deliberately short, because the request is short. There is no job to poll and
+ * no artefact to fetch afterwards - the picture is in the response - so the
+ * whole API is one call, and the only things worth explaining at length are the
+ * two that cost money in ways a reader would not guess: an input image after
+ * the first is charged, and the copy we keep outlives the URL that comes back.
+ *
+ * Every figure here is read from the model's catalogue row, the same row the
+ * backend bills from, so there is no second copy of a price to drift.
+ */
+function ImageApiDocs({ model }: { model: Model }) {
+  const [lang, setLang] = useState<Lang>("js");
+  const id = model.hubModel || model.slug;
+  const size = model.popularResolutions[0] || model.resolutions[0];
+  const [host, setHost] = useState("https://api.fluxion-sys.ai");
+  useEffect(() => {
+    if (BACKEND_ENABLED) setHost(window.location.origin);
+  }, []);
+
+  const input = model.reference?.image;
+  const free = input?.free_count ?? 0;
+  const each = input?.usd_each ?? 0;
+  const output = model.usdPerImage;
+  const mp = (pixels: number | undefined) => (pixels ? `${(pixels / 1e6).toFixed(1)} MP` : "");
+
+  const params: { name: string; type: string; req?: boolean; desc: string }[] = [
+    { name: "model", type: "string", req: true, desc: `"${id}".` },
+    { name: "prompt", type: "string", req: true, desc: "What to make." },
+    {
+      name: "size",
+      type: "enum",
+      desc: `${model.resolutions.join(", ")}. Defaults to ${size}. Any width x height inside ${mp(model.imageSize?.min_pixels)}-${mp(model.imageSize?.max_pixels)} is accepted, not only the listed presets — the shape of the picture is this field and there is no separate aspect ratio.`,
+    },
+    ...(input
+      ? [{
+          name: "image",
+          type: "string | string[]",
+          desc: `Images to work from, for image-to-image. Each is a public https URL, a data: URI, or the \`reference\` of one of your assets ($REFERENCE_…, from POST /v1/assets); the three mix freely in one list. Up to ${input.max_count ?? 10}.${each ? ` The first ${free} ${free === 1 ? "is" : "are"} free, then $${each} each.` : ""}`,
+        }]
+      : []),
+    { name: "response_format", type: "enum", desc: "url (default) or b64_json. A url expires; see below." },
+    { name: "watermark", type: "boolean", desc: 'Defaults to false. The provider would otherwise mark the corner "AI generated"; send true if you want it.' },
+    ...(model.supports.seed ? [{ name: "seed", type: "integer", desc: "Seed for reproducible output." }] : []),
+  ];
+
+  const body = `{
+    "model": "${id}",
+    "prompt": "A cut-glass decanter on dark walnut, late afternoon light",
+    "size": "${size}"
+  }`;
+
+  const snippets: Record<Lang, string> = {
+    js: `const base = "${host}";
+const auth = { Authorization: "Bearer " + process.env.FLUXION_API_KEY };
+
+// One call. The picture is in the response; there is nothing to poll.
+const res = await fetch(base + "/v1/images/generations", {
+  method: "POST",
+  headers: { ...auth, "Content-Type": "application/json" },
+  body: JSON.stringify({
+    model: "${id}",
+    prompt: "A cut-glass decanter on dark walnut, late afternoon light",
+    size: "${size}",
+  }),
+});
+const { data } = await res.json();
+
+// data[0].url is the provider's own and expires. Save the bytes, or ask for
+// response_format: "b64_json" and skip this fetch.
+const bytes = await (await fetch(data[0].url)).arrayBuffer();
+await writeFile("out.png", Buffer.from(bytes));`,
+    python: `import os, requests
+
+base = "${host}"
+auth = {"Authorization": "Bearer " + os.environ["FLUXION_API_KEY"]}
+
+# One call. The picture is in the response; there is nothing to poll.
+out = requests.post(base + "/v1/images/generations", headers=auth, json={
+    "model": "${id}",
+    "prompt": "A cut-glass decanter on dark walnut, late afternoon light",
+    "size": "${size}",
+}).json()
+
+# The url is the provider's own and expires. Save the bytes, or ask for
+# response_format: "b64_json" and skip this fetch.
+open("out.png", "wb").write(requests.get(out["data"][0]["url"]).content)`,
+    curl: `curl -sS ${host}/v1/images/generations \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '${body}'
+
+# -> {"created": 1789368841,
+#     "data": [{"url": "https://…"}],
+#     "usage": {"generated_images": 1}}
+
+# The url expires. For the bytes in the response instead:
+#   "response_format": "b64_json"`,
+  };
+
+  const imageToImage = `# 1. Store an image once; the reference does not expire.
+curl -sS ${host}/v1/assets \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" \\
+  -F file=@room.jpg -F name="the room"
+# -> {"id":"0a7304de…","type":"image","portrait":false,
+#     "reference":"$REFERENCE_0A7304DE", …}
+
+# 2. Work from it, alongside anything else you already host.
+curl -sS ${host}/v1/images/generations \\
+  -H "Authorization: Bearer $FLUXION_API_KEY" -H "Content-Type: application/json" \\
+  -d '{
+    "model": "${id}",
+    "prompt": "The room in Image 1, restyled with the palette of Image 2",
+    "size": "${size}",
+    "image": [
+      "$REFERENCE_0A7304DE",
+      "https://example.com/palette.jpg"
+    ]
+  }'
+
+# Image 1 and Image 2 are the entries in that order, and a plain URL counts the
+# same as a stored asset - what matters is position, not where it came from.
+# Never write an id or a $REFERENCE_ in the prompt: it is not recognised and the
+# model reads it as words.${each ? `
+#
+# This request has ${free + 1} input image${free + 1 === 1 ? "" : "s"}: the first ${free} ${free === 1 ? "is" : "are"} free and the rest are
+# $${each} each, on top of $${output ?? "—"} for the picture itself.` : ""}`;
+
+  const langLabel: Record<Lang, string> = { js: "JavaScript", python: "Python", curl: "cURL" };
+
+  return (
+    <div className="max-w-3xl">
+      <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">API</span>
+      <h1 className="mt-1 font-[family-name:var(--font-jetbrains)] text-2xl font-medium uppercase tracking-[0.01em]">
+        {model.name} API
+      </h1>
+      <p className="mt-2 text-sm text-muted">
+        Call this model over HTTP at{" "}
+        <code className="rounded bg-raised px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-gold-2">POST /v1/images/generations</code>{" "}
+        with <code className="rounded bg-raised px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-gold-2">&quot;model&quot;: &quot;{id}&quot;</code>.
+        The route is OpenAI-shaped, so an existing images client works by pointing it here.
+      </p>
+
+      {/* auth */}
+      <section className="mt-8">
+        <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">1. Authenticate</h2>
+        <p className="mt-2 text-sm text-muted">
+          Create a key under Profile → API keys, then set it as an environment variable. Every request carries it as
+          a bearer token — the same key that generates video.
+        </p>
+        <div className="relative mt-3">
+          <CopyButton text={'export FLUXION_API_KEY="sk-xxxxxxxxxxxxxxxxxxxx"'} />
+          <pre className="overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm text-fg">
+            <code>export FLUXION_API_KEY=&quot;sk-xxxxxxxxxxxxxxxxxxxx&quot;</code>
+          </pre>
+        </div>
+      </section>
+
+      {/* the one call */}
+      <section className="mt-8">
+        <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">2. Generate</h2>
+        <p className="mt-2 text-sm text-muted">
+          One request, one image. The call holds open for the seconds the render takes and the picture comes back in
+          the response — unlike video, there is no job to poll and no id to poll it with. One image per request:{" "}
+          <code className="text-gold-2">n</code> is refused rather than silently ignored.
+        </p>
+        <div className="mt-3 flex gap-4 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em]">
+          {(["js", "python", "curl"] as Lang[]).map((l) => (
+            <button
+              key={l}
+              onClick={() => setLang(l)}
+              className={`pb-1 transition-colors ${lang === l ? "border-b border-accent text-accent-ink" : "text-muted hover:text-fg"}`}
+            >
+              {langLabel[l]}
+            </button>
+          ))}
+        </div>
+        <div className="relative mt-3">
+          <CopyButton text={snippets[lang]} />
+          <pre className="overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+            <code>{snippets[lang]}</code>
+          </pre>
+        </div>
+        <p className="mt-3 text-xs text-dim">
+          Every image is also kept in your own storage and appears under Library, so the expiring URL above is not
+          the only copy. Stored files are charged by the gigabyte-month (see Pricing); deleting one stops its charge.
+        </p>
+      </section>
+
+      {/* input schema */}
+      <section className="mt-8">
+        <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">Input parameters</h2>
+        <div className="mt-3 overflow-x-auto rounded-[10px] border border-line-strong">
+          <table className="w-full min-w-[440px] text-left text-sm">
+            <thead className="font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-muted">
+              <tr className="border-b border-line-strong">
+                <th className="px-4 py-2.5">Field</th>
+                <th className="px-4 py-2.5">Type</th>
+                <th className="px-4 py-2.5">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {params.map((p) => (
+                <tr key={p.name} className="border-b border-hairline last:border-0 align-top">
+                  <td className="px-4 py-2.5 font-[family-name:var(--font-jetbrains)] text-gold-2">
+                    {p.name}{p.req && <span className="text-danger"> *</span>}
+                  </td>
+                  <td className="px-4 py-2.5 text-muted">{p.type}</td>
+                  <td className="px-4 py-2.5 text-fg-soft">{p.desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-xs text-dim"><span className="text-danger">*</span> required</p>
+      </section>
+
+      {/* image to image */}
+      {input && (
+        <section className="mt-8">
+          <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">
+            Working from an image
+          </h2>
+          <p className="mt-2 text-sm text-muted">
+            Put what you are working from in <code className="text-gold-2">image</code>. You do not need to host
+            anything: the same API key works on <code className="text-gold-2">/v1/assets</code>, so a picture is
+            uploaded once and referenced as often as you like. The prompt refers to inputs by position — &ldquo;Image
+            1&rdquo;, &ldquo;Image 2&rdquo; — in the order you sent them.
+          </p>
+          <div className="relative mt-3">
+            <CopyButton text={imageToImage} />
+            <pre className="overflow-x-auto rounded-[10px] border border-line-strong bg-surface p-4 pr-12 font-[family-name:var(--font-jetbrains)] text-sm leading-relaxed text-fg">
+              <code>{imageToImage}</code>
+            </pre>
+          </div>
+        </section>
+      )}
+
+      {/* price */}
+      {output !== undefined && (
+        <section className="mt-8">
+          <h2 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">What it costs</h2>
+          <p className="mt-2 text-sm text-muted">
+            <span className="font-[family-name:var(--font-jetbrains)] text-base text-accent-ink">${output}</span> per
+            image, whatever the size{each ? (
+              <>
+                , plus <span className="font-[family-name:var(--font-jetbrains)] text-accent-ink">${each}</span> for
+                each input image past the first {free}
+              </>
+            ) : (
+              ", and the same whether you start from a prompt or from an image"
+            )}
+            . Your balance is charged when the image is made; a refused request costs nothing.
+          </p>
+        </section>
+      )}
     </div>
   );
 }

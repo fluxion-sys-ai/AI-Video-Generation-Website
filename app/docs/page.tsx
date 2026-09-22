@@ -26,7 +26,8 @@ const NAV: { group: string; items: { id: string; label: string; body?: string }[
       { id: "models", label: "Overview", body: "each model has its own strengths supported durations resolutions per-second pricing browse the model catalog" },
       { id: "model-reference", label: "Per-model reference", body: "what each model takes seconds resolution aspect ratio sound reference images video audio price per second curl example seedance minimax h3 fast" },
       { id: "generating", label: "Generating video", body: "send a prompt and options response includes the output video url and timing longer clips and higher resolutions cost more dollars per second curl post" },
-      { id: "parameters", label: "Parameters", body: "prompt image_url duration aspect_ratio resolution image-to-video required seconds of output" },
+      { id: "generating-images", label: "Generating images", body: "image generation text to image image to image seedream size megapixels one call no polling synchronous watermark n not supported input image charged response_format b64_json url expires archived library" },
+      { id: "parameters", label: "Parameters", body: "prompt image_url duration aspect_ratio resolution image-to-video required seconds of output size image watermark" },
     ],
   },
   {
@@ -184,6 +185,35 @@ curl -sS -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
           </section>
 
           <section className="space-y-3">
+            <H id="generating-images">Generating images</H>
+            <p className="text-muted">
+              An image is not a job. <code className="text-gold-2">POST /v1/images/generations</code> holds open for
+              the seconds the render takes and returns the picture, so there is nothing to poll and no id to poll it
+              with. The route is OpenAI-shaped, so an existing images client works by pointing it here.
+            </p>
+            <p className="text-muted">
+              <code className="text-gold-2">size</code> is the shape as well as the resolution
+              (&ldquo;2048x1152&rdquo;) — there is no separate aspect ratio. For image-to-image, pass{" "}
+              <code className="text-gold-2">image</code>: one value or a list, each a public https URL, a{" "}
+              <code className="text-gold-2">data:</code> URI, or the <code className="text-gold-2">reference</code>{" "}
+              of one of your assets. On models that charge for inputs, the first is free and the rest are billed
+              per image; the per-model reference above gives the figures.
+            </p>
+            <p className="text-muted">
+              Two defaults worth knowing. The provider would mark the corner &ldquo;AI generated&rdquo;; we send{" "}
+              <code className="text-gold-2">watermark: false</code> unless your request says otherwise, exactly as
+              for video. And the <code className="text-gold-2">url</code> that comes back is the provider&apos;s own
+              and expires — every image is also kept in your own storage and appears under Library, so that URL is
+              never the only copy. Ask for <code className="text-gold-2">&quot;response_format&quot;:
+              &quot;b64_json&quot;</code> to get the bytes inline instead.
+            </p>
+            <p className="text-muted">
+              One image per request: <code className="text-gold-2">n</code> above 1 is refused rather than silently
+              ignored, because this provider makes one picture per call.
+            </p>
+          </section>
+
+          <section className="space-y-3">
             <H id="parameters">Parameters</H>
             <ul className="space-y-2 text-sm text-muted">
               <li><code className="text-gold-2">prompt</code>, text description of the shot (required).</li>
@@ -194,6 +224,12 @@ curl -sS -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
               <li><code className="text-gold-2">audio</code>, generate sound, on models that support it.</li>
               <li><code className="text-gold-2">seed</code>, for reproducible output, on models that support it.</li>
             </ul>
+            <p className="text-sm text-muted">
+              Image generation takes a different set: <code className="text-gold-2">prompt</code>,{" "}
+              <code className="text-gold-2">size</code>, <code className="text-gold-2">image</code>,{" "}
+              <code className="text-gold-2">response_format</code>, <code className="text-gold-2">watermark</code>{" "}
+              and <code className="text-gold-2">seed</code>. There is no duration, no aspect ratio and no audio.
+            </p>
           </section>
 
           <section className="space-y-3">
@@ -208,9 +244,10 @@ curl -sS -L -o out.mp4 https://api.fluxion-sys.ai/v1/videos/$VIDEO_ID/content \\
           <section className="space-y-3">
             <H id="api">API reference</H>
             <p className="text-muted">
-              Every model shares one endpoint, <code className="text-gold-2">/v1/videos</code>, and is selected with the
-              request&apos;s <code className="text-gold-2">model</code> field. See the per-model reference, with its exact
-              durations, resolutions and pricing, from any model&apos;s playground under the API tab.
+              Video models share one endpoint, <code className="text-gold-2">/v1/videos</code>, and image models
+              share <code className="text-gold-2">/v1/images/generations</code>; either way the model is selected with
+              the request&apos;s <code className="text-gold-2">model</code> field. See the per-model reference, with its
+              exact sizes, durations and pricing, from any model&apos;s playground under the API tab.
             </p>
           </section>
 

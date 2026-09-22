@@ -94,6 +94,10 @@ export function GenerationRecordPanel({
     }
   }
 
+  // A generation is a video unless it says otherwise: images came later, and
+  // an older record that predates the field is a video.
+  const isImage = generation.kind === "image";
+
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-6" onClick={onClose}>
       <div
@@ -103,7 +107,7 @@ export function GenerationRecordPanel({
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h3 className="font-[family-name:var(--font-jetbrains)] text-sm uppercase tracking-[0.08em] text-fg-soft">
-              Generated video
+              {isImage ? "Generated image" : "Generated video"}
             </h3>
             <p className="mt-1 truncate text-lg text-fg-strong" title={generation.prompt}>{generation.prompt}</p>
             <p className="text-xs text-dim">{formatWhen(generation.createdAt)}</p>
@@ -114,7 +118,12 @@ export function GenerationRecordPanel({
         </div>
 
         {generation.videoUrl && (
-          <video src={generation.videoUrl} controls playsInline className="mt-4 aspect-video w-full bg-black object-contain" />
+          isImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={generation.videoUrl} alt={generation.prompt} className="mt-4 max-h-[60vh] w-full bg-black object-contain" />
+          ) : (
+            <video src={generation.videoUrl} controls playsInline className="mt-4 aspect-video w-full bg-black object-contain" />
+          )
         )}
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -130,7 +139,7 @@ export function GenerationRecordPanel({
           >
             {busy === "regenerate" ? "Opening…" : "Edit and generate again"}
           </button>
-          <a className={button} href={generation.videoUrl} download={`${generation.id}.mp4`}>Download</a>
+          <a className={button} href={generation.videoUrl} download={`${generation.id}${isImage ? ".png" : ".mp4"}`}>Download</a>
           <button
             type="button"
             onClick={() => setConfirmDelete(true)}
@@ -163,8 +172,9 @@ export function GenerationRecordPanel({
             </ul>
             {missing.length > 0 && (
               <p className="mt-2 text-xs text-dim">
-                This video still plays; it is its own copy. Reopening it brings back everything that is left — to
-                make the same thing again, upload the missing file first.
+                {isImage ? "This image is still here; it is its own copy." : "This video still plays; it is its own copy."}{" "}
+                Reopening it brings back everything that is left — to make the same thing again, upload the missing
+                file first.
               </p>
             )}
           </div>
