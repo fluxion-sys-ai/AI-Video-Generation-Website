@@ -15,7 +15,7 @@ import Link from "next/link";
 import { deleteVideo, getGeneration, type GenerationRecord } from "@/lib/hub";
 import { useRouter } from "next/navigation";
 import { setPendingRequest } from "@/lib/prefs";
-import { formatWhen, type Generation } from "@/lib/generations";
+import { formatWhen, resultUrl, type Generation } from "@/lib/generations";
 import { CopyButton } from "@/components/docs/copy-button";
 import { toast } from "@/lib/toast";
 
@@ -34,6 +34,21 @@ export function GenerationRecordPanel({
   const [record, setRecord] = useState<GenerationRecord | null>(null);
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState<"regenerate" | "delete" | null>(null);
+  // The panel asks for the playable copy itself. The grid behind it no longer
+  // carries one for every row it holds - a signed URL per card was the library
+  // opening with a request for every clip in it - so the one being looked at is
+  // signed when it is opened.
+  const [playable, setPlayable] = useState(generation.videoUrl || "");
+  useEffect(() => {
+    if (generation.videoUrl) return;
+    let alive = true;
+    resultUrl(generation.id)
+      .then((url) => alive && setPlayable(url))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [generation.id, generation.videoUrl]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const router = useRouter();
 
@@ -117,12 +132,12 @@ export function GenerationRecordPanel({
           </button>
         </div>
 
-        {generation.videoUrl && (
+        {playable && (
           isImage ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={generation.videoUrl} alt={generation.prompt} className="mt-4 max-h-[60vh] w-full bg-black object-contain" />
+            <img src={playable} alt={generation.prompt} className="mt-4 max-h-[60vh] w-full bg-black object-contain" />
           ) : (
-            <video src={generation.videoUrl} controls playsInline className="mt-4 aspect-video w-full bg-black object-contain" />
+            <video src={playable} controls playsInline className="mt-4 aspect-video w-full bg-black object-contain" />
           )
         )}
 
@@ -139,7 +154,7 @@ export function GenerationRecordPanel({
           >
             {busy === "regenerate" ? "Opening…" : "Edit and generate again"}
           </button>
-          <a className={button} href={generation.videoUrl} download={`${generation.id}${isImage ? ".png" : ".mp4"}`}>Download</a>
+          <a className={button} href={playable || undefined} download={`${generation.id}${isImage ? ".png" : ".mp4"}`}>Download</a>
           <button
             type="button"
             onClick={() => setConfirmDelete(true)}

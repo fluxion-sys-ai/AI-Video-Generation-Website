@@ -72,70 +72,109 @@ function seed(): Generation[] {
 
 let live: Generation[] | null = null;
 
-/** The hub's own cap on one page of its task list. */
-const TASK_PAGE = 100;
-
 /**
- * How many generations the library will load.
+ * A page of history, and the most the library keeps in memory.
  *
- * There has to be a number, because every finished one costs a signed URL to
- * play, and the alternative to a number here is a page that gets slower the
- * longer somebody has been a customer. Three hundred is about a year of
- * ordinary use, and paging past it is a "load more" that can be built when
- * anybody reaches it.
+ * Both numbers exist for the same reason: what this screen costs should not
+ * grow with how long somebody has been a customer. One page is what loads
+ * before anything is on screen; the cap is where older pages start being
+ * forgotten as newer ones arrive, so paging for a long time cannot turn into a
+ * tab holding a thousand rows and a thousand media elements.
  */
-const LIBRARY_LIMIT = 300;
+const PAGE = 24;
+const KEEP = 96;
 
-/** Resolve in bundles rather than all at once: a library of three hundred
- *  should not open with three hundred simultaneous requests. */
-async function inBundles<T, R>(items: T[], size: number, work: (item: T) => Promise<R>) {
-  const out: PromiseSettledResult<R>[] = [];
-  for (let at = 0; at < items.length; at += size) {
-    out.push(...(await Promise.allSettled(items.slice(at, at + size).map(work))));
-  }
-  return out;
+let loadedPage = 0;
+let reportedTotal = 0;
+
+/** What is on screen, what exists, and whether there is more to ask for. */
+export function generationsLoaded(): { shown: number; total: number; more: boolean } {
+  const shown = live?.length ?? 0;
+  return { shown, total: Math.max(reportedTotal, shown), more: shown < reportedTotal };
 }
 
-/** Loads real generations (and their stored video URLs) from the backend. */
-export async function refreshGenerations(limit = LIBRARY_LIMIT): Promise<void> {
-  if (!BACKEND_ENABLED) return;
-  // Page through it. Asking for one page was showing 24 of 104 generations and
-  // calling that the library, with nothing on screen to say the rest existed.
-  // The hub's shape, not this module's: same word, different type.
-  const items: Awaited<ReturnType<typeof listGenerations>>["items"] = [];
-  for (let page = 1; items.length < limit; page++) {
-    const { items: batch, total } = await listGenerations(page, Math.min(TASK_PAGE, limit - items.length));
-    items.push(...batch);
-    if (!batch.length || items.length >= total) break;
+/**
+ * The playable URL for one result, resolved when something actually wants it.
+ *
+ * Signing is a round trip per file, so the library used to open with one for
+ * every row it had loaded. Cards ask for their own as they come into view
+ * instead, and this holds the last few so scrolling back is free without
+ * holding them all: past the cap the oldest is dropped, and signed again if it
+ * is ever wanted, which costs one request rather than a tab full of them.
+ */
+const URLS = new Map<string, string>();
+const URLS_KEEP = 64;
+
+export async function resultUrl(id: string): Promise<string> {
+  const held = URLS.get(id);
+  if (held) {
+    URLS.delete(id);
+    URLS.set(id, held); // touch: most recently wanted is last to go
+    return held;
   }
+  const url = await videoUrl(id);
+  URLS.set(id, url);
+  while (URLS.size > URLS_KEEP) {
+    const oldest = URLS.keys().next().value;
+    if (oldest === undefined) break;
+    URLS.delete(oldest);
+  }
+  return url;
+}
+
+/** The first page, from scratch. */
+export async function refreshGenerations(): Promise<void> {
+  if (!BACKEND_ENABLED) return;
+  loadedPage = 0;
+  live = null;
+  await loadMoreGenerations();
+}
+
+/**
+ * The next page, appended - and the far end dropped if we hold too many.
+ *
+ * Asking for one page and calling it the library is what this replaces: an
+ * account with 104 generations saw 24 of them, with nothing on screen to say
+ * the rest were there.
+ */
+export async function loadMoreGenerations(): Promise<void> {
+  if (!BACKEND_ENABLED) return;
+  const wanted = loadedPage + 1;
+  const { items, total } = await listGenerations(wanted, PAGE);
+  loadedPage = wanted;
+  reportedTotal = total;
   const finished = items.filter((g) => g.status === "completed");
-  const urls = await inBundles(finished, 16, (g) => videoUrl(g.id));
   // The hub drops a task's request when the job finishes, so the prompt comes
   // from the platform's own record of what was submitted. Without this, history
   // showed a prompt only in the browser that happened to make it - and never
   // for a generation submitted through the API.
   const recorded = new Map<string, string>();
   if (finished.some((g) => !g.prompt)) {
-    // Ask for at least as many prompts as there are generations on the page, or
-    // the oldest of them come back titleless.
-    await listGenerationPrompts(Math.min(500, Math.max(finished.length, 100)))
+    await listGenerationPrompts(Math.min(500, Math.max((live?.length ?? 0) + finished.length, 100)))
       .then(({ generations }) => generations.forEach((r) => r.prompt && recorded.set(r.task_id, r.prompt)))
       .catch(() => {});
   }
-  const videos: Generation[] = finished.map((g, index) => {
+  const videos: Generation[] = finished.map((g) => {
     const model = getModels().find((m) => (m.hubModel || m.slug) === g.model) || getModel(g.model);
-    const url = urls[index];
     return {
       id: g.id,
       slug: model?.slug || g.model,
       prompt: g.prompt || recorded.get(g.id) || "(no prompt)",
       kind: "video",
-      videoUrl: url.status === "fulfilled" ? url.value : "",
+      // Left empty on purpose: whoever shows it resolves it through resultUrl.
+      videoUrl: "",
       poster: model?.poster || "",
       createdAt: (g.finishedAt || g.createdAt) * 1000,
     };
   });
-  live = [...videos, ...(await generatedImages(Math.min(limit, 500)))].sort((a, b) => b.createdAt - a.createdAt);
+  // Images come with the first page only. There are far fewer of them, they are
+  // not tasks, and paging two lists against one scroll position is a
+  // complication worth having when somebody has enough of them to need it.
+  const images = wanted === 1 ? await generatedImages(PAGE * 2) : [];
+  const known = new Set((live ?? []).map((g) => g.id));
+  const all = [...(live ?? []), ...[...videos, ...images].filter((g) => !known.has(g.id))]
+    .sort((a, b) => b.createdAt - a.createdAt);
+  live = all.length > KEEP ? all.slice(0, KEEP) : all;
   notify("generations");
 }
 
@@ -161,17 +200,15 @@ async function generatedImages(limit: number): Promise<Generation[]> {
     .catch(() => {});
   // The stored copy, signed. Same route as a video's: the archive does not care
   // which kind it holds.
-  const urls = await inBundles(rows, 16, (row) => videoUrl(row.id));
-  return rows.map((row, index) => {
+  return rows.map((row) => {
     const name = row.model || "";
     const model = getModels().find((m) => (m.hubModel || m.slug) === name) || getModel(name);
-    const url = urls[index];
     return {
       id: row.id,
       slug: model?.slug || name,
       prompt: prompts.get(row.id) || "(no prompt)",
       kind: "image" as const,
-      videoUrl: url.status === "fulfilled" ? url.value : "",
+      videoUrl: "",
       poster: model?.poster || "",
       createdAt: row.created_at ? Date.parse(row.created_at) : Date.now(),
     };

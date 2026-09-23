@@ -28,6 +28,7 @@ import {
 import { useLive } from "@/lib/live";
 import { getModel, refreshCatalog } from "@/lib/models";
 import { getGenerations, refreshGenerations, formatWhen, type Generation } from "@/lib/generations";
+import { LazyResult } from "@/components/library/lazy-result";
 import { getTheme, applyTheme, getSettings, saveSettings, type Theme } from "@/lib/prefs";
 import { getCards, addCard as billAddCard, removeCard as billRemoveCard, saveCards, cardsSupported, refreshBilling, startTopup } from "@/lib/billing";
 import { ApiKeys } from "@/components/profile/api-keys";
@@ -817,17 +818,10 @@ function ProfileInner() {
                           {/* The video's own first frame, same as the library
                               grid: the model's stock image looked identical on
                               every row. */}
-                          {h.videoUrl ? (
-                            <video
-                              src={h.videoUrl}
-                              muted
-                              playsInline
-                              preload="metadata"
-                              className="h-11 w-[74px] shrink-0 bg-black object-cover"
-                            />
-                          ) : (
-                            <img src={h.poster} alt="" className="h-11 w-[74px] shrink-0 bg-black object-cover" />
-                          )}
+                          <div className="h-11 w-[74px] shrink-0 bg-black">
+                            <LazyResult id={h.id} kind={h.kind} poster={h.poster} alt=""
+                                        className="h-11 w-[74px] object-cover" />
+                          </div>
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm text-fg">{h.prompt}</p>
                             <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">

@@ -7,7 +7,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
 import { getModels, getModel, getModelsOfKind, type Model, refreshCatalog } from "@/lib/models";
-import { getGenerations, refreshGenerations, formatWhen, type Generation } from "@/lib/generations";
+import { getGenerations, refreshGenerations, loadMoreGenerations, generationsLoaded, formatWhen, type Generation } from "@/lib/generations";
 import { ApiError, BACKEND_ENABLED } from "@/lib/hub";
 import { useLive, useLiveState } from "@/lib/live";
 import {
@@ -43,7 +43,7 @@ import { Heart, ImageIcon, FolderOpen, Search, Clapperboard, Music, Film } from 
 import { KindSwitch, type Kind } from "@/components/ui/kind-switch";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GenerationRecordPanel } from "@/components/library/generation-record";
-import { SkeletonImg } from "@/components/ui/skeleton";
+import { LazyResult } from "@/components/library/lazy-result";
 
 // Video card. The clip itself is the thumbnail: mounted with preload="metadata"
 // so the browser paints *this* video's first frame rather than the model's stock
@@ -67,26 +67,20 @@ function VideoThumb({ g, onOpen }: { g: Generation; onOpen: (g: Generation) => v
       className="group border border-line p-3 text-left transition-colors hover:border-blue-line"
     >
       <div className="relative aspect-video w-full overflow-hidden bg-black">
-        {g.videoUrl && g.kind === "image" ? (
-          // A generated image. Contained rather than cropped: a 1:16 banner
-          // filled to a 16:9 tile would show a stripe out of the middle of it.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={g.videoUrl} alt={g.prompt} className="h-full w-full object-contain" />
-        ) : g.videoUrl ? (
-          <video
-            ref={player}
-            src={g.videoUrl}
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          // Nothing to show a frame from (a demo entry, or a stored copy that
-          // has gone); the model's image is better than a black square.
-          <SkeletonImg src={g.poster} imgClassName="h-full w-full object-cover" />
-        )}
+        {/* Its own frame, fetched when the card nears the screen and released
+            when it leaves: a page of history should cost what is visible, not
+            what exists. An image is contained rather than cropped, because a
+            1:16 banner filled to a 16:9 tile shows a stripe of its middle. */}
+        <LazyResult
+          id={g.id}
+          kind={g.kind}
+          poster={g.poster}
+          alt={g.prompt}
+          className={g.kind === "image" ? "h-full w-full object-contain" : "h-full w-full object-cover"}
+          playerRef={(element) => {
+            player.current = element;
+          }}
+        />
       </div>
       <p className="mt-3 truncate text-sm text-fg">{g.prompt}</p>
       <p className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-gold">{modelName} · {formatWhen(g.createdAt)}</p>
@@ -103,6 +97,38 @@ function describeUpload(item: Upload): string {
   if (item.kind !== "image" && item.codec) bits.push(item.codec.toUpperCase());
   if (item.size) bits.push(item.size > 1048576 ? `${(item.size / 1048576).toFixed(1)} MB` : `${Math.round(item.size / 1024)} KB`);
   return bits.join(" · ");
+}
+
+/**
+ * "Load more", and what it is loading more of.
+ *
+ * Explicit rather than automatic: a page that fetches when you scroll near the
+ * bottom is pleasant until it is the only way to reach the footer, and a button
+ * says how much history there is - which the old one-page library never did.
+ * The count is the honest one: what is held, out of what exists.
+ */
+function MoreGenerations() {
+  const [busy, setBusy] = useState(false);
+  const { shown, total, more } = generationsLoaded();
+  if (!BACKEND_ENABLED || total <= shown) return null;
+  return (
+    <div className="mt-8 flex flex-col items-center gap-2">
+      <button
+        type="button"
+        disabled={busy || !more}
+        onClick={() => {
+          setBusy(true);
+          void loadMoreGenerations().finally(() => setBusy(false));
+        }}
+        className="border border-line-strong px-5 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg-soft transition-colors hover:border-blue-line hover:text-fg disabled:opacity-60"
+      >
+        {busy ? "Loading…" : "Load more"}
+      </button>
+      <p className="font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-dim">
+        {shown} of {total}
+      </p>
+    </div>
+  );
 }
 
 // A tile's preview. A video shows its own first frame (preload=metadata) and
@@ -831,11 +857,14 @@ function LibraryInner() {
                   }}
                 />
               ) : (
-                <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {showing.map((g) => (
-                    <VideoThumb key={g.id} g={g} onOpen={openRecord} />
-                  ))}
-                </div>
+                <>
+                  <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {showing.map((g) => (
+                      <VideoThumb key={g.id} g={g} onOpen={openRecord} />
+                    ))}
+                  </div>
+                  <MoreGenerations />
+                </>
               )}
             </>
           );
