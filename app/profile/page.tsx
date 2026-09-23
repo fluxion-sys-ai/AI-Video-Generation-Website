@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useUrlParam } from "@/lib/url-state";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { GlowBlobs } from "@/components/decor/glow-blobs";
@@ -100,6 +101,9 @@ function ProfileInner() {
   const search = useSearchParams();
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<Tab>("account");
+
+  // And back again, so a tab somebody is looking at is a tab they can link to.
+  useUrlParam("tab", tab, "account");
 
   // Open the tab named in ?tab= (e.g. from the header avatar menu).
   useEffect(() => {

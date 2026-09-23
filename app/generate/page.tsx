@@ -5,6 +5,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useLive } from "@/lib/live";
 import { Heart, GripHorizontal } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useUrlParam } from "@/lib/url-state";
 import { SiteHeader } from "@/components/site/site-header";
 import { ApiDocs } from "@/components/docs/api-docs";
 import { SiteFooter } from "@/components/site/site-footer";
@@ -269,6 +270,14 @@ function GenerateInner() {
   const [failure, setFailure] = useState("");
   const [tab, setTab] = useState<"examples" | "change">("examples");
   const [view, setView] = useState<"playground" | "examples" | "api">("playground");
+  // Playground / Examples / API is a tab like any other: linkable, and the same
+  // screen after a reload as before it.
+  useUrlParam("view", view, "playground");
+  useEffect(() => {
+    const wanted = params.get("view");
+    if (wanted === "playground" || wanted === "examples" || wanted === "api") setView(wanted);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
   const skin = useSkin();
   const [panelOpen, setPanelOpen] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);

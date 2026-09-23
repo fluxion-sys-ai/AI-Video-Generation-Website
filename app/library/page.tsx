@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useUrlParam } from "@/lib/url-state";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { GlowBlobs } from "@/components/decor/glow-blobs";
@@ -423,6 +424,11 @@ function LibraryInner() {
     if (search.get("item")) router.replace("/library?tab=uploaded");
   }
 
+  // ...and the other direction: clicking a tab writes it back, so the address
+  // bar always describes the screen and a copied link opens what was on it.
+  useUrlParam("tab", tab, "generated");
+  useUrlParam("kind", genKind, "video");
+
   // Open the tab named in ?tab= (from the header Library menu). Reacts to query
   // changes too, so navigating Videos → Images updates without a remount.
   useEffect(() => {
@@ -434,6 +440,8 @@ function LibraryInner() {
     const video = search.get("video");
     if (video) setTab("generated");
     if (search.get("item")) setTab("uploaded");
+    const kind = search.get("kind");
+    if (kind === "image" || kind === "video") setGenKind(kind);
   }, [search]);
 
   // Follow the URL: ?video= opens that record, ?item= opens that file, and the
