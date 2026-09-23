@@ -11,7 +11,7 @@
  */
 
 import { getModel } from "./models";
-import { ApiError, BACKEND_ENABLED, checkReferences, createImage, createVideo, libraryImageLink, videoUrl, waitForVideo } from "./hub";
+import { ApiError, BACKEND_ENABLED, checkReferences, createImage, createVideo, freshVideoUrl, libraryImageLink, videoUrl, waitForVideo } from "./hub";
 import { refreshBilling } from "./billing";
 import { refreshGenerations } from "./generations";
 import { uploadLibraryImage } from "./prefs";
@@ -132,7 +132,9 @@ async function run(params: GenerateParams, refinements: string[] = []): Promise<
 
   const done = await waitForVideo(created.id);
   if (done.status !== "completed") throw new ApiError(done.error?.message || "Generation failed. Try again.", 502);
-  const url = await videoUrl(done.id);
+  // Straight to the hub: a clip this new is still being uploaded, so the stored
+  // copy cannot exist yet and asking for it only costs a round trip.
+  const url = await freshVideoUrl(done.id);
   void refreshGenerations().catch(() => {});
   void refreshBilling().catch(() => {});
   return { videoUrl: url };

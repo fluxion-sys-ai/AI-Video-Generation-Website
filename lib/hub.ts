@@ -645,8 +645,8 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
  * follows the wait: attentive while a fast model is plausibly finishing, then
  * calmer.
  *
- * Attentive is now a quarter of a second, because the fastest model here
- * finishes in about five. Measured end to end on 2026-09-23: a five-second clip
+ * Attentive is now an eighth of a second, because the fastest model here
+ * finishes in about four. Measured end to end on 2026-09-23: a five-second clip
  * took 5.2 s to make and 6.3 s to appear, and three quarters of that second was
  * this function - the job had been done since 35.2 and the next look came at
  * 35.98. A second of cadence is invisible against three minutes and very
@@ -659,7 +659,7 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
  */
 function pollInterval(elapsedMs: number): number {
   if (elapsedMs < 3_000) return 1_000;
-  if (elapsedMs < 20_000) return 250;
+  if (elapsedMs < 20_000) return 125;
   if (elapsedMs < 120_000) return 2_000;
   return 4_000;
 }
@@ -689,14 +689,23 @@ export async function waitForVideo(
  * Playable URL for a finished video. It carries a signed `access` capability,
  * so it works in <video src> and downloads without an Authorization header.
  */
-export async function videoUrl(taskId: string): Promise<string> {
-  try {
-    const stored = await sidecar<{ url: string; source: "gcs" | "hub" }>("GET", `/media/videos/${encodeURIComponent(taskId)}`);
-    if (stored?.url) return stored.url;
-  } catch (err) {
-    if (err instanceof ApiError && err.status === 401) throw err;
-    /* sidecar unavailable: fall through to the hub's own signed URL */
-  }
+/**
+ * Playable URL for a video that has *just* finished, in one hop.
+ *
+ * `videoUrl` asks the sidecar first because a stored video is served from our
+ * bucket, which is cheaper and faster to play. A video that finished a tenth of
+ * a second ago is never stored yet - the provider is still uploading it, and
+ * archiving follows that - so for the playground that first hop can only answer
+ * "not mine yet, ask the hub", after making two calls of its own to say so.
+ * Measured on a finished clip: 0.11 s spent to be told what we already knew.
+ *
+ * So the playground uses this, and the library keeps `videoUrl`.
+ */
+export async function freshVideoUrl(taskId: string): Promise<string> {
+  return hubArtifactUrl(taskId);
+}
+
+async function hubArtifactUrl(taskId: string): Promise<string> {
   const data = await account<{ artifacts: { key: string; content_url: string }[] | null; legacy_content_url?: string }>(
     "GET",
     `/api/task/${encodeURIComponent(taskId)}/artifacts`,
@@ -710,6 +719,17 @@ export async function videoUrl(taskId: string): Promise<string> {
   } catch {
     return url;
   }
+}
+
+export async function videoUrl(taskId: string): Promise<string> {
+  try {
+    const stored = await sidecar<{ url: string; source: "gcs" | "hub" }>("GET", `/media/videos/${encodeURIComponent(taskId)}`);
+    if (stored?.url) return stored.url;
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) throw err;
+    /* sidecar unavailable: fall through to the hub's own signed URL */
+  }
+  return hubArtifactUrl(taskId);
 }
 
 // ---- history -----------------------------------------------------------------
