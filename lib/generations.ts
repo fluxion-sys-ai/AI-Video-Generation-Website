@@ -72,19 +72,53 @@ function seed(): Generation[] {
 
 let live: Generation[] | null = null;
 
+/** The hub's own cap on one page of its task list. */
+const TASK_PAGE = 100;
+
+/**
+ * How many generations the library will load.
+ *
+ * There has to be a number, because every finished one costs a signed URL to
+ * play, and the alternative to a number here is a page that gets slower the
+ * longer somebody has been a customer. Three hundred is about a year of
+ * ordinary use, and paging past it is a "load more" that can be built when
+ * anybody reaches it.
+ */
+const LIBRARY_LIMIT = 300;
+
+/** Resolve in bundles rather than all at once: a library of three hundred
+ *  should not open with three hundred simultaneous requests. */
+async function inBundles<T, R>(items: T[], size: number, work: (item: T) => Promise<R>) {
+  const out: PromiseSettledResult<R>[] = [];
+  for (let at = 0; at < items.length; at += size) {
+    out.push(...(await Promise.allSettled(items.slice(at, at + size).map(work))));
+  }
+  return out;
+}
+
 /** Loads real generations (and their stored video URLs) from the backend. */
-export async function refreshGenerations(limit = 24): Promise<void> {
+export async function refreshGenerations(limit = LIBRARY_LIMIT): Promise<void> {
   if (!BACKEND_ENABLED) return;
-  const { items } = await listGenerations(1, limit);
+  // Page through it. Asking for one page was showing 24 of 104 generations and
+  // calling that the library, with nothing on screen to say the rest existed.
+  // The hub's shape, not this module's: same word, different type.
+  const items: Awaited<ReturnType<typeof listGenerations>>["items"] = [];
+  for (let page = 1; items.length < limit; page++) {
+    const { items: batch, total } = await listGenerations(page, Math.min(TASK_PAGE, limit - items.length));
+    items.push(...batch);
+    if (!batch.length || items.length >= total) break;
+  }
   const finished = items.filter((g) => g.status === "completed");
-  const urls = await Promise.allSettled(finished.map((g) => videoUrl(g.id)));
+  const urls = await inBundles(finished, 16, (g) => videoUrl(g.id));
   // The hub drops a task's request when the job finishes, so the prompt comes
   // from the platform's own record of what was submitted. Without this, history
   // showed a prompt only in the browser that happened to make it - and never
   // for a generation submitted through the API.
   const recorded = new Map<string, string>();
   if (finished.some((g) => !g.prompt)) {
-    await listGenerationPrompts(Math.max(limit, 100))
+    // Ask for at least as many prompts as there are generations on the page, or
+    // the oldest of them come back titleless.
+    await listGenerationPrompts(Math.min(500, Math.max(finished.length, 100)))
       .then(({ generations }) => generations.forEach((r) => r.prompt && recorded.set(r.task_id, r.prompt)))
       .catch(() => {});
   }
@@ -101,7 +135,7 @@ export async function refreshGenerations(limit = 24): Promise<void> {
       createdAt: (g.finishedAt || g.createdAt) * 1000,
     };
   });
-  live = [...videos, ...(await generatedImages(limit))].sort((a, b) => b.createdAt - a.createdAt);
+  live = [...videos, ...(await generatedImages(Math.min(limit, 500)))].sort((a, b) => b.createdAt - a.createdAt);
   notify("generations");
 }
 
@@ -122,12 +156,12 @@ async function generatedImages(limit: number): Promise<Generation[]> {
   const rows = listing?.items ?? [];
   if (!rows.length) return [];
   const prompts = new Map<string, string>();
-  await listGenerationPrompts(Math.max(limit, 100))
+  await listGenerationPrompts(Math.min(500, Math.max(rows.length, 100)))
     .then(({ generations }) => generations.forEach((r) => r.prompt && prompts.set(r.task_id, r.prompt)))
     .catch(() => {});
   // The stored copy, signed. Same route as a video's: the archive does not care
   // which kind it holds.
-  const urls = await Promise.allSettled(rows.map((row) => videoUrl(row.id)));
+  const urls = await inBundles(rows, 16, (row) => videoUrl(row.id));
   return rows.map((row, index) => {
     const name = row.model || "";
     const model = getModels().find((m) => (m.hubModel || m.slug) === name) || getModel(name);
