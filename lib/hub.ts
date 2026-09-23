@@ -953,10 +953,21 @@ export type LibraryListing = {
   folders: LibraryFolder[];
   limits: LibraryLimits;
   usage?: Partial<Record<MediaKind, { count: number; bytes: number }>>;
+  /** How many the account holds, whatever this page carries. */
+  total?: number;
 };
 
-export function listLibrary(kind?: MediaKind): Promise<LibraryListing> {
-  return sidecar<LibraryListing>("GET", `/media/library/media${kind ? `?kind=${kind}` : ""}`);
+export function listLibrary(kind?: MediaKind, page?: { limit: number; offset: number }): Promise<LibraryListing> {
+  const params = new URLSearchParams();
+  if (kind) params.set("kind", kind);
+  // Absent means everything, which is what a picker wants; the library screen
+  // asks for a page so it does not pay for a thousand files to show two dozen.
+  if (page) {
+    params.set("limit", String(page.limit));
+    params.set("offset", String(page.offset));
+  }
+  const suffix = params.toString();
+  return sidecar<LibraryListing>("GET", `/media/library/media${suffix ? `?${suffix}` : ""}`);
 }
 
 export function uploadLibraryMedia(
@@ -999,7 +1010,9 @@ export async function listAssets(
   query: { source?: "uploaded" | "generated" | "all"; kind?: MediaKind; character?: boolean; limit?: number } = {},
 ): Promise<{
   items: (LibraryItem & { source: "uploaded" | "generated"; model?: string | null })[];
+  /** Totals for the account, not for this page. */
   counts: { uploaded: number; generated: number; characters: number };
+  kinds?: { uploaded: Partial<Record<MediaKind, number>>; generated: Partial<Record<MediaKind, number>> };
 }> {
   const params = new URLSearchParams();
   if (query.source) params.set("source", query.source);

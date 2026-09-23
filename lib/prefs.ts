@@ -296,9 +296,54 @@ let liveFolders: LibraryFolder[] = [];
 let folderOfImage: Record<string, string | null> = {};
 let liveLimits: LibraryLimits | null = null;
 
-export async function refreshLibrary(): Promise<void> {
+/**
+ * A page of uploads, and the most kept in memory.
+ *
+ * Same reasoning as the generations list: opening the library should cost one
+ * page, not one signed URL and one thumbnail for every file the account has
+ * ever put here.
+ */
+const UPLOAD_PAGE = 24;
+// Where "Load more" stops, for the reason in lib/generations.ts: rows are
+// cheap, the media they point at is not, and that is released by viewport.
+const UPLOAD_KEEP = 300;
+let uploadsShown = 0;
+let uploadsTotal = 0;
+let uploadUsage: Partial<Record<string, { count: number; bytes: number }>> = {};
+
+/** What is loaded, what exists, and what it all weighs - the last two counted
+ *  by the backend over the whole library rather than over this page. */
+export function libraryLoaded(): {
+  shown: number;
+  total: number;
+  more: boolean;
+  usage: Partial<Record<string, { count: number; bytes: number }>>;
+} {
+  return {
+    shown: uploadsShown,
+    total: Math.max(uploadsTotal, uploadsShown),
+    more: uploadsShown < uploadsTotal && uploadsShown < UPLOAD_KEEP,
+    usage: uploadUsage,
+  };
+}
+
+/** The next page of uploads, appended. */
+export async function loadMoreLibrary(): Promise<void> {
   if (!BACKEND_ENABLED) return;
-  const { items, folders, limits } = await listLibrary();
+  await refreshLibrary({ append: true });
+}
+
+export async function refreshLibrary(options: { append?: boolean } = {}): Promise<void> {
+  if (!BACKEND_ENABLED) return;
+  const offset = options.append ? liveMedia.length : 0;
+  // A refresh after deleting or renaming should not throw away the pages
+  // somebody has already asked for and drop them back to the first two dozen.
+  const want = options.append ? UPLOAD_PAGE : Math.min(Math.max(liveMedia.length, UPLOAD_PAGE), UPLOAD_KEEP);
+  const { items: page, folders, limits, usage, total } = await listLibrary(undefined, { limit: want, offset });
+  const items = options.append ? [...liveMedia, ...page] : page;
+  uploadsShown = items.length;
+  uploadsTotal = total ?? uploadsShown;
+  uploadUsage = usage ?? {};
   liveFolders = folders;
   liveLimits = limits;
   liveMedia = items;

@@ -7,7 +7,8 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
 import { getModels, getModel, getModelsOfKind, type Model, refreshCatalog } from "@/lib/models";
-import { getGenerations, refreshGenerations, loadMoreGenerations, generationsLoaded, formatWhen, type Generation } from "@/lib/generations";
+import { getGenerations, refreshGenerations, loadMoreGenerations, generationsLoaded, generationTotals, formatWhen, type Generation } from "@/lib/generations";
+import { libraryLoaded, loadMoreLibrary } from "@/lib/prefs";
 import { ApiError, BACKEND_ENABLED } from "@/lib/hub";
 import { useLive, useLiveState } from "@/lib/live";
 import {
@@ -43,7 +44,7 @@ import { Heart, ImageIcon, FolderOpen, Search, Clapperboard, Music, Film } from 
 import { KindSwitch, type Kind } from "@/components/ui/kind-switch";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GenerationRecordPanel } from "@/components/library/generation-record";
-import { LazyResult } from "@/components/library/lazy-result";
+import { LazyResult, useNearViewport } from "@/components/library/lazy-result";
 
 // Video card. The clip itself is the thumbnail: mounted with preload="metadata"
 // so the browser paints *this* video's first frame rather than the model's stock
@@ -123,6 +124,31 @@ function MoreGenerations() {
         className="border border-line-strong px-5 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg-soft transition-colors hover:border-blue-line hover:text-fg disabled:opacity-60"
       >
         {busy ? "Loading…" : "Load more"}
+      </button>
+      <p className="font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-dim">
+        {shown} of {total}
+      </p>
+    </div>
+  );
+}
+
+/** "Load more" for uploads, and how many there are. */
+function MoreUploads() {
+  const [busy, setBusy] = useState(false);
+  const { shown, total, more } = libraryLoaded();
+  if (!BACKEND_ENABLED || total <= shown) return null;
+  return (
+    <div className="mt-8 flex flex-col items-center gap-2">
+      <button
+        type="button"
+        disabled={busy || !more}
+        onClick={() => {
+          setBusy(true);
+          void loadMoreLibrary().finally(() => setBusy(false));
+        }}
+        className="border border-line-strong px-5 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.08em] text-fg-soft transition-colors hover:border-blue-line hover:text-fg disabled:opacity-60"
+      >
+        {busy ? "Loading…" : more ? "Load more" : "That is all this screen holds"}
       </button>
       <p className="font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-dim">
         {shown} of {total}
@@ -211,16 +237,31 @@ function LoadingGrid({ label }: { label: string }) {
 
 function UploadPreview({ item, dimmed }: { item: Upload; dimmed: boolean }) {
   const player = useRef<HTMLVideoElement | null>(null);
+  const box = useRef<HTMLDivElement | null>(null);
+  // Nothing is fetched until the tile is nearly on screen. A library of two
+  // hundred files was two hundred thumbnails and, worse, two hundred video
+  // elements each pulling metadata, before the first row had been looked at.
+  const near = useNearViewport(box);
   const dim = dimmed ? "opacity-80" : "";
   if (item.kind === "image") {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={item.url} alt="" className={`h-full w-full object-cover transition-opacity ${dim}`} draggable={false} />
+      <div ref={box} className="h-full w-full">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={near ? item.url : undefined}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className={`h-full w-full object-cover transition-opacity ${dim}`}
+          draggable={false}
+        />
+      </div>
     );
   }
   if (item.kind === "video") {
     return (
       <div
+        ref={box}
         className="h-full w-full"
         // The clip stays mounted so its first frame is the thumbnail; hovering
         // plays it. Toggling `autoPlay` on a mounted video does nothing, so
@@ -235,15 +276,19 @@ function UploadPreview({ item, dimmed }: { item: Upload; dimmed: boolean }) {
           el.currentTime = 0;
         }}
       >
-        <video
-          ref={player}
-          src={item.url}
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          className={`h-full w-full object-cover transition-opacity ${dim}`}
-        />
+        {near ? (
+          <video
+            ref={player}
+            src={item.url}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            className={`h-full w-full object-cover transition-opacity ${dim}`}
+          />
+        ) : (
+          <div className="h-full w-full bg-black" />
+        )}
         <span className="pointer-events-none absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-[6px] bg-black/70 px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.04em] text-white">
           <Film size={9} />
           {item.duration != null ? `${Math.round(item.duration)}s` : "video"}
@@ -772,12 +817,22 @@ function LibraryInner() {
       .catch((err) => toast(err instanceof Error ? err.message : "Could not rename that file."));
   }
   const favCount = uploads.filter((im) => im.fav).length;
-  const counts = {
+  // Counted by the backend over the whole library. Summing the loaded rows made
+  // the header say how far you had scrolled, which is not what anybody reads it
+  // for - and with paging it would have started low and crept upwards.
+  const usage = libraryLoaded().usage;
+  const loadedCounts = {
     image: uploads.filter((u) => u.kind === "image").length,
     video: uploads.filter((u) => u.kind === "video").length,
     audio: uploads.filter((u) => u.kind === "audio").length,
   };
-  const storedBytes = uploads.reduce((sum, u) => sum + (u.size || 0), 0);
+  const counts = {
+    image: usage.image?.count ?? loadedCounts.image,
+    video: usage.video?.count ?? loadedCounts.video,
+    audio: usage.audio?.count ?? loadedCounts.audio,
+  };
+  const storedBytes = Object.values(usage).reduce((sum, u) => sum + (u?.bytes ?? 0), 0)
+    || uploads.reduce((sum, u) => sum + (u.size || 0), 0);
   const storageRate = getLibraryLimits()?.storage_usd_per_gb_month ?? null;
   const selectedImages = uploads.filter((u) => selected.has(u.id) && u.kind === "image").length;
 
@@ -823,9 +878,13 @@ function LibraryInner() {
         {/* GENERATED: what the platform made. A clip shows its poster and plays
             on hover; a picture is simply itself. */}
         {tab === "generated" && (() => {
+          // Totals for the account, from the backend - not a count of what
+          // happens to be loaded, which changes as you page and answers a
+          // question nobody asked.
+          const totals = generationTotals();
           const counts = {
-            video: gens.filter((g) => g.kind !== "image").length,
-            image: gens.filter((g) => g.kind === "image").length,
+            video: Math.max(totals.video, gens.filter((g) => g.kind !== "image").length),
+            image: Math.max(totals.image, gens.filter((g) => g.kind === "image").length),
           };
           // Offered because this account *can* make pictures, not because it
           // already has. Keyed on having some, the switch was invisible to the
@@ -863,7 +922,7 @@ function LibraryInner() {
                       <VideoThumb key={g.id} g={g} onOpen={openRecord} />
                     ))}
                   </div>
-                  <MoreGenerations />
+                  {genKind !== "image" && <MoreGenerations />}
                 </>
               )}
             </>
@@ -1174,6 +1233,7 @@ function LibraryInner() {
               )}
             </div>
             )}
+            <MoreUploads />
           </>
         )}
       </main>

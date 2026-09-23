@@ -82,15 +82,43 @@ let live: Generation[] | null = null;
  * tab holding a thousand rows and a thousand media elements.
  */
 const PAGE = 24;
-const KEEP = 96;
+// The most rows this screen will hold. Not an eviction point: dropping rows out
+// of the middle of a grid somebody is reading moves everything under their
+// cursor, which is worse than the memory it saves - a row is a couple of
+// hundred bytes, while the expensive parts (the signed URL and the media
+// element) are already released when a card scrolls away. This is where "Load
+// more" stops offering, and says so.
+const KEEP = 300;
+// Generated images, fetched once. Paging these too would need an offset on the
+// assets listing; nobody has enough of them for that to be the next problem.
+const IMAGE_LIMIT = 96;
 
 let loadedPage = 0;
 let reportedTotal = 0;
 
 /** What is on screen, what exists, and whether there is more to ask for. */
-export function generationsLoaded(): { shown: number; total: number; more: boolean } {
+export function generationsLoaded(): { shown: number; total: number; more: boolean; capped: boolean } {
+  const videos = (live ?? []).filter((g) => g.kind !== "image").length;
   const shown = live?.length ?? 0;
-  return { shown, total: Math.max(reportedTotal, shown), more: shown < reportedTotal };
+  return {
+    shown,
+    total: Math.max(reportedTotal, videos),
+    more: videos < reportedTotal && videos < KEEP,
+    capped: videos >= KEEP,
+  };
+}
+
+/**
+ * How many videos and images this account has generated, in total.
+ *
+ * Counted by the backend over everything, because the number beside a tab
+ * should answer "how many do I have" and not "how many are currently loaded" -
+ * the second changes while you scroll and is never what the question meant.
+ */
+let totalsByKind: { video: number; image: number } = { video: 0, image: 0 };
+
+export function generationTotals(): { video: number; image: number } {
+  return totalsByKind;
 }
 
 /**
@@ -167,14 +195,20 @@ export async function loadMoreGenerations(): Promise<void> {
       createdAt: (g.finishedAt || g.createdAt) * 1000,
     };
   });
-  // Images come with the first page only. There are far fewer of them, they are
-  // not tasks, and paging two lists against one scroll position is a
-  // complication worth having when somebody has enough of them to need it.
-  const images = wanted === 1 ? await generatedImages(PAGE * 2) : [];
+  // Images come with the first page only. They are not tasks - there is no
+  // page of them to ask the hub for - and there are far fewer, so they are
+  // fetched once and kept whole.
+  const images = wanted === 1 ? await generatedImages(IMAGE_LIMIT) : [];
   const known = new Set((live ?? []).map((g) => g.id));
-  const all = [...(live ?? []), ...[...videos, ...images].filter((g) => !known.has(g.id))]
-    .sort((a, b) => b.createdAt - a.createdAt);
-  live = all.length > KEEP ? all.slice(0, KEEP) : all;
+  const all = [...(live ?? []), ...[...videos, ...images].filter((g) => !known.has(g.id))];
+  // The cap applies to the videos, which is what grows page by page. Trimming
+  // the merged list would have thrown the images away instead: they are the
+  // oldest rows in it, so the second "Load more" would have emptied the image
+  // tab.
+  const keptVideos = all.filter((g) => g.kind !== "image").sort((a, b) => b.createdAt - a.createdAt).slice(0, KEEP);
+  // Past the cap there is nothing more to offer, whatever the hub says it has.
+  const keptImages = all.filter((g) => g.kind === "image");
+  live = [...keptVideos, ...keptImages].sort((a, b) => b.createdAt - a.createdAt);
   notify("generations");
 }
 
@@ -192,6 +226,12 @@ export async function loadMoreGenerations(): Promise<void> {
  */
 async function generatedImages(limit: number): Promise<Generation[]> {
   const listing = await listAssets({ source: "generated", kind: "image", limit }).catch(() => null);
+  if (listing?.kinds?.generated) {
+    totalsByKind = {
+      video: listing.kinds.generated.video ?? 0,
+      image: listing.kinds.generated.image ?? 0,
+    };
+  }
   const rows = listing?.items ?? [];
   if (!rows.length) return [];
   const prompts = new Map<string, string>();

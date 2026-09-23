@@ -4,6 +4,28 @@ import { useEffect, useRef, useState } from "react";
 import { resultUrl } from "@/lib/generations";
 
 /**
+ * Whether an element is within reach of the screen.
+ *
+ * The margin is generous on purpose: work starts before the element is in view,
+ * so scrolling at a normal speed still finds things ready. Used by anything
+ * that should cost nothing until it is nearly visible.
+ */
+export function useNearViewport<T extends HTMLElement>(ref: { current: T | null }, margin = "300px 0px") {
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(
+      (entries) => setNear(entries.some((entry) => entry.isIntersecting)),
+      { rootMargin: margin, threshold: 0 },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref, margin]);
+  return near;
+}
+
+/**
  * A result's own frame, fetched when it comes near the screen and let go when
  * it leaves.
  *
