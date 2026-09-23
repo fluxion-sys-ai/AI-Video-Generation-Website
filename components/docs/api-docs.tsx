@@ -87,15 +87,6 @@ function VideoApiDocs({ model }: { model: Model }) {
     { name: "resolution", type: "enum", desc: `${model.resolutions.join(", ")}. Defaults to ${model.resolutions[0]}.` },
     ...(model.supports.audio ? [{ name: "audio", type: "boolean", desc: "Generate a soundtrack." }] : []),
     ...(model.supports.seed ? [{ name: "seed", type: "integer", desc: "Seed for reproducible output." }] : []),
-    // Only this model plans against a deadline, and only because it runs on our
-    // own hardware: the numbers are calibrated to that machine.
-    ...(id === "MiniMax-H3-Fast"
-      ? [{
-          name: "metadata.generation_time_budget_s",
-          type: "number",
-          desc: "A ceiling, in seconds, on how long the model may spend. Given one, the clip is planned to fit: the area given to reference images is trimmed first and the generation canvas is lowered only after that, so what you asked for stays recognisable while it gets cheaper to make. Measured warm on our B200 for a 5 s clip with three references — 3.6 s by default, 2.6 s at a budget of 3, 1.3 s at a budget of 2. Omit it and nothing changes. A budget too small for the references is refused, with the numbers that made it impossible.",
-        }]
-      : []),
     ...(ref?.video
       ? [{
           name: "metadata.reference_video",
