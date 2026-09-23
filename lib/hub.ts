@@ -644,9 +644,22 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
  * minutes is a hundred and eighty requests to learn nothing. So the interval
  * follows the wait: attentive while a fast model is plausibly finishing, then
  * calmer.
+ *
+ * Attentive is now a quarter of a second, because the fastest model here
+ * finishes in about five. Measured end to end on 2026-09-23: a five-second clip
+ * took 5.2 s to make and 6.3 s to appear, and three quarters of that second was
+ * this function - the job had been done since 35.2 and the next look came at
+ * 35.98. A second of cadence is invisible against three minutes and very
+ * visible against five.
+ *
+ * The window is bounded on both sides: nothing is ready before about three
+ * seconds, and a job still running at twenty is not one of the fast ones. So a
+ * long hosted job pays perhaps seventy extra requests, each a small GET, and
+ * only in the stretch where it might have been finishing.
  */
 function pollInterval(elapsedMs: number): number {
-  if (elapsedMs < 30_000) return 1_000;
+  if (elapsedMs < 3_000) return 1_000;
+  if (elapsedMs < 20_000) return 250;
   if (elapsedMs < 120_000) return 2_000;
   return 4_000;
 }
