@@ -26,6 +26,20 @@ import { toast } from "@/lib/toast";
 
 type Status = "idle" | "generating" | "complete" | "failed";
 
+/**
+ * How long the last generation took, as a person would say it.
+ *
+ * This is the wall clock from pressing Generate to the result being playable -
+ * the hub hop, the queue, the model, the encode and our own polling, not the
+ * engine's own number. It is the one a customer can check against the clock on
+ * the wall, which is why it is the one on screen.
+ */
+function elapsedLabel(ms: number): string {
+  const seconds = ms / 1000;
+  if (seconds < 60) return `${seconds.toFixed(1)}s`;
+  return `${Math.floor(seconds / 60)}m ${String(Math.floor(seconds % 60)).padStart(2, "0")}s`;
+}
+
 type Draft = {
   slug: string;
   aspect: string;
@@ -248,6 +262,8 @@ function GenerateInner() {
   useEffect(() => setFav(isFavorite(slug)), [slug]);
 
   const [status, setStatus] = useState<Status>("idle");
+  const [elapsedMs, setElapsedMs] = useState<number | null>(null);
+  const startedAt = useRef(0);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   // Why the last attempt failed, kept until the next one starts.
   const [failure, setFailure] = useState("");
@@ -260,6 +276,25 @@ function GenerateInner() {
   // Bumped on every run/reset so a stale in-flight generation can't overwrite
   // state after the user has moved on (replaces the old setTimeout handle).
   const genId = useRef(0);
+
+  /**
+   * The clock, running while a generation is in flight.
+   *
+   * The cleanup is the interesting half: it runs the moment `status` stops
+   * being "generating", so the number freezes at what the wait actually was
+   * rather than at the last tick before it. `performance.now()` because this is
+   * a duration and the wall clock can be adjusted underneath it.
+   */
+  useEffect(() => {
+    if (status !== "generating") return;
+    startedAt.current = performance.now();
+    setElapsedMs(0);
+    const tick = setInterval(() => setElapsedMs(performance.now() - startedAt.current), 100);
+    return () => {
+      clearInterval(tick);
+      setElapsedMs(performance.now() - startedAt.current);
+    };
+  }, [status]);
 
   // Refine session: appears automatically after the first generation.
   const [session, setSession] = useState(false);
@@ -1249,9 +1284,17 @@ function GenerateInner() {
       {/* Preview stage (right): the chosen aspect shape; the video generates here */}
       <section className="pg-preview flex flex-col gap-3 lg:sticky lg:top-24 lg:self-start">
         <div className="flex flex-1 flex-col items-center justify-start gap-2">
-        <span className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em] text-gold">
-          Preview
-        </span>
+        <div className="flex items-baseline gap-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.1em]">
+          <span className="text-gold">Preview</span>
+          {elapsedMs !== null && (
+            <span
+              className={status === "generating" ? "tabular-nums text-muted" : "tabular-nums text-fg-soft"}
+              title="Wall clock from pressing Generate to a playable result: the hub, the queue, the model, the encode and this page looking."
+            >
+              {elapsedLabel(elapsedMs)}
+            </span>
+          )}
+        </div>
         <div
           className="relative overflow-hidden rounded-none border border-line-strong bg-black"
           style={portrait ? { aspectRatio: `${aw} / ${ah}`, height: "min(72vh, 640px)" } : { aspectRatio: `${aw} / ${ah}`, width: "100%", maxWidth: 680 }}
