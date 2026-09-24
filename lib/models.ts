@@ -21,7 +21,12 @@ export type Model = {
   resolutions: string[]; // e.g. "720p"
   aspectRatios: string[]; // e.g. "16:9"
   popularResolutions: string[]; // highlighted in the dropdown
-  supports: { image: boolean; audio: boolean; seed: boolean; videoReference?: boolean; audioReference?: boolean; imageReference?: boolean };
+  supports: {
+    image: boolean; audio: boolean; seed: boolean;
+    videoReference?: boolean; audioReference?: boolean; imageReference?: boolean;
+    /** Takes metadata.generation_time_budget_s, a ceiling on generation time. */
+    timeBudget?: boolean;
+  };
   /** What this model takes as reference material, and what each file must be.
    *  From the catalogue row in the backend, so nothing here is hardcoded. */
   reference?: ReferenceRules;
@@ -186,6 +191,7 @@ function toModel(entry: Awaited<ReturnType<typeof getCatalog>>[number]): Model {
       videoReference: Boolean(entry.supports?.video_reference || entry.supports?.reference?.video),
       audioReference: Boolean(entry.supports?.audio_reference || entry.supports?.reference?.audio),
       imageReference: Boolean(entry.supports?.image_reference || entry.supports?.reference?.image),
+      timeBudget: Boolean(entry.supports?.time_budget),
     },
     reference: entry.supports?.reference,
     // A registered image competes for the same reference-image slots, so this

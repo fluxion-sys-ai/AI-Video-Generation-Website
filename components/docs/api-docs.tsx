@@ -87,9 +87,10 @@ function VideoApiDocs({ model }: { model: Model }) {
     { name: "resolution", type: "enum", desc: `${model.resolutions.join(", ")}. Defaults to ${model.resolutions[0]}.` },
     ...(model.supports.audio ? [{ name: "audio", type: "boolean", desc: "Generate a soundtrack." }] : []),
     ...(model.supports.seed ? [{ name: "seed", type: "integer", desc: "Seed for reproducible output." }] : []),
-    // Only this model takes a deadline; MiniMax-H3-Fast refuses the field. What
-    // the parameter does for a caller belongs here - how it is done does not.
-    ...(id === "MiniMax-H3-UltraFast"
+    // Whether a model takes a deadline is the catalogue's to say, not this
+    // page's to know. What the parameter does for a caller belongs here; how it
+    // is done does not.
+    ...(model.supports.timeBudget
       ? [{
           name: "metadata.generation_time_budget_s",
           type: "number",

@@ -1271,6 +1271,8 @@ export type CatalogModel = {
     video_reference?: boolean;
     audio_reference?: boolean;
     image_reference?: boolean;
+    /** Whether a caller may cap generation time with metadata.generation_time_budget_s. */
+    time_budget?: boolean;
     /** What reference material this model takes, and what each file must satisfy. */
     reference?: ReferenceRules;
     /** Reusable characters registered with the provider. Absent = not offered. */

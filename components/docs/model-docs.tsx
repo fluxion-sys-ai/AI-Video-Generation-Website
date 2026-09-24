@@ -102,9 +102,12 @@ function curlFor(model: Model, perSecond: string): string {
     lines.push(
       `    "metadata": {`,
       `      "reference_image": ["https://…"],`,
-      `      "reference_video": ["https://…"]`,
-      `    }`,
+      `      "reference_video": ["https://…"]${model.supports.timeBudget ? "," : ""}`,
     );
+    // A ceiling on generation time, where the model offers one. Shown in the
+    // example because a parameter nobody sees is a parameter nobody uses.
+    if (model.supports.timeBudget) lines.push(`      "generation_time_budget_s": 4.5`);
+    lines.push(`    }`);
   }
   lines.push(`  }'`);
   return lines.join("\n");
@@ -183,6 +186,15 @@ export function ModelDocs() {
                       <code className="text-gold-2">reference_video</code> and{" "}
                       <code className="text-gold-2">reference_audio</code>
                       {Number(model.reference?.min_visual || 0) > 0 ? "; at least one image or clip is required" : ""}
+                    </Row>
+                  )}
+                  {model.supports.timeBudget && (
+                    <Row label="generation_time_budget_s">
+                      optional: a ceiling in seconds on generation time, as{" "}
+                      <code className="text-gold-2">metadata.generation_time_budget_s</code>. The clip is
+                      planned to fit it — a tighter budget works from less of your reference detail and comes
+                      back sooner, at the same length and size. A budget that cannot be met is refused, and
+                      the refusal names the smallest one that can. Same price either way.
                     </Row>
                   )}
                   <Row label="price">{perSecond} per second of output</Row>
