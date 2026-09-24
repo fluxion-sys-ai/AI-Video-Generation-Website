@@ -456,7 +456,9 @@ function GenerateInner() {
     const wanted = new Set(pending.map((i) => i.id).filter(Boolean) as string[]);
     if (!wanted.size) return;
     void (async () => {
-      const listing = await listLibrary("image").catch(() => null);
+      // The ids came from the library screen, so ask for those rather than for
+      // every image the account has and filtering it here.
+      const listing = await listLibrary("image", undefined, [...wanted]).catch(() => null);
       if (!alive) return;
       const picked = (listing?.items || []).filter((i) => wanted.has(i.id));
       if (picked.length) setRefImages(picked);
@@ -503,7 +505,14 @@ function GenerateInner() {
     if (!wanted.length) return;
     let alive = true;
     void (async () => {
-      const listing = await listLibrary().catch(() => null);
+      // Exactly the files this generation used, by id. This asked for the whole
+      // library - every image, clip and audio file the account has, each one
+      // costing the backend a signed link - to find the two or three it needed.
+      const listing = await listLibrary(
+        undefined,
+        undefined,
+        wanted.map((input) => input.item_id as string),
+      ).catch(() => null);
       if (!alive) return;
       const byId = new Map((listing?.items || []).map((i) => [i.id, i]));
       const videos: LibraryItem[] = [];

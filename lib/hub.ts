@@ -957,15 +957,21 @@ export type LibraryListing = {
   total?: number;
 };
 
-export function listLibrary(kind?: MediaKind, page?: { limit: number; offset: number }): Promise<LibraryListing> {
+export function listLibrary(
+  kind?: MediaKind,
+  page?: { limit: number; offset: number },
+  ids?: string[],
+): Promise<LibraryListing> {
   const params = new URLSearchParams();
   if (kind) params.set("kind", kind);
-  // Absent means everything, which is what a picker wants; the library screen
-  // asks for a page so it does not pay for a thousand files to show two dozen.
+  // Absent means everything. Almost nothing should want that: every row costs
+  // the backend a signed link, so a screen asks for the page it will show and
+  // a caller that knows the ids asks for those.
   if (page) {
     params.set("limit", String(page.limit));
     params.set("offset", String(page.offset));
   }
+  if (ids && ids.length) params.set("ids", ids.join(","));
   const suffix = params.toString();
   return sidecar<LibraryListing>("GET", `/media/library/media${suffix ? `?${suffix}` : ""}`);
 }

@@ -10,8 +10,9 @@
 // any video or audio - and the verdict on a particular file arrives from the
 // backend's own check, which the page runs whenever the selection changes.
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { listLibrary, uploadLibraryMedia, type LibraryItem, type ReferenceLimits } from "@/lib/hub";
+import { useNearViewport } from "@/components/library/lazy-result";
 import { refreshLibrary } from "@/lib/prefs";
 import { money } from "@/lib/rate-card";
 import { toast } from "@/lib/toast";
@@ -70,23 +71,45 @@ function describe(item: LibraryItem): string {
  * choice being made at this moment, and a label that only appears afterwards
  * is a label that arrives too late to help.
  */
+// A page, not a library. Every row the backend returns costs it a signed link,
+// and every tile rendered costs the browser a full-size download, so asking for
+// three hundred images to show a dozen was paying twice for what nobody sees.
+// More arrive when the reader scrolls to the end of what they have.
+const PICKER_PAGE = 24;
+
+function LazyTile({ url, name, className }: { url: string; name: string; className: string }) {
+  const box = useRef<HTMLSpanElement | null>(null);
+  const near = useNearViewport(box);
+  return (
+    <span ref={box} className="block h-full w-full">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={near ? url : undefined} alt={name} loading="lazy" decoding="async" className={className} />
+    </span>
+  );
+}
+
 export function LibraryImagePicker({ chosen, onPick }: { chosen: string[]; onPick: (item: LibraryItem) => void }) {
   const [items, setItems] = useState<LibraryItem[] | null>(null);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const loadPage = useCallback(async (offset: number) => {
+    setLoading(true);
+    try {
+      const listing = await listLibrary("image", { limit: PICKER_PAGE, offset });
+      setItems((have) => (offset === 0 ? listing.items : [...(have || []), ...listing.items]));
+      setTotal(listing.total ?? listing.items.length);
+    } catch (err) {
+      setItems((have) => have || []);
+      toast(err instanceof Error ? err.message : "Could not load your images.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let alive = true;
-    listLibrary("image")
-      .then((listing) => {
-        if (alive) setItems(listing.items);
-      })
-      .catch((err) => {
-        if (alive) setItems([]);
-        toast(err instanceof Error ? err.message : "Could not load your images.");
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
+    void loadPage(0);
+  }, [loadPage]);
 
   if (items === null) return <p className="mb-2 text-sm text-muted">Loading your images…</p>;
   if (items.length === 0) {
@@ -97,6 +120,7 @@ export function LibraryImagePicker({ chosen, onPick }: { chosen: string[]; onPic
     );
   }
   const taken = new Set(chosen);
+  const more = items.length < total;
   return (
     <div className="mb-2 max-h-48 overflow-y-auto border border-line bg-surface/60 p-2">
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
@@ -114,7 +138,7 @@ export function LibraryImagePicker({ chosen, onPick }: { chosen: string[]; onPic
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.url} alt={item.name} className="h-full w-full object-cover" />
+              <LazyTile url={item.url} name={item.name} className="h-full w-full object-cover" />
               {item.character && (
                 <span
                   title={
@@ -148,6 +172,16 @@ export function LibraryImagePicker({ chosen, onPick }: { chosen: string[]; onPic
           );
         })}
       </div>
+      {more && (
+        <button
+          type="button"
+          onClick={() => void loadPage(items.length)}
+          disabled={loading}
+          className="mt-2 w-full border border-line py-1 text-xs text-muted hover:border-blue hover:text-fg-soft disabled:opacity-60"
+        >
+          {loading ? "Loading…" : `Show more (${items.length} of ${total})`}
+        </button>
+      )}
     </div>
   );
 }
@@ -174,21 +208,35 @@ export function ReferenceMedia({
 }) {
   const [browsing, setBrowsing] = useState(false);
   const [stored, setStored] = useState<LibraryItem[] | null>(null);
+  const [storedTotal, setStoredTotal] = useState(0);
+  const [paging, setPaging] = useState(false);
   const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const full = Boolean(limits?.max_count && items.length >= limits.max_count);
 
+  const loadStored = useCallback(
+    async (offset: number) => {
+      setPaging(true);
+      try {
+        const listing = await listLibrary(kind, { limit: PICKER_PAGE, offset });
+        setStored((have) => (offset === 0 ? listing.items : [...(have || []), ...listing.items]));
+        setStoredTotal(listing.total ?? listing.items.length);
+      } catch (err) {
+        setStored((have) => have || []);
+        toast(err instanceof Error ? err.message : `Could not load your ${kind} files.`);
+      } finally {
+        setPaging(false);
+      }
+    },
+    [kind],
+  );
+
   useEffect(() => {
     if (!browsing || stored) return;
     let alive = true;
-    listLibrary(kind)
-      .then((listing) => {
-        if (alive) setStored(listing.items);
-      })
-      .catch((err) => {
-        if (alive) setStored([]);
-        toast(err instanceof Error ? err.message : `Could not load your ${kind} files.`);
-      });
+    void loadStored(0).then(() => {
+      if (!alive) return;
+    });
     return () => {
       alive = false;
     };
@@ -244,7 +292,16 @@ export function ReferenceMedia({
           {items.map((item) => (
             <li key={item.id} className="flex items-center gap-3 border border-line bg-surface/60 p-2">
               {kind === "video" ? (
-                <video src={item.url} muted playsInline controls className="h-20 w-32 bg-black object-contain" />
+                <video
+                  src={item.url}
+                  muted
+                  playsInline
+                  controls
+                  // A reference clip can be 200 MB. Enough to show a frame,
+                  // and not a byte more until somebody asks to watch it.
+                  preload="metadata"
+                  className="h-20 w-32 bg-black object-contain"
+                />
               ) : kind === "audio" ? (
                 <audio src={item.url} controls className="h-10 w-56" />
               ) : (
@@ -324,10 +381,9 @@ export function ReferenceMedia({
                   {/* A face cannot be recognised from a filename, and a
                       portrait is picked by which face it is. */}
                   {kind === "image" && item.url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.url}
-                      alt=""
+                    <LazyTile
+                      url={item.url}
+                      name=""
                       className="h-10 w-10 shrink-0 border border-line bg-black object-cover"
                     />
                   )}
@@ -373,6 +429,16 @@ export function ReferenceMedia({
                 </li>
               ))}
             </ul>
+          )}
+          {stored !== null && stored.length > 0 && stored.length < storedTotal && (
+            <button
+              type="button"
+              onClick={() => void loadStored(stored.length)}
+              disabled={paging}
+              className="w-full border-t border-hairline py-1.5 text-xs text-muted hover:text-fg-soft disabled:opacity-60"
+            >
+              {paging ? "Loading…" : `Show more (${stored.length} of ${storedTotal})`}
+            </button>
           )}
         </div>
       )}
