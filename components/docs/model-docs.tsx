@@ -34,7 +34,9 @@ function Code({ children }: { children: string }) {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-wrap gap-x-3 gap-y-1 border-b border-hairline py-2 last:border-0">
-      <span className="w-40 shrink-0 font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-dim">{label}</span>
+      {/* break-words because a label can be an identifier with no space in
+          it to break at, and a fixed column then paints it over the value. */}
+      <span className="w-40 shrink-0 break-words font-[family-name:var(--font-jetbrains)] text-[11px] uppercase tracking-[0.06em] text-dim">{label}</span>
       <span className="min-w-0 flex-1 text-sm text-muted">{children}</span>
     </div>
   );
@@ -189,9 +191,10 @@ export function ModelDocs() {
                     </Row>
                   )}
                   {model.supports.timeBudget && (
-                    <Row label="generation_time_budget_s">
-                      optional: a ceiling in seconds on generation time, as{" "}
-                      <code className="text-gold-2">metadata.generation_time_budget_s</code>. The clip is
+                    <Row label="time budget">
+                      optional:{" "}
+                      <code className="text-gold-2">metadata.generation_time_budget_s</code>, a ceiling in
+                      seconds on generation time. The clip is
                       planned to fit it — a tighter budget works from less of your reference detail and comes
                       back sooner, at the same length and size. A budget that cannot be met is refused, and
                       the refusal names the smallest one that can. Same price either way.
