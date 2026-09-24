@@ -87,6 +87,17 @@ function VideoApiDocs({ model }: { model: Model }) {
     { name: "resolution", type: "enum", desc: `${model.resolutions.join(", ")}. Defaults to ${model.resolutions[0]}.` },
     ...(model.supports.audio ? [{ name: "audio", type: "boolean", desc: "Generate a soundtrack." }] : []),
     ...(model.supports.seed ? [{ name: "seed", type: "integer", desc: "Seed for reproducible output." }] : []),
+    // Only this model plans against a deadline, and only because it runs on the
+    // box whose generation shapes are all compiled: anywhere else the first
+    // request at a given budget would pay a ~30 s kernel compile, which is the
+    // one thing a deadline must not do. MiniMax-H3-Fast refuses the field.
+    ...(id === "MiniMax-H3-UltraFast"
+      ? [{
+          name: "metadata.generation_time_budget_s",
+          type: "number",
+          desc: "A ceiling, in seconds, on how long the model may spend. Given one, the clip is planned to fit: the area given to reference images is trimmed first and the generation canvas is lowered only after that, so what you asked for stays recognisable while it gets cheaper to make. Measured warm for a 5 s clip with three references — 3.6 s by default, 2.6 s at a budget of 3, 1.3 s at a budget of 2. Omit it and nothing changes, at the same price. A budget too small for the references is refused, with the numbers that made it impossible. It bounds the model's own time, not the round trip.",
+        }]
+      : []),
     ...(ref?.video
       ? [{
           name: "metadata.reference_video",
