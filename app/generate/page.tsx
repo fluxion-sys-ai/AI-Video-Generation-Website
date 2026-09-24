@@ -15,7 +15,7 @@ import { NumberField, isPositive } from "@/components/ui/number-field";
 import { addRecent, takePendingImages, takePendingRequest, addLibraryImages, isFavorite, toggleFavorite, uploadLibraryImage } from "@/lib/prefs";
 import { BACKEND_ENABLED, checkReferences, listLibrary, type LibraryItem } from "@/lib/hub";
 import { ReferenceMedia, LibraryImagePicker, IMAGE_ACCEPT } from "@/components/generate/reference-media";
-import { costBreakdown, estimateTokens, money, ratesFor, useRateCard } from "@/lib/rate-card";
+import { costBreakdown, estimateTokens, money, ratesFor, tokenBilled, useRateCard } from "@/lib/rate-card";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { useSkin } from "@/lib/use-skin";
 import { PreviewBadge } from "@/components/models/preview-badge";
@@ -363,10 +363,19 @@ function GenerateInner() {
       seconds: duration,
       resolution,
       // Some providers bill by pixels rather than by seconds, so the aspect
-      // ratio is part of the price. Computed with the same arithmetic the
-      // plugin uses, so this quotes the charge rather than guessing at it;
-      // models priced per second ignore it.
-      tokens: estimateTokens(resolution, aspect, duration),
+      // ratio is part of the price. Models priced per second ignore it.
+      //
+      // Reference material is counted too, and not by its own size: measured
+      // against real jobs, a reference clip bills at the *output* resolution
+      // for its own length or three seconds, whichever is longer. Leaving it
+      // out quoted 86,400 tokens for a job the provider counted at 152,100.
+      // Still an estimate - the provider's count is what settles - but one
+      // that moves when the customer adds a clip.
+      tokens:
+        estimateTokens(resolution, aspect, duration) +
+        (refVideos.length > 0
+          ? estimateTokens(resolution, aspect, Math.max(3, refFacts?.input_video_seconds ?? 0))
+          : 0),
       // Some providers charge two rates for the same model and pick between
       // them on whether a video is among the inputs. Counter-intuitively the
       // rate with one is the cheaper, so this is not cosmetic: the quote moves
@@ -384,7 +393,9 @@ function GenerateInner() {
       // Say the shape too: at one resolution a 21:9 clip costs 2.3x a square
       // one, and a price that moves when you change the ratio is confusing
       // until you are told why.
-      tokens: (units) => `${duration}s at ${resolution} ${aspect} (${units.toLocaleString()} tokens)`,
+      tokens: (units) =>
+        `${duration}s at ${resolution} ${aspect}${refVideos.length > 0 ? " plus reference footage" : ""}` +
+        ` (about ${units.toLocaleString()} tokens)`,
       input_video_seconds: (units) => `${Number(units.toFixed(2))}s of reference video`,
       input_images_billable: (units) => `${units} image${units === 1 ? "" : "s"} past the first ${freeImages}`,
     };
@@ -392,6 +403,7 @@ function GenerateInner() {
       total: broken.total,
       parts: broken.lines.map((line) => `${money(line.usd)} for ${(labels[line.field] || ((u: number) => `${u} ${line.field}`))(line.units)}`),
       reserves: facts.input_video_seconds > 0,
+      estimated: tokenBilled(ratesFor(card, model)),
     };
   })();
 
@@ -1261,6 +1273,12 @@ function GenerateInner() {
               {estimate.reserves && (
                 <span className="block text-xs text-dim">
                   A reference clip is charged for its own length. Until the provider reports it, the hold assumes the longest it allows.
+                </span>
+              )}
+              {estimate.estimated && (
+                <span className="block text-xs text-dim">
+                  An estimate. This model is billed on the tokens the provider counts for the finished clip — which
+                  include reference material — so the final charge can differ from the figure above.
                 </span>
               )}
             </p>

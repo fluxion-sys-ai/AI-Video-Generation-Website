@@ -24,7 +24,7 @@ import { CostEstimator } from "@/components/landing/cost-estimator";
 import { getModels, refreshCatalog, type Model } from "@/lib/models";
 import { BACKEND_ENABLED, getPlatformRates, type PlatformRates, type ReferenceLimits } from "@/lib/hub";
 import { useLive } from "@/lib/live";
-import { estimateCost, money, ratesFor, useRateCard, perSecondPrice } from "@/lib/rate-card";
+import { estimateCost, money, ratesFor, tokenBilled, useRateCard, perSecondPrice } from "@/lib/rate-card";
 
 export default function PricingPage() {
   useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
@@ -180,16 +180,27 @@ export default function PricingPage() {
                         </dl>
 
                         {/* Example clips at the durations this model actually offers. */}
-                        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-hairline pt-3 text-sm text-muted">
-                          {m.durations.slice(0, 4).map((seconds) => {
-                            const resolution = m.popularResolutions[0] || m.resolutions[0];
-                            const cost = clip(m, resolution, seconds);
-                            return (
-                              <span key={seconds}>
-                                {seconds}s <span className="text-fg-soft">{cost === null ? "—" : money(cost)}</span>
-                              </span>
-                            );
-                          })}
+                        <div className="mt-4 border-t border-hairline pt-3 text-sm text-muted">
+                          <div className="flex flex-wrap gap-x-6 gap-y-1">
+                            {m.durations.slice(0, 4).map((seconds) => {
+                              const resolution = m.popularResolutions[0] || m.resolutions[0];
+                              const cost = clip(m, resolution, seconds);
+                              return (
+                                <span key={seconds}>
+                                  {seconds}s <span className="text-fg-soft">{cost === null ? "—" : money(cost)}</span>
+                                </span>
+                              );
+                            })}
+                          </div>
+                          {/* A figure for a bare clip. This model's bill follows a
+                              count only the provider can make, so saying so here is
+                              the difference between a price and a guess. */}
+                          {tokenBilled(ratesFor(card, m)) && (
+                            <p className="mt-2 text-xs text-dim">
+                              For a clip on its own. This model is billed on the tokens the provider counts for the
+                              finished video, so reference images and footage add to it.
+                            </p>
+                          )}
                         </div>
                       </>
                     )}

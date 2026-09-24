@@ -16,7 +16,7 @@
 import { useLive } from "@/lib/live";
 import { getModels, refreshCatalog, type Model } from "@/lib/models";
 import { BACKEND_ENABLED } from "@/lib/hub";
-import { money, ratesFor, rateRange, useRateCard } from "@/lib/rate-card";
+import { money, ratesFor, rateRange, tokenBilled, useRateCard } from "@/lib/rate-card";
 import { PreviewBadge } from "@/components/models/preview-badge";
 import { CopyButton } from "@/components/docs/copy-button";
 
@@ -200,7 +200,16 @@ export function ModelDocs() {
                       the refusal names the smallest one that can. Same price either way.
                     </Row>
                   )}
-                  <Row label="price">{perSecond} per second of output</Row>
+                  <Row label="price">
+                    {perSecond} per second of output
+                    {tokenBilled(ratesFor(card, model)) && (
+                      <span className="block text-dim">
+                        Indicative. This model is billed on the tokens the provider counts for the finished clip,
+                        reference material included, so the charge depends on what you send as well as what you ask
+                        for.
+                      </span>
+                    )}
+                  </Row>
                 </>
               )}
             </div>

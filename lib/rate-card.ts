@@ -148,6 +148,19 @@ export function sampleCost(
   return { usd: cost !== null ? cost : model.usdPerSecond * seconds, label: `per ${seconds}s clip` };
 }
 
+/**
+ * Whether this model's price is a function of provider tokens.
+ *
+ * It matters to what we may promise: for every other model the facts that
+ * decide the bill are in the request, so a quote is the price. Here the
+ * provider counts the tokens for the finished job - reference material
+ * included, by its own rules - and that count is what settles. Anything we
+ * show before the job runs is an estimate, and has to say so.
+ */
+export function tokenBilled(tiers: ParsedTaskTier[] | undefined): boolean {
+  return Boolean(tiers?.some((tier) => tier.unitPrices.tokens !== undefined));
+}
+
 /** "$0.03" or "$0.03-$0.045" across the resolutions a model offers. */
 export function rateRange(tiers: ParsedTaskTier[] | undefined, resolutions: string[]): string | null {
   if (!tiers) return null;
