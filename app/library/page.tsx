@@ -484,7 +484,12 @@ function LibraryInner() {
     if (kind === "image" || kind === "video") setGenKind(kind);
     const files = search.get("files");
     if (files === "image" || files === "video" || files === "audio" || files === "document") setUploadKind(files);
-    if (search.get("portraits") === "1") setPortraitsOnly(true);
+    // Portraits implies Images, so a link carrying it restores both - which
+    // also means ?portraits=1 alone is a complete address for that view.
+    if (search.get("portraits") === "1") {
+      setPortraitsOnly(true);
+      setUploadKind("image");
+    }
   }, [search]);
 
   // Follow the URL: ?video= opens that record, ?item= opens that file, and the
@@ -1168,65 +1173,46 @@ function LibraryInner() {
             <div className="mt-3 flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
               {BACKEND_ENABLED && (
                 <div className="mr-auto flex flex-wrap items-center gap-1">
+                  {/* One selection, always. Portraits is not a fourth kind but
+                      a narrowing of Images - every registered character is one
+                      - so it sits after Images and carries the image filter
+                      with it, rather than being a second switch that can be
+                      set to a combination holding nothing. */}
                   {([
-                    ["all", "All", totalFiles],
-                    ["image", "Images", counts.image],
-                    ["video", "Video", counts.video],
-                    ["audio", "Audio", counts.audio],
-                    ["document", "Documents", counts.document],
-                  ] as const).map(([value, label, count]) => {
-                    // A kind nobody has any of is not a filter, it is a dead
-                    // button - except "all", which is where you go back to.
-                    if (value !== "all" && !count) return null;
-                    const on = uploadKind === value;
+                    ["all", "All", totalFiles, false],
+                    ["image", "Images", counts.image, false],
+                    ["image", "Portraits", portraitCount, true],
+                    ["video", "Video", counts.video, false],
+                    ["audio", "Audio", counts.audio, false],
+                    ["document", "Documents", counts.document, false],
+                  ] as const).map(([kindValue, label, count, portrait]) => {
+                    // A filter nobody has anything for is a dead button, not a
+                    // filter - except All, which is where you go back to.
+                    if (label !== "All" && !count) return null;
+                    const on = uploadKind === kindValue && portraitsOnly === portrait;
                     return (
                       <button
-                        key={value}
+                        key={label}
                         type="button"
                         onClick={() => {
-                          // One kind is always chosen, and All is what "none"
-                          // means - so clicking the chosen one goes back to it
-                          // rather than leaving nothing selected.
-                          const next = on ? "all" : value;
-                          setUploadKind(next);
-                          if (next !== "all" && next !== "image") setPortraitsOnly(false);
+                          // Clicking the chosen one goes back to All rather
+                          // than leaving nothing chosen.
+                          setUploadKind(on ? "all" : kindValue);
+                          setPortraitsOnly(on ? false : portrait);
                         }}
                         aria-pressed={on}
+                        title={portrait ? "Images registered with the provider as reusable characters" : undefined}
                         className={`border px-2.5 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs transition-colors ${
                           on
                             ? "border-accent bg-accent-soft text-accent-ink"
                             : "border-line text-muted hover:border-blue hover:text-fg-soft"
-                        }`}
+                        } ${portrait ? "ml-0.5" : ""}`}
                       >
                         {label}
                         <span className="ml-1.5 text-dim">{count}</span>
                       </button>
                     );
                   })}
-                  {portraitCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPortraitsOnly((on) => {
-                          // Only an image can be registered, so turning this on
-                          // inside Video would show an empty grid and read as a
-                          // fault rather than as a contradiction.
-                          if (!on && uploadKind !== "all" && uploadKind !== "image") setUploadKind("image");
-                          return !on;
-                        });
-                      }}
-                      aria-pressed={portraitsOnly}
-                      title="Images registered with the provider as reusable characters"
-                      className={`ml-2 border px-2.5 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs transition-colors ${
-                        portraitsOnly
-                          ? "border-accent bg-accent-soft text-accent-ink"
-                          : "border-line text-muted hover:border-blue hover:text-fg-soft"
-                      }`}
-                    >
-                      Portraits
-                      <span className="ml-1.5 text-dim">{portraitCount}</span>
-                    </button>
-                  )}
                 </div>
               )}
               <label htmlFor="img-sort" className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-dim">Sort</label>
@@ -1273,9 +1259,7 @@ function LibraryInner() {
                       icon={portraitsOnly ? <ImageIcon size={22} /> : <FolderOpen size={22} />}
                       title={
                         portraitsOnly
-                          ? uploadKind === "all" || uploadKind === "image"
-                            ? "No registered characters here"
-                            : "Only an image can be a character"
+                          ? "No registered characters here"
                           : `No ${uploadKind === "image" ? "image" : uploadKind} files here`
                       }
                       hint={

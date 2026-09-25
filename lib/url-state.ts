@@ -28,19 +28,24 @@ export function useUrlParam(key: string, value: string, fallback: string) {
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
-  // Whether the screen and the address have agreed at least once. Before that,
-  // the address is the newer of the two.
-  const adopted = useRef(false);
+  // The last value this screen reported. Null until the first run, which is
+  // how "the screen changed this" is told apart from "the screen has not
+  // looked yet" - and the difference decides whether a parameter may be
+  // erased.
+  const reported = useRef<string | null>(null);
 
   useEffect(() => {
     const current = search.get(key);
     const wanted = value === fallback ? null : value;
-    if (current === wanted) {
-      adopted.current = true;
-      return;
-    }
-    if (!adopted.current && current !== null && wanted === null) return;
-    adopted.current = true;
+    const changed = reported.current !== null && reported.current !== value;
+    reported.current = value;
+    if (current === wanted) return;
+    // Only a person may remove a parameter. On arrival the screen is at its
+    // default and the address is not, and erasing on that disagreement is how
+    // a shared link opened the plain page - including through a render where
+    // the parameters are not readable yet, which a static export has before it
+    // hydrates and which defeated the first attempt at this.
+    if (wanted === null && !changed) return;
     const next = new URLSearchParams(search.toString());
     if (wanted === null) next.delete(key);
     else next.set(key, wanted);
