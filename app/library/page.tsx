@@ -1040,18 +1040,26 @@ function LibraryInner() {
             <div className="lib-toolbar mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
               {/* left: All + folder tabs (drop targets) */}
               <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={() => setActiveFolder(null)}
-                  className={`rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
-                    activeFolder === null ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
-                  }`}
-                >
-                  All ({uploads.length})
-                </button>
+                {/* What this clears is a folder, so it appears only when there
+                    is one to clear - otherwise it is a second button marked
+                    "All" beside the kind filter's, doing nothing. Named for
+                    its own job now that the two share a screen, and counting
+                    the library rather than the page, like everything else
+                    here. */}
+                {(folders.length > 0 || favCount > 0) && (
+                  <button
+                    onClick={() => setActiveFolder(null)}
+                    className={`rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
+                      activeFolder === null ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
+                    }`}
+                  >
+                    All folders ({totalFiles})
+                  </button>
+                )}
                 {/* Favorites pseudo-folder, appears once any image is hearted */}
                 {favCount > 0 && (
                   <button
-                    onClick={() => setActiveFolder("favorites")}
+                    onClick={() => setActiveFolder((cur) => (cur === "favorites" ? null : "favorites"))}
                     className={`flex items-center gap-1.5 rounded-none border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] transition-colors ${
                       activeFolder === "favorites" ? "border-accent bg-accent-soft text-accent-ink" : "border-hairline-strong text-muted hover:bg-hover hover:text-fg"
                     }`}
@@ -1063,7 +1071,7 @@ function LibraryInner() {
                 {folders.map((f) => (
                   <button
                     key={f.id}
-                    onClick={() => setActiveFolder(f.id)}
+                    onClick={() => setActiveFolder((cur) => (cur === f.id ? null : f.id))}
                     onContextMenu={(e) => { e.preventDefault(); setFolderCtx({ x: e.clientX, y: e.clientY, id: f.id }); }}
                     onDragOver={(e) => { e.preventDefault(); setDragOverFolder(f.id); }}
                     onDragLeave={() => setDragOverFolder((d) => (d === f.id ? null : d))}
@@ -1176,8 +1184,12 @@ function LibraryInner() {
                         key={value}
                         type="button"
                         onClick={() => {
-                          setUploadKind(value);
-                          if (value !== "all" && value !== "image") setPortraitsOnly(false);
+                          // One kind is always chosen, and All is what "none"
+                          // means - so clicking the chosen one goes back to it
+                          // rather than leaving nothing selected.
+                          const next = on ? "all" : value;
+                          setUploadKind(next);
+                          if (next !== "all" && next !== "image") setPortraitsOnly(false);
                         }}
                         aria-pressed={on}
                         className={`border px-2.5 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs transition-colors ${
