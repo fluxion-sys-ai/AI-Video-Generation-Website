@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useUrlParam } from "@/lib/url-state";
+import { useUrlParams } from "@/lib/url-state";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { GlowBlobs } from "@/components/decor/glow-blobs";
@@ -450,12 +450,17 @@ function LibraryInner() {
 
   // ...and the other direction: clicking a tab writes it back, so the address
   // bar always describes the screen and a copied link opens what was on it.
-  useUrlParam("tab", tab, "generated");
-  useUrlParam("kind", genKind, "video");
-  // The uploaded tab's own filters. Separate keys from `kind`, which belongs to
-  // the generated tab and means a different thing there.
-  useUrlParam("files", uploadKind, "all");
-  useUrlParam("portraits", portraitsOnly ? "1" : "", "");
+  // All four in one call: separate ones each wrote the address from the same
+  // stale view of it, so the last one undid the others and the page flipped
+  // between two states. `files` and `portraits` are the uploaded tab's own -
+  // separate keys from `kind`, which belongs to the generated tab and means a
+  // different thing there.
+  useUrlParams([
+    ["tab", tab, "generated"],
+    ["kind", genKind, "video"],
+    ["files", uploadKind, "all"],
+    ["portraits", portraitsOnly ? "1" : "", ""],
+  ]);
 
   // The filter is the backend's to apply, not this screen's. Narrowing what
   // has already been loaded shows the documents among the first two dozen
