@@ -9,7 +9,7 @@ import { GlowBlobs } from "@/components/decor/glow-blobs";
 import { isSignedIn } from "@/lib/auth";
 import { getModels, getModel, getModelsOfKind, type Model, refreshCatalog } from "@/lib/models";
 import { getGenerations, refreshGenerations, loadMoreGenerations, generationsLoaded, generationTotals, formatWhen, type Generation } from "@/lib/generations";
-import { libraryLoaded, loadMoreLibrary } from "@/lib/prefs";
+import { filterLibrary, libraryLoaded, loadMoreLibrary } from "@/lib/prefs";
 import { ApiError, BACKEND_ENABLED, type MediaKind } from "@/lib/hub";
 import { useLive, useLiveState } from "@/lib/live";
 import {
@@ -457,6 +457,18 @@ function LibraryInner() {
   useUrlParam("files", uploadKind, "all");
   useUrlParam("portraits", portraitsOnly ? "1" : "", "");
 
+  // The filter is the backend's to apply, not this screen's. Narrowing what
+  // has already been loaded shows the documents among the first two dozen
+  // files rather than the documents in the library, and pages past the end of
+  // its own filter.
+  useEffect(() => {
+    if (!BACKEND_ENABLED) return;
+    void filterLibrary({
+      kind: uploadKind === "all" ? undefined : uploadKind,
+      portrait: portraitsOnly ? true : undefined,
+    });
+  }, [uploadKind, portraitsOnly]);
+
   // Open the tab named in ?tab= (from the header Library menu). Reacts to query
   // changes too, so navigating Videos → Images updates without a remount.
   useEffect(() => {
@@ -660,13 +672,9 @@ function LibraryInner() {
       default: return arr; // custom = stored order
     }
   }
-  // The kind narrows everything else: searching within "video" searches
-  // videos, and a folder shows the files of that kind it holds.
-  const byKind = uploadKind === "all" ? uploads : uploads.filter((im) => im.kind === uploadKind);
-  // Registered at all, not only the ones that finished: a portrait still being
-  // prepared is one somebody registered and expects to find here.
-  const ofKind = portraitsOnly ? byKind.filter((im) => Boolean(im.character)) : byKind;
-  const portraitCount = uploads.filter((im) => Boolean(im.character)).length;
+  // `uploads` is already the slice the filter asked the backend for, so there
+  // is nothing to narrow here - only to search and sort within it.
+  const ofKind = uploads;
   const baseImages = searching
     ? ofKind.filter((im) => im.name.toLowerCase().includes(iq))
     : activeFolder === "favorites"
@@ -866,7 +874,7 @@ function LibraryInner() {
   // Counted by the backend over the whole library. Summing the loaded rows made
   // the header say how far you had scrolled, which is not what anybody reads it
   // for - and with paging it would have started low and crept upwards.
-  const usage = libraryLoaded().usage;
+  const { usage, portraits: portraitCount } = libraryLoaded();
   const loadedCounts = {
     image: uploads.filter((u) => u.kind === "image").length,
     video: uploads.filter((u) => u.kind === "video").length,

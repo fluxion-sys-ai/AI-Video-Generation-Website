@@ -960,12 +960,16 @@ export type LibraryListing = {
   usage?: Partial<Record<MediaKind, { count: number; bytes: number }>>;
   /** How many the account holds, whatever this page carries. */
   total?: number;
+  /** Registered characters across the whole library, for the filter's count. */
+  portraits?: number;
 };
 
 export function listLibrary(
   kind?: MediaKind,
   page?: { limit: number; offset: number },
   ids?: string[],
+  /** Only registered characters, or only files that are not. */
+  portrait?: boolean,
 ): Promise<LibraryListing> {
   const params = new URLSearchParams();
   if (kind) params.set("kind", kind);
@@ -977,6 +981,7 @@ export function listLibrary(
     params.set("offset", String(page.offset));
   }
   if (ids && ids.length) params.set("ids", ids.join(","));
+  if (portrait !== undefined) params.set("portrait", String(portrait));
   const suffix = params.toString();
   return sidecar<LibraryListing>("GET", `/media/library/media${suffix ? `?${suffix}` : ""}`);
 }

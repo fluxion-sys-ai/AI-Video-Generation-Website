@@ -310,7 +310,12 @@ const UPLOAD_PAGE = 24;
 const UPLOAD_KEEP = 300;
 let uploadsShown = 0;
 let uploadsTotal = 0;
+// Which slice of the library is loaded. Paging and filtering are the same
+// question asked twice: a page of "everything" is not a page of "documents",
+// so changing the filter starts again rather than filtering what arrived.
+let uploadFilter: { kind?: MediaKind; portrait?: boolean } = {};
 let uploadUsage: Partial<Record<string, { count: number; bytes: number }>> = {};
+let uploadPortraits = 0;
 
 /** What is loaded, what exists, and what it all weighs - the last two counted
  *  by the backend over the whole library rather than over this page. */
@@ -319,12 +324,14 @@ export function libraryLoaded(): {
   total: number;
   more: boolean;
   usage: Partial<Record<string, { count: number; bytes: number }>>;
+  portraits: number;
 } {
   return {
     shown: uploadsShown,
     total: Math.max(uploadsTotal, uploadsShown),
     more: uploadsShown < uploadsTotal && uploadsShown < UPLOAD_KEEP,
     usage: uploadUsage,
+    portraits: uploadPortraits,
   };
 }
 
@@ -334,17 +341,33 @@ export async function loadMoreLibrary(): Promise<void> {
   await refreshLibrary({ append: true });
 }
 
+/** Show a different slice, from the beginning. */
+export async function filterLibrary(filter: { kind?: MediaKind; portrait?: boolean }): Promise<void> {
+  if (!BACKEND_ENABLED) return;
+  const same = filter.kind === uploadFilter.kind && Boolean(filter.portrait) === Boolean(uploadFilter.portrait);
+  if (same) return;
+  uploadFilter = filter;
+  liveMedia = [];
+  await refreshLibrary();
+}
+
 export async function refreshLibrary(options: { append?: boolean } = {}): Promise<void> {
   if (!BACKEND_ENABLED) return;
   const offset = options.append ? liveMedia.length : 0;
   // A refresh after deleting or renaming should not throw away the pages
   // somebody has already asked for and drop them back to the first two dozen.
   const want = options.append ? UPLOAD_PAGE : Math.min(Math.max(liveMedia.length, UPLOAD_PAGE), UPLOAD_KEEP);
-  const { items: page, folders, limits, usage, total } = await listLibrary(undefined, { limit: want, offset });
+  const { items: page, folders, limits, usage, total, portraits } = await listLibrary(
+    uploadFilter.kind,
+    { limit: want, offset },
+    undefined,
+    uploadFilter.portrait,
+  );
   const items = options.append ? [...liveMedia, ...page] : page;
   uploadsShown = items.length;
   uploadsTotal = total ?? uploadsShown;
   uploadUsage = usage ?? {};
+  uploadPortraits = portraits ?? 0;
   liveFolders = folders;
   liveLimits = limits;
   liveMedia = items;
