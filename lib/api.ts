@@ -29,6 +29,8 @@ export type GenerateParams = {
   referenceAudioIds?: string[];
   /** Stills the model follows throughout, which is not the same as a first frame. */
   referenceImageIds?: string[];
+  /** Documents the model reads and makes a video of. */
+  referenceDocumentIds?: string[];
 };
 
 export type GenerateResult = {
@@ -67,7 +69,8 @@ async function referenceMetadata(params: GenerateParams, model: ReturnType<typeo
   const videos = params.referenceVideoIds || [];
   const audios = params.referenceAudioIds || [];
   const stills = params.referenceImageIds || [];
-  if (!model || (!videos.length && !audios.length && !stills.length)) return {};
+  const documents = params.referenceDocumentIds || [];
+  if (!model || (!videos.length && !audios.length && !stills.length && !documents.length)) return {};
   const checked = await checkReferences({
     model: model.slug,
     ...(videos.length ? { reference_video: videos } : {}),
@@ -76,11 +79,14 @@ async function referenceMetadata(params: GenerateParams, model: ReturnType<typeo
     // an asset reference instead of a link; the backend makes that swap per
     // file, so nothing here has to know which is which.
     ...(stills.length ? { reference_image: stills } : {}),
+    // Source material rather than reference material: the model reads it.
+    ...(documents.length ? { document: documents } : {}),
   });
   const metadata: Record<string, unknown> = {};
   if (checked.urls.reference_video) metadata.reference_video = checked.urls.reference_video;
   if (checked.urls.reference_audio) metadata.reference_audio = checked.urls.reference_audio;
   if (checked.urls.reference_image) metadata.reference_image = checked.urls.reference_image;
+  if (checked.urls.document) metadata.document = checked.urls.document;
   return metadata;
 }
 
@@ -149,6 +155,8 @@ export type ImageParams = {
   size: string;
   /** Library stills to work from, by id. Image-to-image. */
   referenceImageIds?: string[];
+  /** Documents the model reads and makes a video of. */
+  referenceDocumentIds?: string[];
 };
 
 export type ImageResult = {

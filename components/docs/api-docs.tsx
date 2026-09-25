@@ -118,6 +118,17 @@ function VideoApiDocs({ model }: { model: Model }) {
           desc: `Images the model should draw on: ${refDesc("image")}.${price("image")} Each is a public https URL or the \`reference\` of one of your assets ($REFERENCE_…, from GET /v1/assets); the two mix freely in one list. Order is the order you send them, and the prompt names them by position — "the woman in Image 1" — never by id.`,
         }]
       : []),
+    ...(ref?.document
+      ? [{
+          name: "metadata.document",
+          type: "string",
+          desc: `A document the model reads and makes a video of — a deck, a spreadsheet, a PDF: ${
+            (ref.document.formats || []).map((f) => f.toUpperCase()).join(", ")
+          }${ref.document.max_pages ? `, up to ${ref.document.max_pages} pages` : ""}${
+            ref.document.max_bytes ? ` and ${Math.round(ref.document.max_bytes / 1048576)} MB` : ""
+          }. A public https URL or the \`reference\` of one of your assets ($REFERENCE_…, from GET /v1/assets). This is source material rather than something to follow: send it instead of a prompt, or alongside one to say what to emphasise.`,
+        }]
+      : []),
     ...(model.characters
       ? [{
           name: "metadata.reference_image (portraits)",

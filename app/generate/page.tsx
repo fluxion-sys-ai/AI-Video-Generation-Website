@@ -149,6 +149,7 @@ function GenerateInner() {
   const [pickingImage, setPickingImage] = useState(false);
   const [refVideos, setRefVideos] = useState<LibraryItem[]>([]);
   const [refAudios, setRefAudios] = useState<LibraryItem[]>([]);
+  const [refDocuments, setRefDocuments] = useState<LibraryItem[]>([]);
   // Stills the model should follow throughout - a subject, a style, a place -
   // as opposed to the single image below, which is the clip's first frame. The
   // provider treats the two as different modes, which is why they are separate
@@ -160,7 +161,7 @@ function GenerateInner() {
   });
   const { card } = useRateCard();
   const rules = model?.reference;
-  const hasReference = refVideos.length > 0 || refAudios.length > 0 || refImages.length > 0;
+  const hasReference = refVideos.length > 0 || refAudios.length > 0 || refImages.length > 0 || refDocuments.length > 0;
   // H3 treats reference material and frame images as two different modes and
   // refuses a request that mixes them, so the form does not offer the mix.
   const exclusive = Boolean(rules?.mutually_exclusive_with_frames);
@@ -518,6 +519,7 @@ function GenerateInner() {
       const videos: LibraryItem[] = [];
       const audios: LibraryItem[] = [];
       const stills: LibraryItem[] = [];
+      const documents: LibraryItem[] = [];
       const frames: { url: string; name: string }[] = [];
       const gone: string[] = [];
       const reframed: string[] = [];
@@ -532,6 +534,10 @@ function GenerateInner() {
         // are different modes the provider refuses to mix.
         if (item.kind === "video") videos.push(item);
         else if (item.kind === "audio") audios.push(item);
+        // Before the image branch below, which is the fallthrough: a document
+        // is not a still, and landing there would restore somebody's deck as
+        // the clip's first frame.
+        else if (item.kind === "document") documents.push(item);
         else if (input.role === "reference image" || takesReferenceImages) {
           // A frame image from an older request lands here, because this
           // playground no longer pins frames - the toast below says so rather
@@ -543,6 +549,7 @@ function GenerateInner() {
       setRefVideos(videos);
       setRefAudios(audios);
       setRefImages(stills);
+      setRefDocuments(documents);
       if (frames.length) setImages(frames);
       if (reframed.length) {
         toast(
@@ -669,6 +676,7 @@ function GenerateInner() {
       referenceVideoIds: refVideos.map((i) => i.id),
       referenceAudioIds: refAudios.map((i) => i.id),
       referenceImageIds: refImages.map((i) => i.id),
+      referenceDocumentIds: refDocuments.map((i) => i.id),
     })
       .then((r) => {
         if (id !== genId.current) return; // superseded, drop the result
@@ -734,6 +742,7 @@ function GenerateInner() {
         referenceVideoIds: refVideos.map((i) => i.id),
         referenceAudioIds: refAudios.map((i) => i.id),
         referenceImageIds: refImages.map((i) => i.id),
+        referenceDocumentIds: refDocuments.map((i) => i.id),
       },
       [],
     )
@@ -1175,6 +1184,18 @@ function GenerateInner() {
               // through their review, so it is offered where the image is
               // picked rather than in a library of its own.
               offersCharacters={Boolean(model?.characters)}
+            />
+          )}
+          {/* A document is not reference material in the same sense: the model
+              reads it and makes a video of what it says. Offered wherever the
+              catalogue row declares it, which today is Wan 3.0 alone. */}
+          {rules?.document && (
+            <ReferenceMedia
+              kind="document"
+              limits={rules.document}
+              modelSlug={slug}
+              items={refDocuments}
+              onChange={setRefDocuments}
             />
           )}
           {rules?.audio && (

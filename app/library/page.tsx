@@ -41,7 +41,8 @@ import {
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { toast } from "@/lib/toast";
 import { money } from "@/lib/rate-card";
-import { Heart, ImageIcon, FolderOpen, Search, Clapperboard, Music, Film } from "lucide-react";
+import { Heart, ImageIcon, FolderOpen, Search, Clapperboard, Music, Film, FileText } from "lucide-react";
+import { DOCUMENT_ACCEPT } from "@/components/generate/reference-media";
 import { KindSwitch, type Kind } from "@/components/ui/kind-switch";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GenerationRecordPanel } from "@/components/library/generation-record";
@@ -94,9 +95,11 @@ function VideoThumb({ g, onOpen }: { g: Generation; onOpen: (g: Generation) => v
 // could. An unmeasured file says nothing rather than guessing.
 function describeUpload(item: Upload): string {
   const bits: string[] = [];
-  if (item.kind !== "image" && item.duration != null) bits.push(`${Number(item.duration.toFixed(2))}s`);
+  // A document has pages where the others have seconds and pixels.
+  if (item.kind === "document" && item.pages != null) bits.push(`${item.pages} page${item.pages === 1 ? "" : "s"}`);
+  if (item.kind !== "image" && item.kind !== "document" && item.duration != null) bits.push(`${Number(item.duration.toFixed(2))}s`);
   if (item.width && item.height) bits.push(`${item.width}x${item.height}`);
-  if (item.kind !== "image" && item.codec) bits.push(item.codec.toUpperCase());
+  if (item.kind !== "image" && item.kind !== "document" && item.codec) bits.push(item.codec.toUpperCase());
   if (item.size) bits.push(item.size > 1048576 ? `${(item.size / 1048576).toFixed(1)} MB` : `${Math.round(item.size / 1024)} KB`);
   return bits.join(" · ");
 }
@@ -293,6 +296,19 @@ function UploadPreview({ item, dimmed }: { item: Upload; dimmed: boolean }) {
         <span className="pointer-events-none absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-[6px] bg-black/70 px-1.5 py-0.5 font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.04em] text-white">
           <Film size={9} />
           {item.duration != null ? `${Math.round(item.duration)}s` : "video"}
+        </span>
+      </div>
+    );
+  }
+  if (item.kind === "document") {
+    // Nothing to show, so the tile says what it is: the format, and how long
+    // it is in the unit a document has.
+    const suffix = (item.name.match(/\.([A-Za-z0-9]{1,8})$/)?.[1] || "doc").toUpperCase();
+    return (
+      <div className={`flex h-full w-full flex-col items-center justify-center gap-2 bg-panel ${dim}`}>
+        <FileText size={26} className="text-blue" />
+        <span className="font-[family-name:var(--font-jetbrains)] text-[10px] uppercase tracking-[0.06em] text-muted">
+          {item.pages != null ? `${suffix} · ${item.pages}p` : suffix}
         </span>
       </div>
     );
@@ -833,11 +849,13 @@ function LibraryInner() {
     image: uploads.filter((u) => u.kind === "image").length,
     video: uploads.filter((u) => u.kind === "video").length,
     audio: uploads.filter((u) => u.kind === "audio").length,
+    document: uploads.filter((u) => u.kind === "document").length,
   };
   const counts = {
     image: usage.image?.count ?? loadedCounts.image,
     video: usage.video?.count ?? loadedCounts.video,
     audio: usage.audio?.count ?? loadedCounts.audio,
+    document: usage.document?.count ?? loadedCounts.document,
   };
   const storedBytes = Object.values(usage).reduce((sum, u) => sum + (u?.bytes ?? 0), 0)
     || uploads.reduce((sum, u) => sum + (u.size || 0), 0);
@@ -947,7 +965,13 @@ function LibraryInner() {
             <input
               ref={uploadRef}
               type="file"
-              accept={uploadPortrait ? "image/*" : BACKEND_ENABLED ? "image/*,video/*,audio/*" : "image/*"}
+              accept={
+                uploadPortrait
+                  ? "image/*"
+                  : BACKEND_ENABLED
+                    ? `image/*,video/*,audio/*,${DOCUMENT_ACCEPT}`
+                    : "image/*"
+              }
               multiple
               className="hidden"
               onChange={onUploadFiles}
@@ -956,7 +980,8 @@ function LibraryInner() {
             {/* What is here, and what keeping it costs at the backend's rate. */}
             {BACKEND_ENABLED && uploads.length > 0 && (
               <p className="mt-4 text-sm text-muted">
-                {counts.image} image{counts.image === 1 ? "" : "s"} · {counts.video} video · {counts.audio} audio ·{" "}
+                {counts.image} image{counts.image === 1 ? "" : "s"} · {counts.video} video · {counts.audio} audio
+                {counts.document ? ` · ${counts.document} document${counts.document === 1 ? "" : "s"}` : ""} ·{" "}
                 {(storedBytes / 1048576).toFixed(1)} MB
                 {storageRate !== null && <> · {money((storedBytes / 1024 ** 3) * storageRate)} a month to keep</>}
               </p>

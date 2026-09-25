@@ -24,6 +24,8 @@ export type Model = {
   supports: {
     image: boolean; audio: boolean; seed: boolean;
     videoReference?: boolean; audioReference?: boolean; imageReference?: boolean;
+    /** Takes a document - a deck, a PDF - as the video's source material. */
+    documentReference?: boolean;
     /** Takes metadata.generation_time_budget_s, a ceiling on generation time. */
     timeBudget?: boolean;
   };
@@ -191,6 +193,7 @@ function toModel(entry: Awaited<ReturnType<typeof getCatalog>>[number]): Model {
       videoReference: Boolean(entry.supports?.video_reference || entry.supports?.reference?.video),
       audioReference: Boolean(entry.supports?.audio_reference || entry.supports?.reference?.audio),
       imageReference: Boolean(entry.supports?.image_reference || entry.supports?.reference?.image),
+      documentReference: Boolean(entry.supports?.document_reference || entry.supports?.reference?.document),
       timeBudget: Boolean(entry.supports?.time_budget),
     },
     reference: entry.supports?.reference,

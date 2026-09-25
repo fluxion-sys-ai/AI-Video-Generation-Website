@@ -890,7 +890,9 @@ export function setLowBalanceAlert(input: { thresholdUsd: number; email: string;
 // Uploading is permissive - any video, any audio, images we can serve - and the
 // provider's rules are checked when a file is used (checkReferences below).
 
-export type MediaKind = "image" | "video" | "audio";
+// A document is the odd one: not something to watch, but source material a
+// model reads - a deck, a spreadsheet, a PDF - and makes a video of.
+export type MediaKind = "image" | "video" | "audio" | "document";
 
 /**
  * Whether the video provider has been told about this image, and how that went.
@@ -924,6 +926,9 @@ export type LibraryItem = {
   codec: string;
   audio_codec: string;
   duration_seconds: number | null;
+  /** Documents: how many pages, where we could count them. A PDF gives this
+   *  up; a deck is a zip of XML and stays null, which is an honest unknown. */
+  pages: number | null;
   width: number | null;
   height: number | null;
   created_at: string;
@@ -1104,16 +1109,18 @@ export type ReferenceSelection = {
   reference_video?: string[];
   reference_audio?: string[];
   reference_image?: string[];
+  /** Source material the model reads. */
+  document?: string[];
 };
 
 export type ReferenceCheck = {
   ok: true;
   model: string;
   /** The facts that price the reference: input seconds, images, audio files. */
-  facts: { input_video_seconds: number; input_images: number; input_audios: number };
+  facts: { input_video_seconds: number; input_images: number; input_audios: number; input_documents?: number };
   /** Files the backend could not measure; the provider judges these itself. */
   unverified: string[];
-  urls: Partial<Record<"first_frame" | "last_frame" | "reference_video" | "reference_audio" | "reference_image", string | string[]>>;
+  urls: Partial<Record<"first_frame" | "last_frame" | "reference_video" | "reference_audio" | "reference_image" | "document", string | string[]>>;
   /** Which of the picked files travelled as a registered character. */
   registered?: string[];
   expires_at?: number | null;
@@ -1224,6 +1231,9 @@ export type ReferenceLimits = {
   max_px?: number;
   min_aspect?: number;
   max_aspect?: number;
+  /** Documents: how long a document may be. Counted for PDFs, unknown for
+   *  anything we cannot open without a parser. */
+  max_pages?: number;
   /** Price, where the provider charges for the input: per second, or per file. */
   usd_per_second?: number;
   usd_each?: number;
@@ -1246,6 +1256,8 @@ export type ReferenceRules = {
   audio?: ReferenceLimits;
   image?: ReferenceLimits;
   frame_image?: ReferenceLimits;
+  /** Source material a model reads rather than watches. Absent = not offered. */
+  document?: ReferenceLimits;
 };
 
 export type CatalogModel = {
@@ -1277,6 +1289,8 @@ export type CatalogModel = {
     video_reference?: boolean;
     audio_reference?: boolean;
     image_reference?: boolean;
+    /** Takes a document as the video's source material. */
+    document_reference?: boolean;
     /** Whether a caller may cap generation time with metadata.generation_time_budget_s. */
     time_budget?: boolean;
     /** What reference material this model takes, and what each file must satisfy. */

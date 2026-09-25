@@ -17,6 +17,7 @@ import {
   type LibraryFolder,
   type CharacterState,
   type LibraryItem,
+  type MediaKind,
   type LibraryLimits,
 } from "./hub";
 import { notify } from "./live";
@@ -366,7 +367,7 @@ export async function refreshLibrary(options: { append?: boolean } = {}): Promis
 }
 
 /** Stored video or audio, as the backend describes it (duration, codec, size). */
-export function getLibraryMedia(kind?: "video" | "audio" | "image"): LibraryItem[] {
+export function getLibraryMedia(kind?: MediaKind): LibraryItem[] {
   return kind ? liveMedia.filter((i) => i.kind === kind) : liveMedia;
 }
 
@@ -379,7 +380,7 @@ export function getLibraryMedia(kind?: "video" | "audio" | "image"): LibraryItem
 
 export type Upload = {
   id: string;
-  kind: "image" | "video" | "audio";
+  kind: MediaKind;
   name: string;
   /** Short-lived URL for display and playback. */
   url: string;
@@ -391,6 +392,8 @@ export type Upload = {
   folderId?: string | null;
   /** What the backend measured, where it could. Null means unknown. */
   duration?: number | null;
+  /** Documents: how long it is, in the unit a document has. */
+  pages?: number | null;
   width?: number | null;
   height?: number | null;
   container?: string;
@@ -418,6 +421,7 @@ export function getUploads(kind?: Upload["kind"]): Upload[] {
         fav: i.favourite,
         folderId: i.folder_id,
         duration: i.duration_seconds,
+        pages: i.pages,
         width: i.width,
         height: i.height,
         container: i.container,

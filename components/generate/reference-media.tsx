@@ -17,11 +17,18 @@ import { refreshLibrary } from "@/lib/prefs";
 import { money } from "@/lib/rate-card";
 import { toast } from "@/lib/toast";
 
-type Kind = "video" | "audio" | "image";
+type Kind = "video" | "audio" | "image" | "document";
 
 // What a provider takes for an image input. HEIC is here because that is what
 // phones produce; the backend accepts it and so does MiniMax.
 export const IMAGE_ACCEPT = "image/png,image/jpeg,image/webp,image/heic,image/heif,image/*";
+// Extensions as well as types: browsers disagree about the MIME type of a
+// .docx or a .key, and a picker that hides a file the backend would accept is
+// worse than one that offers a file the backend then refuses.
+export const DOCUMENT_ACCEPT = [
+  ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".key", ".pages", ".numbers", ".txt", ".md",
+  "application/pdf", "text/plain", "text/markdown",
+].join(",");
 
 const box =
   "rounded-none border border-line-strong bg-raised px-3 py-2 text-sm text-fg font-[family-name:var(--font-geist-sans)] outline-none focus:border-blue";
@@ -42,11 +49,21 @@ export function limitSummary(limits: ReferenceLimits | undefined, kind: Kind): s
   else if (limits.usd_each) parts.push(`${money(limits.usd_each)} each${limits.free_count ? `, first ${limits.free_count} free` : ""}`);
   else parts.push(kind === "audio" ? "free" : "no input charge");
   if (kind === "image" && limits.min_px && limits.max_px) parts.push(`${limits.min_px}-${limits.max_px}px`);
+  if (kind === "document" && limits.max_pages) parts.push(`up to ${limits.max_pages} pages`);
   return parts.join(" · ");
 }
 
 function describe(item: LibraryItem): string {
   const bits: string[] = [];
+  // A document is measured by its length in pages. Everything else is seconds
+  // and pixels, neither of which a PDF has.
+  if (item.kind === "document") {
+    if (item.pages != null) bits.push(`${item.pages} page${item.pages === 1 ? "" : "s"}`);
+    const suffix = item.name.match(/\.([A-Za-z0-9]{1,8})$/);
+    if (suffix) bits.push(suffix[1].toUpperCase());
+    bits.push(`${(item.bytes / 1048576).toFixed(1)} MB`);
+    return bits.join(" · ");
+  }
   if (item.duration_seconds != null) bits.push(`${Number(item.duration_seconds.toFixed(2))}s`);
   if (item.width && item.height) bits.push(`${item.width}x${item.height}`);
   if (item.codec) bits.push(item.codec.toUpperCase());
@@ -276,7 +293,13 @@ export function ReferenceMedia({
             Number(b.character?.status === "ready") - Number(a.character?.status === "ready"),
         )
       : stored || [];
-  const label = kind === "video" ? "Reference video" : kind === "audio" ? "Reference audio" : "Reference images";
+  const label =
+    kind === "video" ? "Reference video"
+      : kind === "audio" ? "Reference audio"
+        // Not "reference": the model reads this and makes a video of it, which
+        // is a different job from following a picture.
+        : kind === "document" ? "Source document"
+          : "Reference images";
 
   return (
     <div data-reference={kind}>
@@ -304,6 +327,21 @@ export function ReferenceMedia({
                 />
               ) : kind === "audio" ? (
                 <audio src={item.url} controls className="h-10 w-56" />
+              ) : kind === "document" ? (
+                // Nothing to play or preview: a page mark, the extension, and
+                // the name is what tells somebody which file this is.
+                <span
+                  aria-hidden="true"
+                  className="flex h-20 w-32 shrink-0 flex-col items-center justify-center gap-1 border border-line bg-surface text-dim"
+                >
+                  <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2">
+                    <path d="M3.5 1.5h6l3 3v10h-9z" strokeLinejoin="round" />
+                    <path d="M9.5 1.5v3h3M5.5 7.5h5M5.5 10h5M5.5 12.5h3" strokeLinecap="round" />
+                  </svg>
+                  <span className="font-[family-name:var(--font-jetbrains)] text-[9px] uppercase tracking-[0.06em]">
+                    {(item.name.match(/\.([A-Za-z0-9]{1,8})$/)?.[1] || "doc").toUpperCase()}
+                  </span>
+                </span>
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={item.url} alt={item.name} className="h-20 w-32 bg-black object-contain" />
@@ -349,7 +387,12 @@ export function ReferenceMedia({
         <input
           ref={fileInput}
           type="file"
-          accept={kind === "video" ? "video/*" : kind === "audio" ? "audio/*" : IMAGE_ACCEPT}
+          accept={
+            kind === "video" ? "video/*"
+              : kind === "audio" ? "audio/*"
+                : kind === "document" ? DOCUMENT_ACCEPT
+                  : IMAGE_ACCEPT
+          }
           multiple={(limits?.max_count || 1) > 1}
           className="hidden"
           onChange={(e) => {
@@ -373,13 +416,26 @@ export function ReferenceMedia({
           {stored === null ? (
             <p className="p-3 text-sm text-muted">Loading…</p>
           ) : stored.length === 0 ? (
-            <p className="p-3 text-sm text-muted">Nothing here yet. Upload a {kind} file and it stays in your library.</p>
+            <p className="p-3 text-sm text-muted">
+              Nothing here yet. Upload {kind === "document" ? "a document" : `a ${kind} file`} and it stays in your library.
+            </p>
           ) : (
             <ul className="divide-y divide-hairline">
               {browseOrder.map((item) => (
                 <li key={item.id} className="flex items-center gap-3 p-2">
                   {/* A face cannot be recognised from a filename, and a
                       portrait is picked by which face it is. */}
+                  {kind === "document" && (
+                    <span
+                      aria-hidden="true"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center border border-line bg-surface text-dim"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2">
+                        <path d="M3.5 1.5h6l3 3v10h-9z" strokeLinejoin="round" />
+                        <path d="M9.5 1.5v3h3" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                  )}
                   {kind === "image" && item.url && (
                     <LazyTile
                       url={item.url}

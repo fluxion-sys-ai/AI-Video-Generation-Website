@@ -57,6 +57,7 @@ function referenceSummary(model: Model): string[] {
   if (rules.image) parts.push(`${rules.image.max_count ?? 1} image${(rules.image.max_count ?? 1) === 1 ? "" : "s"}`);
   if (rules.video) parts.push(`${rules.video.max_count ?? 1} clip${(rules.video.max_count ?? 1) === 1 ? "" : "s"}`);
   if (rules.audio) parts.push(`${rules.audio.max_count ?? 1} audio track${(rules.audio.max_count ?? 1) === 1 ? "" : "s"}`);
+  if (rules.document) parts.push(`${rules.document.max_count ?? 1} document${(rules.document.max_count ?? 1) === 1 ? "" : "s"}`);
   return parts;
 }
 
@@ -187,6 +188,11 @@ export function ModelDocs() {
                       <code className="text-gold-2">metadata.reference_image</code>,{" "}
                       <code className="text-gold-2">reference_video</code> and{" "}
                       <code className="text-gold-2">reference_audio</code>
+                      {model.reference?.document && (
+                        <>
+                          {" "}and <code className="text-gold-2">document</code>
+                        </>
+                      )}
                       {Number(model.reference?.min_visual || 0) > 0 ? "; at least one image or clip is required" : ""}
                     </Row>
                   )}
