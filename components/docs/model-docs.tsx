@@ -116,6 +116,18 @@ function curlFor(model: Model, perSecond: string): string {
   return lines.join("\n");
 }
 
+/** A heading over one kind of model, so the two are not read as one list. */
+function Kind({ id, title, blurb }: { id: string; title: string; blurb: string }) {
+  return (
+    <div id={id} className="scroll-mt-28 space-y-1 border-t border-line-strong pt-6 first:border-0 first:pt-0">
+      <h3 className="font-[family-name:var(--font-jetbrains)] text-sm font-medium uppercase tracking-[0.1em] text-gold">
+        {title}
+      </h3>
+      <p className="text-sm text-muted">{blurb}</p>
+    </div>
+  );
+}
+
 export function ModelDocs() {
   useLive("models", BACKEND_ENABLED ? refreshCatalog : undefined);
   const { card } = useRateCard();
@@ -125,104 +137,128 @@ export function ModelDocs() {
     return <p className="text-muted">Loading the model list…</p>;
   }
 
+  // Split rather than sort. The two kinds take different fields, answer on
+  // different routes and are priced in different units - a video by the second,
+  // a picture by the picture - so reading them as one list means working out
+  // which kind each row is before any of it means anything.
+  const video = models.filter((model) => model.modality !== "image");
+  const image = models.filter((model) => model.modality === "image");
+
+  const renderModel = (model: Model) => {
+    const isImage = model.modality === "image";
+    const perSecond = rateRange(ratesFor(card, model), model.resolutions) ?? money(model.usdPerSecond);
+    // An image is one price whatever its size, and it comes from the model
+    // rather than from an expression over what was asked for.
+    const perImage = money(model.usdPerImage ?? 0);
+    const input = model.reference?.image;
+    const references = referenceSummary(model);
+    return (
+      <div key={model.slug} id={`model-${model.slug}`} className="scroll-mt-28 space-y-3">
+        <h3 className="flex items-center gap-2 font-[family-name:var(--font-jetbrains)] text-base font-medium uppercase tracking-[0.02em] text-fg-strong">
+          {model.name}
+          {model.preview && <PreviewBadge />}
+        </h3>
+        {model.preview && (
+          <p className="text-sm text-muted">
+            Not released yet. Your account has early access, so this model is visible to you and not to
+            everyone else; what it costs and what it accepts may still change.
+          </p>
+        )}
+        <p className="text-muted">{model.description || model.tagline}</p>
+        <div className="mt-2">
+          <Row label="model">
+            <code className="text-gold-2">{model.hubModel || model.slug}</code>
+          </Row>
+          {isImage ? (
+            <>
+              <Row label="route">
+                <code className="text-gold-2">POST /v1/images/generations</code>
+              </Row>
+              <Row label="size">
+                {model.resolutions.join(", ")}
+                {model.imageSize?.max_pixels
+                  ? `, or any width x height up to ${(model.imageSize.max_pixels / 1e6).toFixed(1)} megapixels`
+                  : ""}
+              </Row>
+              {input && (
+                <Row label="image">
+                  up to {input.max_count ?? 10} to work from, as{" "}
+                  <code className="text-gold-2">image</code>
+                  {input.usd_each
+                    ? `; the first ${input.free_count ?? 0} free, then ${money(input.usd_each)} each`
+                    : ""}
+                </Row>
+              )}
+              <Row label="price">{perImage} per image</Row>
+            </>
+          ) : (
+            <>
+              <Row label="seconds">{durationRange(model.durations)}</Row>
+              <Row label="resolution">{model.resolutions.join(", ")}</Row>
+              <Row label="aspect_ratio">{model.aspectRatios.join(", ")}</Row>
+              <Row label="sound">
+                {model.supports.audio ? "on by default; send audio: false for a silent clip" : "always on"}
+              </Row>
+              {references.length > 0 && (
+                <Row label="reference material">
+                  up to {references.join(", ")} in one request, as{" "}
+                  <code className="text-gold-2">metadata.reference_image</code>,{" "}
+                  <code className="text-gold-2">reference_video</code> and{" "}
+                  <code className="text-gold-2">reference_audio</code>
+                  {model.reference?.document && (
+                    <>
+                      {" "}and <code className="text-gold-2">document</code>
+                    </>
+                  )}
+                  {Number(model.reference?.min_visual || 0) > 0 ? "; at least one image or clip is required" : ""}
+                </Row>
+              )}
+              {model.supports.timeBudget && (
+                <Row label="time budget">
+                  optional:{" "}
+                  <code className="text-gold-2">metadata.generation_time_budget_s</code>, a ceiling in
+                  seconds on generation time. The clip is
+                  planned to fit it — a tighter budget works from less of your reference detail and comes
+                  back sooner, at the same length and size. A budget that cannot be met is refused, and
+                  the refusal names the smallest one that can. Same price either way.
+                </Row>
+              )}
+              <Row label="price">
+                {perSecond} per second of output
+                {tokenBilled(ratesFor(card, model)) && (
+                  <span className="block text-dim">
+                    Indicative. This model is billed on the tokens the provider counts for the finished clip,
+                    reference material included, so the charge depends on what you send as well as what you ask
+                    for.
+                  </span>
+                )}
+              </Row>
+            </>
+          )}
+        </div>
+        <Code>{isImage ? imageCurlFor(model, perImage) : curlFor(model, perSecond)}</Code>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-10">
-      {models.map((model) => {
-        const isImage = model.modality === "image";
-        const perSecond = rateRange(ratesFor(card, model), model.resolutions) ?? money(model.usdPerSecond);
-        // An image is one price whatever its size, and it comes from the model
-        // rather than from an expression over what was asked for.
-        const perImage = money(model.usdPerImage ?? 0);
-        const input = model.reference?.image;
-        const references = referenceSummary(model);
-        return (
-          <div key={model.slug} id={`model-${model.slug}`} className="scroll-mt-28 space-y-3">
-            <h3 className="flex items-center gap-2 font-[family-name:var(--font-jetbrains)] text-base font-medium uppercase tracking-[0.02em] text-fg-strong">
-              {model.name}
-              {model.preview && <PreviewBadge />}
-            </h3>
-            {model.preview && (
-              <p className="text-sm text-muted">
-                Not released yet. Your account has early access, so this model is visible to you and not to
-                everyone else; what it costs and what it accepts may still change.
-              </p>
-            )}
-            <p className="text-muted">{model.description || model.tagline}</p>
-            <div className="mt-2">
-              <Row label="model">
-                <code className="text-gold-2">{model.hubModel || model.slug}</code>
-              </Row>
-              {isImage ? (
-                <>
-                  <Row label="route">
-                    <code className="text-gold-2">POST /v1/images/generations</code>
-                  </Row>
-                  <Row label="size">
-                    {model.resolutions.join(", ")}
-                    {model.imageSize?.max_pixels
-                      ? `, or any width x height up to ${(model.imageSize.max_pixels / 1e6).toFixed(1)} megapixels`
-                      : ""}
-                  </Row>
-                  {input && (
-                    <Row label="image">
-                      up to {input.max_count ?? 10} to work from, as{" "}
-                      <code className="text-gold-2">image</code>
-                      {input.usd_each
-                        ? `; the first ${input.free_count ?? 0} free, then ${money(input.usd_each)} each`
-                        : ""}
-                    </Row>
-                  )}
-                  <Row label="price">{perImage} per image</Row>
-                </>
-              ) : (
-                <>
-                  <Row label="seconds">{durationRange(model.durations)}</Row>
-                  <Row label="resolution">{model.resolutions.join(", ")}</Row>
-                  <Row label="aspect_ratio">{model.aspectRatios.join(", ")}</Row>
-                  <Row label="sound">
-                    {model.supports.audio ? "on by default; send audio: false for a silent clip" : "always on"}
-                  </Row>
-                  {references.length > 0 && (
-                    <Row label="reference material">
-                      up to {references.join(", ")} in one request, as{" "}
-                      <code className="text-gold-2">metadata.reference_image</code>,{" "}
-                      <code className="text-gold-2">reference_video</code> and{" "}
-                      <code className="text-gold-2">reference_audio</code>
-                      {model.reference?.document && (
-                        <>
-                          {" "}and <code className="text-gold-2">document</code>
-                        </>
-                      )}
-                      {Number(model.reference?.min_visual || 0) > 0 ? "; at least one image or clip is required" : ""}
-                    </Row>
-                  )}
-                  {model.supports.timeBudget && (
-                    <Row label="time budget">
-                      optional:{" "}
-                      <code className="text-gold-2">metadata.generation_time_budget_s</code>, a ceiling in
-                      seconds on generation time. The clip is
-                      planned to fit it — a tighter budget works from less of your reference detail and comes
-                      back sooner, at the same length and size. A budget that cannot be met is refused, and
-                      the refusal names the smallest one that can. Same price either way.
-                    </Row>
-                  )}
-                  <Row label="price">
-                    {perSecond} per second of output
-                    {tokenBilled(ratesFor(card, model)) && (
-                      <span className="block text-dim">
-                        Indicative. This model is billed on the tokens the provider counts for the finished clip,
-                        reference material included, so the charge depends on what you send as well as what you ask
-                        for.
-                      </span>
-                    )}
-                  </Row>
-                </>
-              )}
-            </div>
-            <Code>{isImage ? imageCurlFor(model, perImage) : curlFor(model, perSecond)}</Code>
-          </div>
-        );
-      })}
+      {video.length > 0 && (
+        <Kind
+          id="model-reference-video"
+          title={`Video models (${video.length})`}
+          blurb="Asynchronous: submit, then either poll or let us call you back when it is done. Priced per second of finished clip."
+        />
+      )}
+      {video.map(renderModel)}
+      {image.length > 0 && (
+        <Kind
+          id="model-reference-image"
+          title={`Image models (${image.length})`}
+          blurb="One call that holds open and returns the picture. Nothing to poll, and priced per image rather than per second."
+        />
+      )}
+      {image.map(renderModel)}
     </div>
   );
 }
