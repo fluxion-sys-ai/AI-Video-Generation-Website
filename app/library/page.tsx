@@ -10,7 +10,7 @@ import { isSignedIn } from "@/lib/auth";
 import { getModels, getModel, getModelsOfKind, type Model, refreshCatalog } from "@/lib/models";
 import { getGenerations, refreshGenerations, loadMoreGenerations, generationsLoaded, generationTotals, formatWhen, type Generation } from "@/lib/generations";
 import { libraryLoaded, loadMoreLibrary } from "@/lib/prefs";
-import { ApiError, BACKEND_ENABLED } from "@/lib/hub";
+import { ApiError, BACKEND_ENABLED, type MediaKind } from "@/lib/hub";
 import { useLive, useLiveState } from "@/lib/live";
 import {
   getFavorites,
@@ -367,6 +367,14 @@ function LibraryInner() {
   // rather than one mixed grid - and the switch appears only once there is
   // something of each, which for most accounts is never.
   const [genKind, setGenKind] = useState<Kind>("video");
+  // Which kinds of uploaded file to show. "all" is the default, because the
+  // library was one grid before there were four kinds in it and most people
+  // are still looking for a picture.
+  const [uploadKind, setUploadKind] = useState<MediaKind | "all">("all");
+  // Registered characters, which are a property of a file rather than a kind:
+  // only an image can be one, and an image is one or it is not. So this narrows
+  // alongside the kind rather than being a fifth value of it.
+  const [portraitsOnly, setPortraitsOnly] = useState(false);
   // The generated video whose record is open, if any. ?video=<task id> opens
   // one directly, which is what a usage-history entry links to.
   const [record, setRecord] = useState<Generation | null>(null);
@@ -444,6 +452,10 @@ function LibraryInner() {
   // bar always describes the screen and a copied link opens what was on it.
   useUrlParam("tab", tab, "generated");
   useUrlParam("kind", genKind, "video");
+  // The uploaded tab's own filters. Separate keys from `kind`, which belongs to
+  // the generated tab and means a different thing there.
+  useUrlParam("files", uploadKind, "all");
+  useUrlParam("portraits", portraitsOnly ? "1" : "", "");
 
   // Open the tab named in ?tab= (from the header Library menu). Reacts to query
   // changes too, so navigating Videos → Images updates without a remount.
@@ -458,6 +470,9 @@ function LibraryInner() {
     if (search.get("item")) setTab("uploaded");
     const kind = search.get("kind");
     if (kind === "image" || kind === "video") setGenKind(kind);
+    const files = search.get("files");
+    if (files === "image" || files === "video" || files === "audio" || files === "document") setUploadKind(files);
+    if (search.get("portraits") === "1") setPortraitsOnly(true);
   }, [search]);
 
   // Follow the URL: ?video= opens that record, ?item= opens that file, and the
@@ -645,13 +660,20 @@ function LibraryInner() {
       default: return arr; // custom = stored order
     }
   }
+  // The kind narrows everything else: searching within "video" searches
+  // videos, and a folder shows the files of that kind it holds.
+  const byKind = uploadKind === "all" ? uploads : uploads.filter((im) => im.kind === uploadKind);
+  // Registered at all, not only the ones that finished: a portrait still being
+  // prepared is one somebody registered and expects to find here.
+  const ofKind = portraitsOnly ? byKind.filter((im) => Boolean(im.character)) : byKind;
+  const portraitCount = uploads.filter((im) => Boolean(im.character)).length;
   const baseImages = searching
-    ? uploads.filter((im) => im.name.toLowerCase().includes(iq))
+    ? ofKind.filter((im) => im.name.toLowerCase().includes(iq))
     : activeFolder === "favorites"
-      ? uploads.filter((im) => im.fav)
+      ? ofKind.filter((im) => im.fav)
       : activeFolderObj
-        ? uploads.filter((im) => activeFolderObj.imageIds.includes(im.id))
-        : uploads;
+        ? ofKind.filter((im) => activeFolderObj.imageIds.includes(im.id))
+        : ofKind;
   const shownImages = sortImages(baseImages);
 
   const allSelected = selected.size > 0 && shownImages.every((i) => selected.has(i.id));
@@ -1122,8 +1144,67 @@ function LibraryInner() {
               </div>
             </div>
 
-            {/* sort dropdown (right, below the actions) */}
-            <div className="mt-3 flex items-center justify-end gap-2">
+            {/* what is shown, and in what order */}
+            <div className="mt-3 flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+              {BACKEND_ENABLED && (
+                <div className="mr-auto flex flex-wrap items-center gap-1">
+                  {([
+                    ["all", "All", uploads.length],
+                    ["image", "Images", counts.image],
+                    ["video", "Video", counts.video],
+                    ["audio", "Audio", counts.audio],
+                    ["document", "Documents", counts.document],
+                  ] as const).map(([value, label, count]) => {
+                    // A kind nobody has any of is not a filter, it is a dead
+                    // button - except "all", which is where you go back to.
+                    if (value !== "all" && !count) return null;
+                    const on = uploadKind === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => {
+                          setUploadKind(value);
+                          if (value !== "all" && value !== "image") setPortraitsOnly(false);
+                        }}
+                        aria-pressed={on}
+                        className={`border px-2.5 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs transition-colors ${
+                          on
+                            ? "border-accent bg-accent-soft text-accent-ink"
+                            : "border-line text-muted hover:border-blue hover:text-fg-soft"
+                        }`}
+                      >
+                        {label}
+                        <span className="ml-1.5 text-dim">{count}</span>
+                      </button>
+                    );
+                  })}
+                  {portraitCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPortraitsOnly((on) => {
+                          // Only an image can be registered, so turning this on
+                          // inside Video would show an empty grid and read as a
+                          // fault rather than as a contradiction.
+                          if (!on && uploadKind !== "all" && uploadKind !== "image") setUploadKind("image");
+                          return !on;
+                        });
+                      }}
+                      aria-pressed={portraitsOnly}
+                      title="Images registered with the provider as reusable characters"
+                      className={`ml-2 border px-2.5 py-1.5 font-[family-name:var(--font-jetbrains)] text-xs transition-colors ${
+                        portraitsOnly
+                          ? "border-accent bg-accent-soft text-accent-ink"
+                          : "border-line text-muted hover:border-blue hover:text-fg-soft"
+                      }`}
+                    >
+                      Portraits
+                      <span className="ml-1.5 text-dim">{portraitCount}</span>
+                    </button>
+                  )}
+                </div>
+              )}
               <label htmlFor="img-sort" className="font-[family-name:var(--font-jetbrains)] text-xs uppercase tracking-[0.06em] text-dim">Sort</label>
               <select
                 id="img-sort"
@@ -1159,6 +1240,32 @@ function LibraryInner() {
                       icon={<Search size={22} />}
                       title={`Nothing matches “${imgQuery}”`}
                       hint="Try a different search."
+                    />
+                  ) : portraitsOnly || uploadKind !== "all" ? (
+                    // A filter finding nothing is not an empty library, and
+                    // saying so would send somebody off to upload a file they
+                    // already have.
+                    <EmptyState
+                      icon={portraitsOnly ? <ImageIcon size={22} /> : <FolderOpen size={22} />}
+                      title={
+                        portraitsOnly
+                          ? uploadKind === "all" || uploadKind === "image"
+                            ? "No registered characters here"
+                            : "Only an image can be a character"
+                          : `No ${uploadKind === "image" ? "image" : uploadKind} files here`
+                      }
+                      hint={
+                        activeFolderObj
+                          ? "Nothing in this folder matches. Try another folder, or show everything."
+                          : "Try another filter, or show everything."
+                      }
+                      action={{
+                        label: "Show everything",
+                        onClick: () => {
+                          setUploadKind("all");
+                          setPortraitsOnly(false);
+                        },
+                      }}
                     />
                   ) : activeFolderObj ? (
                     <EmptyState
