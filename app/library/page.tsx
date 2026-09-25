@@ -431,21 +431,35 @@ function LibraryInner() {
    * lands on the record it was reached from, with that record open again,
    * instead of dumping you on the library's front page.
    */
+  // Opening a file used to write the whole address - `?tab=uploaded&item=…` -
+  // which threw away the filter somebody had just chosen. The hook that keeps
+  // filters in the address then put them back, that write dropped the item,
+  // and the page went back and forth between the two. Change what changed and
+  // leave the rest of the address alone.
+  function libraryUrl(changes: Record<string, string | null>) {
+    const next = new URLSearchParams(search.toString());
+    for (const [key, value] of Object.entries(changes)) {
+      if (value === null) next.delete(key);
+      else next.set(key, value);
+    }
+    const query = next.toString();
+    return query ? `/library?${query}` : "/library";
+  }
   function openRecord(g: Generation) {
     setRecord(g);
-    router.push(`/library?tab=generated&video=${g.id}`);
+    router.push(libraryUrl({ tab: "generated", video: g.id }));
   }
   function closeRecord() {
     setRecord(null);
-    if (search.get("video")) router.replace("/library?tab=generated");
+    if (search.get("video")) router.replace(libraryUrl({ video: null }));
   }
   function openItem(item: Upload) {
     setImgLightbox(item);
-    router.push(`/library?tab=uploaded&item=${item.id}`);
+    router.push(libraryUrl({ tab: "uploaded", item: item.id }));
   }
   function closeItem() {
     setImgLightbox(null);
-    if (search.get("item")) router.replace("/library?tab=uploaded");
+    if (search.get("item")) router.replace(libraryUrl({ item: null }));
   }
 
   // ...and the other direction: clicking a tab writes it back, so the address
