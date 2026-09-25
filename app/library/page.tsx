@@ -881,6 +881,10 @@ function LibraryInner() {
     audio: uploads.filter((u) => u.kind === "audio").length,
     document: uploads.filter((u) => u.kind === "document").length,
   };
+  // Every kind the account holds, whatever this page carries - so "All" says
+  // how many files there are rather than how many have been loaded, which on a
+  // library of 268 read as 24.
+  const totalFiles = Object.values(usage).reduce((n, u) => n + (u?.count ?? 0), 0) || uploads.length;
   const counts = {
     image: usage.image?.count ?? loadedCounts.image,
     video: usage.video?.count ?? loadedCounts.video,
@@ -1157,7 +1161,7 @@ function LibraryInner() {
               {BACKEND_ENABLED && (
                 <div className="mr-auto flex flex-wrap items-center gap-1">
                   {([
-                    ["all", "All", uploads.length],
+                    ["all", "All", totalFiles],
                     ["image", "Images", counts.image],
                     ["video", "Video", counts.video],
                     ["audio", "Audio", counts.audio],

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 /**
@@ -16,16 +16,31 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
  * place of its own, and pushing means Back walks every tab somebody tried
  * before it leaves the page. The default value is left out of the URL, so the
  * plain address is the plain screen.
+ *
+ * On arrival the URL leads and the screen follows. A page opened at
+ * `?files=document` renders once with whatever its state defaults to, and this
+ * hook ran first and deleted the parameter for disagreeing with that default -
+ * so the screen read an address it had already erased, and a shared link
+ * opened the plain page. Until the screen has adopted the value once, this
+ * will not remove one.
  */
 export function useUrlParam(key: string, value: string, fallback: string) {
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
+  // Whether the screen and the address have agreed at least once. Before that,
+  // the address is the newer of the two.
+  const adopted = useRef(false);
 
   useEffect(() => {
     const current = search.get(key);
     const wanted = value === fallback ? null : value;
-    if (current === wanted) return;
+    if (current === wanted) {
+      adopted.current = true;
+      return;
+    }
+    if (!adopted.current && current !== null && wanted === null) return;
+    adopted.current = true;
     const next = new URLSearchParams(search.toString());
     if (wanted === null) next.delete(key);
     else next.set(key, wanted);
