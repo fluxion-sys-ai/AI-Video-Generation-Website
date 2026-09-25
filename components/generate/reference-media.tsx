@@ -317,7 +317,7 @@ export function ReferenceMedia({
                   )}
                   {item.name}
                 </p>
-                <p className="text-xs text-muted">{describe(item)}</p>
+                <p className="truncate text-xs text-muted" title={describe(item)}>{describe(item)}</p>
                 {offersCharacters && item.character?.status === "ready" && (
                   <p className="mt-0.5 text-[11px] text-accent-ink">
                     Registered character — refer to it as &ldquo;Image {items.indexOf(item) + 1}&rdquo; in your prompt.
@@ -416,7 +416,7 @@ export function ReferenceMedia({
                       )}
                       <span className="truncate">{item.name}</span>
                     </p>
-                    <p className="text-xs text-muted">{describe(item)}</p>
+                    <p className="truncate text-xs text-muted" title={describe(item)}>{describe(item)}</p>
                   </div>
                   <button
                     type="button"
